@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import img360 from '../data/img/img360.jpg';
 
 const Viewer360 = ({ project, onBack }) => {
@@ -103,6 +104,13 @@ const Viewer360 = ({ project, onBack }) => {
       document.removeEventListener('touchend', handleGlobalTouchEnd);
     };
   }, [isDragging, dragStart, rotation]);
+
+  // Очищаем event listeners при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      setIsDragging(false);
+    };
+  }, []);
 
   // Обработчик клика по пункту сайдбара
   const handleSidebarClick = (item) => {
@@ -339,6 +347,15 @@ const Viewer360 = ({ project, onBack }) => {
 
     </div>
   );
+};
+
+Viewer360.propTypes = {
+  project: PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+    preview: PropTypes.string,
+  }),
+  onBack: PropTypes.func.isRequired,
 };
 
 export default Viewer360; 

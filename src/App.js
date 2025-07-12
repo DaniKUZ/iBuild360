@@ -1,8 +1,9 @@
-import React, { useState, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useMemo, useCallback, Suspense, lazy } from 'react';
 import { mockProjects, projectStatuses } from './data/mockData';
 import Sidebar from './components/Sidebar';
 import ProjectEditor from './components/ProjectEditor';
 import Viewer360 from './components/Viewer360';
+import ErrorBoundary from './components/ErrorBoundary';
 import './styles/App.css';
 
 // Ленивая загрузка компонентов
@@ -24,41 +25,51 @@ function App() {
     });
   }, [searchTerm, statusFilter]);
 
-  const handleView360 = (projectId) => {
+  // Мемоизируем статусы проектов
+  const memoizedProjectStatuses = useMemo(() => 
+    projectStatuses.map(status => (
+      <option key={status.value} value={status.value}>
+        {status.label}
+      </option>
+    )), []);
+
+  const handleView360 = useCallback((projectId) => {
     console.log('Открыть режим просмотра 360 для проекта:', projectId);
     const project = mockProjects.find(p => p.id === projectId);
     setViewingProject(project);
     setCurrentView('viewer360');
-  };
+  }, []);
 
-  const handleEditProject = (projectId) => {
+  const handleEditProject = useCallback((projectId) => {
     console.log('Открыть редактор для проекта:', projectId);
     const project = mockProjects.find(p => p.id === projectId);
     setEditingProject(project);
     setCurrentView('editor');
-  };
+  }, []);
 
-  const handleBackToProjects = () => {
+  const handleBackToProjects = useCallback(() => {
     setCurrentView('grid');
     setEditingProject(null);
     setViewingProject(null);
-  };
+  }, []);
 
-  const handleMenuItemClick = (itemId) => {
+  const handleMenuItemClick = useCallback((itemId) => {
     console.log('Выбран пункт меню:', itemId);
     setActiveMenuItem(itemId);
     // Здесь будет логика переключения между разделами
-  };
+  }, []);
 
   // Если текущий вид - редактор, показываем только редактор
   if (currentView === 'editor') {
     return (
       <div className="app">
         <div className="app-content editor-fullscreen">
-          <ProjectEditor 
-            project={editingProject}
-            onBack={handleBackToProjects}
-          />
+          <ErrorBoundary>
+            <ProjectEditor 
+              project={editingProject}
+              onBack={handleBackToProjects}
+            />
+          </ErrorBoundary>
         </div>
       </div>
     );
@@ -69,10 +80,12 @@ function App() {
     return (
       <div className="app">
         <div className="app-content editor-fullscreen">
-          <Viewer360 
-            project={viewingProject}
-            onBack={handleBackToProjects}
-          />
+          <ErrorBoundary>
+            <Viewer360 
+              project={viewingProject}
+              onBack={handleBackToProjects}
+            />
+          </ErrorBoundary>
         </div>
       </div>
     );
@@ -88,39 +101,39 @@ function App() {
       <div className="app-content">
         <header className="app-header">
           <h1>iBuild360</h1>
-          <div className="controls">
+          <div className="controls" role="search" aria-label="Поиск и фильтрация проектов">
             <div className="search-container">
-              <i className="fas fa-search"></i>
+              <i className="fas fa-search" aria-hidden="true"></i>
               <input
                 type="text"
                 placeholder="Поиск по названию проекта..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
+                aria-label="Поиск по названию проекта"
               />
             </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="status-filter"
+              aria-label="Фильтр по статусу проекта"
             >
-              {projectStatuses.map(status => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
+              {memoizedProjectStatuses}
             </select>
           </div>
         </header>
         
-        <main className="app-main">
-          <Suspense fallback={<div className="loading">Загрузка...</div>}>
-            <ProjectGrid
-              projects={filteredProjects}
-              onView360={handleView360}
-              onEditProject={handleEditProject}
-            />
-          </Suspense>
+        <main className="app-main" role="main">
+          <ErrorBoundary>
+            <Suspense fallback={<div className="loading" role="status" aria-live="polite">Загрузка...</div>}>
+              <ProjectGrid
+                projects={filteredProjects}
+                onView360={handleView360}
+                onEditProject={handleEditProject}
+              />
+            </Suspense>
+          </ErrorBoundary>
         </main>
       </div>
     </div>

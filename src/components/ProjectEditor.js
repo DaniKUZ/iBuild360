@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 
 function ProjectEditor({ project, onBack }) {
   const [formData, setFormData] = useState({
@@ -42,6 +43,11 @@ function ProjectEditor({ project, onBack }) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState({});
+  
+  // Ref для хранения активных интервалов
+  const activeIntervals = useRef(new Set());
+  // Map для связи файлов и их интервалов
+  const fileIntervals = useRef(new Map());
 
   const sections = [
     {
@@ -76,6 +82,17 @@ function ProjectEditor({ project, onBack }) {
     }
   }, [project]);
 
+  // Очищаем все активные интервалы при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      activeIntervals.current.forEach(interval => {
+        clearInterval(interval);
+      });
+      activeIntervals.current.clear();
+      fileIntervals.current.clear();
+    };
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -108,14 +125,32 @@ function ProjectEditor({ project, onBack }) {
   };
 
   const handleNext = () => {
-    if (validateForm()) {
-      console.log('Form data:', formData);
-      // Здесь будет логика сохранения и перехода к следующему шагу
+    if (activeSection === 'general') {
+      if (validateForm()) {
+        console.log('Form data:', formData);
+        setActiveSection('sheets');
+      }
+    } else if (activeSection === 'sheets') {
+      setActiveSection('bim');
+    } else if (activeSection === 'bim') {
+      // Здесь будет логика завершения и сохранения проекта
+      console.log('Проект завершен');
+      onBack(); // Возвращаемся к списку проектов
     }
   };
 
   const handleSectionClick = (sectionId) => {
     setActiveSection(sectionId);
+  };
+
+  const handleBack = () => {
+    if (activeSection === 'sheets') {
+      setActiveSection('general');
+    } else if (activeSection === 'bim') {
+      setActiveSection('sheets');
+    } else {
+      onBack(); // Возвращаемся к списку проектов
+    }
   };
 
   const handleFloorClick = (floor) => {
@@ -193,7 +228,9 @@ function ProjectEditor({ project, onBack }) {
       setUploadedFiles(prev => [...prev, newFile]);
       
       // Симуляция загрузки
-      simulateUpload(fileId);
+      const interval = simulateUpload(fileId);
+      activeIntervals.current.add(interval);
+      fileIntervals.current.set(fileId, interval);
     });
   };
 
@@ -207,6 +244,8 @@ function ProjectEditor({ project, onBack }) {
         
         if (newProgress === 100) {
           clearInterval(interval);
+          activeIntervals.current.delete(interval);
+          fileIntervals.current.delete(fileId);
           setTimeout(() => {
             setUploadProgress(prev => {
               const updated = { ...prev };
@@ -219,9 +258,20 @@ function ProjectEditor({ project, onBack }) {
         return { ...prev, [fileId]: newProgress };
       });
     }, 200);
+
+    // Сохраняем ссылку на интервал для очистки
+    return interval;
   };
 
   const handleRemoveFile = (fileId) => {
+    // Очищаем интервал, если он существует
+    const interval = fileIntervals.current.get(fileId);
+    if (interval) {
+      clearInterval(interval);
+      activeIntervals.current.delete(interval);
+      fileIntervals.current.delete(fileId);
+    }
+    
     setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
     setUploadProgress(prev => {
       const updated = { ...prev };
@@ -554,21 +604,21 @@ function ProjectEditor({ project, onBack }) {
       <div className="editor-actions">
         <button 
           className="btn btn-secondary" 
-          onClick={onBack}
+          onClick={handleBack}
         >
           <i className="fas fa-arrow-left"></i>
-          НАЗАД К ПРОЕКТАМ
+          {activeSection === 'general' ? 'НАЗАД К ПРОЕКТАМ' : 
+           activeSection === 'sheets' ? 'НАЗАД К ОБЩЕЙ ИНФОРМАЦИИ' : 
+           'НАЗАД К ЛИСТАМ ЭТАЖЕЙ'}
         </button>
-        {activeSection === 'general' && (
-          <button 
-            className={`btn btn-primary ${!isFormValid ? 'disabled' : ''}`}
-            onClick={handleNext}
-            disabled={!isFormValid}
-          >
-            ДАЛЕЕ
-            <i className="fas fa-arrow-right"></i>
-          </button>
-        )}
+        <button 
+          className={`btn btn-primary ${(activeSection === 'general' && !isFormValid) ? 'disabled' : ''}`}
+          onClick={handleNext}
+          disabled={activeSection === 'general' && !isFormValid}
+        >
+          {activeSection === 'bim' ? 'ЗАВЕРШИТЬ' : 'ДАЛЕЕ'}
+          <i className={`fas ${activeSection === 'bim' ? 'fa-check' : 'fa-arrow-right'}`}></i>
+        </button>
       </div>
 
       {/* Модальное окно для увеличенного изображения */}
@@ -591,5 +641,18 @@ function ProjectEditor({ project, onBack }) {
     </div>
   );
 }
+
+ProjectEditor.propTypes = {
+  project: PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string,
+    address: PropTypes.string,
+    latitude: PropTypes.string,
+    longitude: PropTypes.string,
+    alternateTo: PropTypes.string,
+    preview: PropTypes.string,
+  }),
+  onBack: PropTypes.func.isRequired,
+};
 
 export default ProjectEditor; 

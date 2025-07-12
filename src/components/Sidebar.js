@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 
-const Sidebar = ({ activeItem, onItemClick }) => {
+const Sidebar = React.memo(({ activeItem, onItemClick }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
 
   const menuItems = [
@@ -10,27 +11,34 @@ const Sidebar = ({ activeItem, onItemClick }) => {
   ];
 
   return (
-    <div className="sidebar">
+    <nav className="sidebar" role="navigation" aria-label="Основное меню">
       <div className="sidebar-nav">
         {menuItems.map((item) => (
-          <div
+          <button
             key={item.id}
             className={`sidebar-item ${activeItem === item.id ? 'active' : ''}`}
             onClick={() => onItemClick(item.id)}
             onMouseEnter={() => setHoveredItem(item.id)}
             onMouseLeave={() => setHoveredItem(null)}
+            aria-label={item.label}
+            aria-current={activeItem === item.id ? 'page' : undefined}
           >
-            <i className={item.icon}></i>
+            <i className={item.icon} aria-hidden="true"></i>
             {hoveredItem === item.id && (
-              <div className="tooltip">
+              <div className="tooltip" role="tooltip">
                 {item.label}
               </div>
             )}
-          </div>
+          </button>
         ))}
       </div>
-    </div>
+    </nav>
   );
+});
+
+Sidebar.propTypes = {
+  activeItem: PropTypes.string.isRequired,
+  onItemClick: PropTypes.func.isRequired,
 };
 
 export default Sidebar; 

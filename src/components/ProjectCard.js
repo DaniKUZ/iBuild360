@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import PropTypes from 'prop-types';
 
 // Компонент ProjectCard экспортируется по умолчанию для tree-shaking
 
-function ProjectCard({ project, onView360, onEditProject }) {
+const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
   const getStatusClass = (status) => {
     switch (status) {
       case 'Черновик':
@@ -16,59 +17,59 @@ function ProjectCard({ project, onView360, onEditProject }) {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ru-RU', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
-  };
+  }, []);
+
+  const handleView360Click = useCallback(() => {
+    onView360(project.id);
+  }, [onView360, project.id]);
+
+  const handleEditClick = useCallback((e) => {
+    e.stopPropagation();
+    onEditProject(project.id);
+  }, [onEditProject, project.id]);
 
   return (
-    <div className="project-card">
-      <div className="project-preview" onClick={() => onView360(project.id)}>
-        <img src={project.preview} alt={project.name} />
-        <div className="preview-actions">
+    <article className="project-card" role="gridcell">
+      <div 
+        className="project-preview" 
+        onClick={handleView360Click}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleView360Click();
+          }
+        }}
+        aria-label={`Открыть просмотр 360 для проекта ${project.name}`}
+      >
+        <img 
+          src={project.preview} 
+          alt={`Превью проекта ${project.name}`}
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="preview-actions" role="group" aria-label="Действия с проектом">
           <button 
             className="action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              console.log('Действие 1');
-            }}
-            title="Действие 1"
+            onClick={handleView360Click}
+            aria-label="Просмотр 360"
           >
-            <i className="fas fa-eye"></i>
+            <i className="fas fa-eye" aria-hidden="true"></i>
           </button>
           <button 
             className="action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              console.log('Действие 2');
-            }}
-            title="Действие 2"
+            onClick={handleEditClick}
+            aria-label="Редактировать проект"
           >
-            <i className="fas fa-share"></i>
-          </button>
-          <button 
-            className="action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              console.log('Действие 3');
-            }}
-            title="Действие 3"
-          >
-            <i className="fas fa-download"></i>
-          </button>
-          <button 
-            className="action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditProject(project.id);
-            }}
-            title="Редактировать проект"
-          >
-            <i className="fas fa-edit"></i>
+            <i className="fas fa-edit" aria-hidden="true"></i>
           </button>
         </div>
       </div>
@@ -91,8 +92,21 @@ function ProjectCard({ project, onView360, onEditProject }) {
           </div>
         </div>
       </div>
-    </div>
+    </article>
   );
-}
+});
+
+ProjectCard.propTypes = {
+  project: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    lastUpdate: PropTypes.string.isRequired,
+    user: PropTypes.string.isRequired,
+    status: PropTypes.string.isRequired,
+    preview: PropTypes.string.isRequired,
+  }).isRequired,
+  onView360: PropTypes.func.isRequired,
+  onEditProject: PropTypes.func.isRequired,
+};
 
 export default ProjectCard; 
