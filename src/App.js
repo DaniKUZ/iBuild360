@@ -100,7 +100,7 @@ function App() {
       />
       <div className="app-content">
         <header className="app-header">
-          <h1>iBuild360</h1>
+          <h1>Центр управления качеством и рисками города Москва</h1>
           <div className="controls" role="search" aria-label="Поиск и фильтрация проектов">
             <div className="search-container">
               <i className="fas fa-search" aria-hidden="true"></i>

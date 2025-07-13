@@ -15,6 +15,9 @@ export const mockProjects = [
     user: "Анна Смирнова",
     status: "В работе",
     preview: modernFlat,
+    address: "ул. Тверская, 15, Москва",
+    latitude: 55.7558,
+    longitude: 37.6173,
   },
   {
     id: 2,
@@ -23,6 +26,9 @@ export const mockProjects = [
     user: "Михаил Петров",
     status: "Завершен",
     preview: office,
+    address: "Московский проспект, 100, Санкт-Петербург",
+    latitude: 59.8736,
+    longitude: 30.2627,
   },
   {
     id: 3,
@@ -31,6 +37,9 @@ export const mockProjects = [
     user: "Елена Козлова",
     status: "Черновик",
     preview: house,
+    address: "дер. Николино, Одинцовский район, Московская область",
+    latitude: 55.6667,
+    longitude: 37.2833,
   },
   {
     id: 4,
@@ -39,6 +48,9 @@ export const mockProjects = [
     user: "Дмитрий Волков",
     status: "В работе",
     preview: restaurant,
+    address: "Невский проспект, 28, Санкт-Петербург",
+    latitude: 59.9342,
+    longitude: 30.3350,
   },
   {
     id: 5,
@@ -47,6 +59,9 @@ export const mockProjects = [
     user: "Ольга Иванова",
     status: "Завершен",
     preview: mall,
+    address: "МКАД, 47 км, Москва",
+    latitude: 55.6415,
+    longitude: 37.4858,
   },
   {
     id: 6,
@@ -55,6 +70,9 @@ export const mockProjects = [
     user: "Сергей Федоров",
     status: "В работе",
     preview: cottage,
+    address: "пос. Сосновка, Истринский район, Московская область",
+    latitude: 55.9167,
+    longitude: 36.8667,
   },
   {
     id: 7,
@@ -63,6 +81,9 @@ export const mockProjects = [
     user: "Мария Новикова",
     status: "Черновик",
     preview: studio,
+    address: "ул. Арбат, 25, Москва",
+    latitude: 55.7522,
+    longitude: 37.5928,
   },
   {
     id: 8,
@@ -71,6 +92,9 @@ export const mockProjects = [
     user: "Александр Морозов",
     status: "В работе",
     preview: conference,
+    address: "ул. Большая Конюшенная, 19, Санкт-Петербург",
+    latitude: 59.9398,
+    longitude: 30.3178,
   },
 ];
 

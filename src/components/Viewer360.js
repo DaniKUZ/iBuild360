@@ -10,6 +10,7 @@ const Viewer360 = ({ project, onBack }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [hoveredSidebarItem, setHoveredSidebarItem] = useState(null);
   const viewerRef = useRef(null);
 
   // Пункты сайдбара
@@ -195,9 +196,16 @@ const Viewer360 = ({ project, onBack }) => {
             key={item.id}
             className="sidebar-item"
             onClick={() => handleSidebarClick(item)}
-            title={item.label}
+            onMouseEnter={() => setHoveredSidebarItem(item.id)}
+            onMouseLeave={() => setHoveredSidebarItem(null)}
+            aria-label={item.label}
           >
-            <i className={item.icon}></i>
+            <i className={item.icon} aria-hidden="true"></i>
+            {hoveredSidebarItem === item.id && (
+              <div className="tooltip" role="tooltip">
+                {item.label}
+              </div>
+            )}
           </button>
         ))}
       </div>

@@ -60,6 +60,7 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
           <button 
             className="action-btn"
             onClick={handleView360Click}
+            title="Просмотр 360"
             aria-label="Просмотр 360"
           >
             <i className="fas fa-eye" aria-hidden="true"></i>
@@ -67,6 +68,7 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
           <button 
             className="action-btn"
             onClick={handleEditClick}
+            title="Редактировать проект"
             aria-label="Редактировать проект"
           >
             <i className="fas fa-edit" aria-hidden="true"></i>
@@ -77,6 +79,10 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
       <div className="project-info">
         <h3 className="project-name">{project.name}</h3>
         <div className="project-details">
+          <div className="detail-item">
+            <i className="fas fa-map-marker-alt"></i>
+            <span>{project.address}</span>
+          </div>
           <div className="detail-item">
             <i className="fas fa-calendar"></i>
             <span>{formatDate(project.lastUpdate)}</span>
@@ -104,6 +110,9 @@ ProjectCard.propTypes = {
     user: PropTypes.string.isRequired,
     status: PropTypes.string.isRequired,
     preview: PropTypes.string.isRequired,
+    address: PropTypes.string.isRequired,
+    latitude: PropTypes.number.isRequired,
+    longitude: PropTypes.number.isRequired,
   }).isRequired,
   onView360: PropTypes.func.isRequired,
   onEditProject: PropTypes.func.isRequired,
