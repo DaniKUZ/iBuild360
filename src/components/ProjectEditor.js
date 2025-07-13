@@ -58,7 +58,7 @@ function ProjectEditor({ project, onBack }) {
     },
     {
       id: 'sheets',
-      title: 'Листы этажей',
+      title: 'Список этажей',
       icon: 'fas fa-layer-group',
       active: true
     },
@@ -368,7 +368,7 @@ function ProjectEditor({ project, onBack }) {
   const renderSheetsSection = () => (
     <div className="sheets-section">
       <div className="sheets-header">
-        <h3>Листы этажей</h3>
+        <h3>Список этажей</h3>
         <button 
           className="btn btn-primary add-sheet-btn"
           onClick={handleAddSheet}
@@ -609,7 +609,7 @@ function ProjectEditor({ project, onBack }) {
           <i className="fas fa-arrow-left"></i>
           {activeSection === 'general' ? 'НАЗАД К ПРОЕКТАМ' : 
            activeSection === 'sheets' ? 'НАЗАД К ОБЩЕЙ ИНФОРМАЦИИ' : 
-           'НАЗАД К ЛИСТАМ ЭТАЖЕЙ'}
+           'НАЗАД К СПИСКУ ЭТАЖЕЙ'}
         </button>
         <button 
           className={`btn btn-primary ${(activeSection === 'general' && !isFormValid) ? 'disabled' : ''}`}
