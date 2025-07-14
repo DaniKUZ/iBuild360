@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import styles from './ErrorBoundary.module.css';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -18,8 +19,8 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary">
-          <div className="error-content">
+        <div className={styles.errorBoundary}>
+          <div className={styles.errorContent}>
             <i className="fas fa-exclamation-triangle" aria-hidden="true"></i>
             <h2>Что-то пошло не так</h2>
             <p>Произошла ошибка при загрузке этой части приложения.</p>

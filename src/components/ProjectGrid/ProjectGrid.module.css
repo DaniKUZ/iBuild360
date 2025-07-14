@@ -1,0 +1,36 @@
+/* Project Grid Module */
+.projectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--grid-min-width), 1fr));
+  gap: var(--grid-gap);
+}
+
+.noProjects {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  color: var(--text-muted);
+}
+
+.noProjects i {
+  font-size: var(--spacing-2xl);
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+
+.noProjects p {
+  font-size: var(--font-size-2xl);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .projectGrid {
+    grid-template-columns: repeat(auto-fill, minmax(var(--grid-min-width-mobile), 1fr));
+    gap: var(--grid-gap-mobile);
+  }
+}
+
+@media (max-width: 480px) {
+  .projectGrid {
+    grid-template-columns: 1fr;
+  }
+} 

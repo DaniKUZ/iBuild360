@@ -1,0 +1,296 @@
+/* BIM Section Styles */
+.bim-section {
+  padding: var(--spacing-xl);
+  background: var(--background-primary);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.bim-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.bim-header h3 {
+  color: var(--text-secondary);
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.bim-header h3 i {
+  color: var(--primary-color);
+}
+
+.bim-description {
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  margin-bottom: 0;
+}
+
+.bim-content {
+  display: grid;
+  gap: var(--spacing-xl);
+}
+
+/* Drag and Drop Zone */
+.drag-drop-zone {
+  border: 2px dashed var(--border-color-hover);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  text-align: center;
+  background: var(--background-card);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.drag-drop-zone:hover {
+  border-color: var(--primary-color);
+  background: var(--background-secondary);
+}
+
+.drag-drop-zone.active {
+  border-color: var(--primary-color);
+  background: #ebf8ff;
+  border-style: solid;
+}
+
+.drag-drop-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.drag-drop-icon {
+  font-size: var(--spacing-2xl);
+  color: var(--border-color-hover);
+  margin-bottom: var(--spacing-md);
+}
+
+.drag-drop-zone.active .drag-drop-icon {
+  color: var(--primary-color);
+  animation: bounce var(--transition-slow) ease;
+}
+
+.drag-drop-zone h4 {
+  color: var(--text-secondary);
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--spacing-sm);
+}
+
+.drag-drop-zone p {
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Uploaded Files */
+.uploaded-files {
+  background: var(--background-card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.uploaded-files h4 {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-xl);
+}
+
+.files-list {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--background-primary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-fast);
+}
+
+.file-item:hover {
+  background: #f1f5f9;
+  border-color: var(--border-color-hover);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.file-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--primary-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: var(--font-size-2xl);
+}
+
+.file-details h5 {
+  color: var(--text-secondary);
+  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-xs);
+  font-weight: var(--font-weight-semibold);
+}
+
+.file-details p {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+/* Upload Progress */
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 120px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  transition: width var(--transition-normal);
+  border-radius: 3px;
+}
+
+.upload-progress span {
+  color: var(--text-light);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  min-width: 35px;
+}
+
+/* Remove File Button */
+.remove-file-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--error-bg);
+  color: var(--error-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-file-btn:hover {
+  background: #feb2b2;
+  transform: scale(1.1);
+}
+
+/* BIM Instructions */
+.bim-instructions {
+  background: var(--background-card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.bim-instructions h4 {
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-xl);
+}
+
+.bim-instructions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bim-instructions li {
+  padding: var(--spacing-sm) 0;
+  color: var(--text-light);
+  position: relative;
+  padding-left: var(--spacing-lg);
+}
+
+.bim-instructions li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #48bb78;
+  font-weight: bold;
+}
+
+/* Responsive Design for BIM Section */
+@media (max-width: 768px) {
+  .bim-section {
+    padding: var(--spacing-lg);
+  }
+  
+  .drag-drop-zone {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+  
+  .drag-drop-icon {
+    font-size: var(--spacing-xl);
+  }
+  
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .upload-progress {
+    width: 100%;
+  }
+  
+  .remove-file-btn {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .bim-section {
+    padding: var(--spacing-md);
+  }
+  
+  .drag-drop-zone {
+    padding: var(--spacing-lg) 0.75rem;
+  }
+  
+  .drag-drop-zone h4 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .upload-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: var(--font-size-md);
+  }
+  
+  .file-details h5 {
+    font-size: 0.85rem;
+  }
+  
+  .file-details p {
+    font-size: 0.75rem;
+  }
+} 

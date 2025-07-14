@@ -1,0 +1,124 @@
+/* Sidebar Module */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--primary-color);
+  min-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: var(--z-index-sidebar);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--spacing-xl);
+}
+
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  align-items: center;
+}
+
+.sidebarItem {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  background: var(--white-alpha-10);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--white-alpha-10);
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+}
+
+.sidebarItem:hover {
+  background: var(--white-alpha-20);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.sidebarItem.active {
+  background: var(--white-alpha-30);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.sidebarItem i {
+  color: var(--white);
+  font-size: var(--font-size-2xl);
+}
+
+.tooltip {
+  position: absolute;
+  left: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--black-alpha-80);
+  color: var(--white);
+  padding: var(--spacing-sm) 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  white-space: nowrap;
+  z-index: var(--z-index-tooltip);
+  animation: fadeIn var(--transition-fast) ease-in-out;
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: var(--black-alpha-80);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    width: var(--sidebar-width-mobile);
+  }
+  
+  .sidebarItem {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .sidebarItem i {
+    font-size: var(--font-size-lg);
+  }
+  
+  .tooltip {
+    left: 50px;
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: var(--sidebar-width-small);
+  }
+  
+  .sidebarItem {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .sidebarItem i {
+    font-size: var(--font-size-md);
+  }
+  
+  .tooltip {
+    left: 50px;
+    font-size: var(--font-size-sm);
+  }
+} 

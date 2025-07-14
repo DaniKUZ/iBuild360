@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ProjectCard from './ProjectCard';
+import ProjectCard from '../ProjectCard';
+import styles from './ProjectGrid.module.css';
 
 const ProjectGrid = React.memo(({ projects, onView360, onEditProject }) => {
   if (projects.length === 0) {
     return (
-      <div className="no-projects" role="status" aria-live="polite">
+      <div className={styles.noProjects} role="status" aria-live="polite">
         <i className="fas fa-search" aria-hidden="true"></i>
         <p>Проекты не найдены</p>
       </div>
@@ -13,7 +14,7 @@ const ProjectGrid = React.memo(({ projects, onView360, onEditProject }) => {
   }
 
   return (
-    <div className="project-grid" role="grid" aria-label="Список проектов">
+    <div className={styles.projectGrid} role="grid" aria-label="Список проектов">
       {projects.map(project => (
         <ProjectCard
           key={project.id}

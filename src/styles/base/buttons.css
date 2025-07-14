@@ -1,0 +1,175 @@
+/* Base button styles */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn i {
+  font-size: var(--font-size-md);
+}
+
+/* Button variants */
+.btn-primary {
+  background: var(--primary-color);
+  color: var(--white);
+}
+
+.btn-primary:hover:not(.disabled):not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-secondary {
+  background: var(--secondary-color);
+  color: var(--text-light);
+}
+
+.btn-secondary:hover:not(.disabled):not(:disabled) {
+  background: var(--secondary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--error-color);
+  color: var(--white);
+}
+
+.btn-danger:hover:not(.disabled):not(:disabled) {
+  background: var(--error-hover);
+  transform: translateY(-1px);
+}
+
+/* Button sizes */
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: var(--font-size-md);
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: var(--font-size-xl);
+}
+
+/* Special button styles */
+.action-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--white-alpha-90);
+  border: none;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(10px);
+}
+
+.action-btn:hover {
+  background: var(--white);
+  transform: scale(1.1);
+}
+
+.action-btn i {
+  font-size: var(--font-size-md);
+  color: var(--text-light);
+}
+
+/* Upload button */
+.upload-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  background: var(--primary-color);
+  color: var(--white);
+}
+
+.upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Navigation buttons */
+.nav-point {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--white-alpha-10);
+  border: 1px solid var(--white-alpha-20);
+  color: var(--white);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+}
+
+.nav-point:hover {
+  background: var(--white-alpha-20);
+  transform: scale(1.1);
+}
+
+/* Responsive button styles */
+@media (max-width: 768px) {
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .action-btn {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .action-btn i {
+    font-size: var(--font-size-lg);
+  }
+  
+  .nav-point {
+    width: 35px;
+    height: 35px;
+    font-size: var(--font-size-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .action-btn {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .action-btn i {
+    font-size: 1.1rem;
+  }
+  
+  .nav-point {
+    width: 30px;
+    height: 30px;
+    font-size: var(--font-size-sm);
+  }
+} 

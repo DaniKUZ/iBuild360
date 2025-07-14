@@ -1,0 +1,412 @@
+/* Main CSS file - imports all styles */
+
+/* Base styles */
+@import './base/variables.css';
+@import './base/reset.css';
+@import './base/buttons.css';
+@import './base/forms.css';
+
+/* Layout */
+@import './layout/app.css';
+
+/* Utilities */
+@import './utilities/animations.css';
+
+/* Sections */
+@import './sections/project-editor.css';
+@import './sections/sheets-section.css';
+@import './sections/bim-section.css';
+@import './sections/viewer-360.css';
+
+/* Global styles that need to remain global */
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--black-alpha-80);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-index-modal);
+  padding: var(--spacing-xl);
+  overflow: hidden;
+}
+
+.modal-content {
+  background: var(--background-card);
+  border-radius: var(--radius-xl);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.modal-preview {
+  max-width: 95vw;
+  max-height: 95vh;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.preview-zoom-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--background-primary);
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.zoomable-preview-image {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.zoomable-preview-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform var(--transition-fast);
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  pointer-events: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  width: 40px;
+  height: 40px;
+  background: var(--black-alpha-50);
+  border: none;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  z-index: var(--z-index-tooltip);
+}
+
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.1);
+}
+
+.modal-close i {
+  color: var(--white);
+  font-size: var(--font-size-2xl);
+}
+
+.modal-header {
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-primary);
+}
+
+.modal-header h3 {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+.modal-header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+}
+
+.modal-image {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  min-height: 400px;
+}
+
+.modal-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+}
+
+/* Floor Edit Modal */
+.floor-edit-modal {
+  max-width: 800px;
+  max-height: 85vh;
+  overflow-y: auto;
+  width: 90vw;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body .form-group {
+  margin-bottom: 20px;
+}
+
+.modal-body .form-group label {
+  display: block;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.modal-body .form-group input,
+.modal-body .form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color-hover);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  transition: border-color var(--transition-fast);
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+.modal-body .form-group input:focus,
+.modal-body .form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.image-upload-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.image-preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--background-primary);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.zoom-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--background-card);
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.zoom-btn:hover:not(:disabled) {
+  background: var(--border-color);
+  color: #111827;
+}
+
+.zoom-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zoom-level {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: var(--font-weight-medium);
+  min-width: 40px;
+  text-align: center;
+}
+
+.current-image {
+  width: 300px;
+  height: 200px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  position: relative;
+}
+
+.zoomable-image {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.zoomable-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform var(--transition-fast);
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  pointer-events: auto;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Responsive modal styles */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: var(--spacing-md);
+  }
+  
+  .modal-header {
+    padding: var(--spacing-lg);
+  }
+  
+  .modal-image {
+    padding: var(--spacing-lg);
+    min-height: 300px;
+  }
+
+  .modal-preview {
+    max-width: 98vw;
+    max-height: 98vh;
+  }
+
+  .preview-zoom-controls {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .preview-zoom-controls .zoom-btn {
+    width: 35px;
+    height: 35px;
+  }
+
+  .floor-edit-modal {
+    max-width: 95vw;
+    max-height: 90vh;
+    margin: var(--spacing-md);
+  }
+
+  .modal-body {
+    padding: 15px;
+  }
+
+  .image-upload-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .current-image {
+    width: 280px;
+    height: 180px;
+  }
+
+  .zoom-controls {
+    justify-content: center;
+  }
+
+  .zoom-btn {
+    width: 35px;
+    height: 35px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .current-image {
+    width: 100%;
+    height: 150px;
+  }
+
+  .zoom-controls {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .zoom-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .zoom-level {
+    font-size: 14px;
+  }
+   
+  .modal-preview {
+    max-width: 100vw;
+    max-height: 100vh;
+    margin: 0;
+  }
+
+  .preview-zoom-controls {
+    padding: 6px;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .preview-zoom-controls .zoom-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .preview-zoom-controls .zoom-level {
+    font-size: 14px;
+  }
+} 

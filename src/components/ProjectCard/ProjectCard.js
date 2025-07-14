@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
+import styles from './ProjectCard.module.css';
 
 // Компонент ProjectCard экспортируется по умолчанию для tree-shaking
 
@@ -7,13 +8,13 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
   const getStatusClass = (status) => {
     switch (status) {
       case 'Черновик':
-        return 'status-draft';
+        return styles.statusDraft;
       case 'В работе':
-        return 'status-in-progress';
+        return styles.statusInProgress;
       case 'Завершен':
-        return 'status-completed';
+        return styles.statusCompleted;
       default:
-        return 'status-default';
+        return styles.statusDefault;
     }
   };
 
@@ -36,9 +37,9 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
   }, [onEditProject, project.id]);
 
   return (
-    <article className="project-card" role="gridcell">
+    <article className={styles.projectCard} role="gridcell">
       <div 
-        className="project-preview" 
+        className={styles.projectPreview} 
         onClick={handleView360Click}
         role="button"
         tabIndex={0}
@@ -56,7 +57,7 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
           loading="lazy"
           decoding="async"
         />
-        <div className="preview-actions" role="group" aria-label="Действия с проектом">
+        <div className={styles.previewActions} role="group" aria-label="Действия с проектом">
           <button 
             className="action-btn"
             onClick={handleView360Click}
@@ -76,23 +77,23 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
         </div>
       </div>
       
-      <div className="project-info">
-        <h3 className="project-name">{project.name}</h3>
-        <div className="project-details">
-          <div className="detail-item">
+      <div className={styles.projectInfo}>
+        <h3 className={styles.projectName}>{project.name}</h3>
+        <div className={styles.projectDetails}>
+          <div className={styles.detailItem}>
             <i className="fas fa-map-marker-alt"></i>
             <span>{project.address}</span>
           </div>
-          <div className="detail-item">
+          <div className={styles.detailItem}>
             <i className="fas fa-calendar"></i>
             <span>{formatDate(project.lastUpdate)}</span>
           </div>
-          <div className="detail-item">
+          <div className={styles.detailItem}>
             <i className="fas fa-user"></i>
             <span>{project.user}</span>
           </div>
-          <div className="detail-item">
-            <span className={`status ${getStatusClass(project.status)}`}>
+          <div className={styles.detailItem}>
+            <span className={`${styles.status} ${getStatusClass(project.status)}`}>
               {project.status}
             </span>
           </div>

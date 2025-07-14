@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar';
 import ProjectEditor from './components/ProjectEditor';
 import Viewer360 from './components/Viewer360';
 import ErrorBoundary from './components/ErrorBoundary';
-import './styles/App.css';
+import './styles/main.css';
 
 // Ленивая загрузка компонентов
 const ProjectGrid = lazy(() => import('./components/ProjectGrid'));

@@ -1,0 +1,142 @@
+/* Project Card Module */
+.projectCard {
+  background: var(--background-card);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.projectCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.projectPreview {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.projectPreview img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: transform var(--transition-normal);
+}
+
+.projectPreview:hover img {
+  transform: scale(1.05);
+}
+
+.previewActions {
+  position: absolute;
+  bottom: var(--spacing-md);
+  right: var(--spacing-md);
+  display: flex;
+  gap: var(--spacing-sm);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.projectPreview:hover .previewActions {
+  opacity: 1;
+}
+
+.projectInfo {
+  padding: var(--spacing-lg);
+}
+
+.projectName {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+}
+
+.projectDetails {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+}
+
+.detailItem i {
+  width: 16px;
+  text-align: center;
+}
+
+.status {
+  padding: var(--spacing-xs) 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusDraft {
+  background: var(--draft-bg);
+  color: var(--draft-color);
+}
+
+.statusInProgress {
+  background: var(--warning-bg);
+  color: var(--warning-color);
+}
+
+.statusCompleted {
+  background: var(--success-bg);
+  color: var(--success-color);
+}
+
+.statusDefault {
+  background: var(--secondary-color);
+  color: var(--text-muted);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  /* Показываем кнопки действий на планшетах */
+  .previewActions {
+    opacity: 1;
+  }
+  
+  /* Увеличиваем размер кнопок для удобства на планшетах */
+  .previewActions button {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .previewActions button i {
+    font-size: var(--font-size-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .projectCard {
+    margin: 0 var(--spacing-sm);
+  }
+  
+  /* Показываем кнопки действий на телефонах */
+  .previewActions {
+    opacity: 1;
+  }
+  
+  /* Увеличиваем размер кнопок для удобства на телефонах */
+  .previewActions button {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .previewActions button i {
+    font-size: 1.1rem;
+  }
+} 

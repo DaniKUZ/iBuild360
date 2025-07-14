@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import styles from './Sidebar.module.css';
 
 const Sidebar = React.memo(({ activeItem, onItemClick }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -11,12 +12,12 @@ const Sidebar = React.memo(({ activeItem, onItemClick }) => {
   ];
 
   return (
-    <nav className="sidebar" role="navigation" aria-label="Основное меню">
-      <div className="sidebar-nav">
+    <nav className={styles.sidebar} role="navigation" aria-label="Основное меню">
+      <div className={styles.sidebarNav}>
         {menuItems.map((item) => (
           <button
             key={item.id}
-            className={`sidebar-item ${activeItem === item.id ? 'active' : ''}`}
+            className={`${styles.sidebarItem} ${activeItem === item.id ? styles.active : ''}`}
             onClick={() => onItemClick(item.id)}
             onMouseEnter={() => setHoveredItem(item.id)}
             onMouseLeave={() => setHoveredItem(null)}
@@ -25,7 +26,7 @@ const Sidebar = React.memo(({ activeItem, onItemClick }) => {
           >
             <i className={item.icon} aria-hidden="true"></i>
             {hoveredItem === item.id && (
-              <div className="tooltip" role="tooltip">
+              <div className={styles.tooltip} role="tooltip">
                 {item.label}
               </div>
             )}
