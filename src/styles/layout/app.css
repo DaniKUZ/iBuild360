@@ -32,11 +32,40 @@
 .controls {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: var(--spacing-md);
   flex-wrap: wrap;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--spacing-md);
+}
+
+.add-project-btn {
+  margin-left: auto;
+  padding: 0.75rem 1.5rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  background: #1e3a8a !important;
+  color: white !important;
+  border: 2px solid #1e40af;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+}
+
+.add-project-btn:hover {
+  transform: translateY(-1px);
+  background: #1e40af !important;
+  border-color: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.5);
+}
+
+.add-project-btn i {
+  font-size: 1rem;
 }
 
 .app-main {

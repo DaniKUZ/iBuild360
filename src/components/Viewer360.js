@@ -1,17 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import img360 from '../data/img/img360.jpg';
+import test from '../data/img/test.jpg';
 
 const Viewer360 = ({ project, onBack }) => {
-  const [rotation, setRotation] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isComparisonMode, setIsComparisonMode] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [hoveredSidebarItem, setHoveredSidebarItem] = useState(null);
-  const viewerRef = useRef(null);
+  const [currentYaw, setCurrentYaw] = useState(0);
+  const [currentPitch, setCurrentPitch] = useState(0);
+  
+  const panoramaRef = useRef(null);
+  const comparisonPanoramaRef = useRef(null);
+  const viewerInstance = useRef(null);
+  const comparisonViewerInstance = useRef(null);
+  const syncHandlersRef = useRef([]);
 
   // Пункты сайдбара
   const sidebarItems = [
@@ -26,106 +30,231 @@ const Viewer360 = ({ project, onBack }) => {
 
   // Навигационные точки для нижнего сайдбара
   const navigationPoints = [
-    { id: 1, label: 'Главная комната' },
-    { id: 2, label: 'Кухня' },
-    { id: 3, label: 'Спальня' },
-    { id: 4, label: 'Ванная' },
+    { id: 1, label: 'Главная комната', yaw: 0, pitch: 0 },
+    { id: 2, label: 'Кухня', yaw: 90, pitch: -10 },
+    { id: 3, label: 'Спальня', yaw: 180, pitch: 0 },
+    { id: 4, label: 'Ванная', yaw: -90, pitch: 5 },
   ];
 
-  // Обработчики для вращения панорамы
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX,
-      y: e.clientY,
-    });
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    
-    const deltaX = e.clientX - dragStart.x;
-    const newRotation = rotation + deltaX * 0.5;
-    
-    setRotation(newRotation);
-    setDragStart({
-      x: e.clientX,
-      y: e.clientY,
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  // Обработчики для touch события
-  const handleTouchStart = (e) => {
-    setIsDragging(true);
-    setDragStart({
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    });
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    
-    const deltaX = e.touches[0].clientX - dragStart.x;
-    const newRotation = rotation + deltaX * 0.5;
-    
-    setRotation(newRotation);
-    setDragStart({
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    });
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
-  // Добавляем глобальные обработчики
+  // Инициализация основного панорамного просмотрщика
   useEffect(() => {
-    const handleGlobalMouseMove = (e) => handleMouseMove(e);
-    const handleGlobalMouseUp = () => handleMouseUp();
-    const handleGlobalTouchMove = (e) => handleTouchMove(e);
-    const handleGlobalTouchEnd = () => handleTouchEnd();
+    const initPannellum = () => {
+      if (panoramaRef.current && !viewerInstance.current && window.pannellum) {
+        try {
+                    viewerInstance.current = window.pannellum.viewer(panoramaRef.current, {
+            type: 'equirectangular',
+            panorama: test,
+            autoLoad: true,
+            autoRotate: 0, // Убираем автопрокрутку
+            showZoomCtrl: false,
+            showFullscreenCtrl: false,
+            yaw: 0,
+            pitch: 0,
+            hfov: 100,
+            minHfov: 30,
+            maxHfov: 130,
+            minPitch: -120, // Увеличиваем диапазон вертикального поворота
+            maxPitch: 120,  // Увеличиваем диапазон вертикального поворота
+            compass: false,
+            northOffset: 0,
+            mouseZoom: true,
+            doubleClickZoom: true,
+            keyboardZoom: true,
+            draggable: true,
+            disableKeyboardCtrl: false,
+            hotSpots: []
+          });
 
-    if (isDragging) {
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('touchmove', handleGlobalTouchMove);
-      document.addEventListener('touchend', handleGlobalTouchEnd);
+        // Отслеживание изменений угла обзора
+        const updateAngles = () => {
+          if (viewerInstance.current) {
+            const yaw = viewerInstance.current.getYaw();
+            const pitch = viewerInstance.current.getPitch();
+            setCurrentYaw(yaw);
+            setCurrentPitch(pitch);
+          }
+        };
+
+        viewerInstance.current.on('animatefinished', updateAngles);
+        viewerInstance.current.on('mouseup', updateAngles);
+        viewerInstance.current.on('zoom', updateAngles);
+
+              } catch (error) {
+          console.error('Ошибка инициализации Pannellum:', error);
+        }
+      }
+    };
+
+    // Проверяем наличие Pannellum или ждем его загрузки
+    if (window.pannellum) {
+      initPannellum();
+    } else {
+      const checkPannellum = setInterval(() => {
+        if (window.pannellum) {
+          clearInterval(checkPannellum);
+          initPannellum();
+        }
+      }, 100);
+
+      return () => clearInterval(checkPannellum);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
-      document.removeEventListener('touchmove', handleGlobalTouchMove);
-      document.removeEventListener('touchend', handleGlobalTouchEnd);
-    };
-  }, [isDragging, dragStart, rotation]);
-
-  // Очищаем event listeners при размонтировании компонента
-  useEffect(() => {
-    return () => {
-      setIsDragging(false);
+      if (viewerInstance.current) {
+        try {
+          viewerInstance.current.destroy();
+          viewerInstance.current = null;
+        } catch (error) {
+          console.error('Ошибка при уничтожении Pannellum viewer:', error);
+        }
+      }
     };
   }, []);
+
+  // Инициализация сравнительного панорамного просмотрщика
+  useEffect(() => {
+    // Очищаем предыдущие обработчики
+    const clearSyncHandlers = () => {
+      if (syncHandlersRef.current.length > 0) {
+        syncHandlersRef.current.forEach(({ viewer, event, handler }) => {
+          if (viewer && typeof viewer.off === 'function') {
+            try {
+              viewer.off(event, handler);
+            } catch (error) {
+              console.warn('Ошибка при удалении обработчика:', error);
+            }
+          }
+        });
+        syncHandlersRef.current = [];
+      }
+    };
+
+    if (isComparisonMode && comparisonPanoramaRef.current && !comparisonViewerInstance.current && window.pannellum) {
+      try {
+        comparisonViewerInstance.current = window.pannellum.viewer(comparisonPanoramaRef.current, {
+          type: 'equirectangular',
+          panorama: test,
+          autoLoad: true,
+          autoRotate: 0,
+          showZoomCtrl: false,
+          showFullscreenCtrl: false,
+          yaw: currentYaw,
+          pitch: currentPitch,
+          hfov: viewerInstance.current ? viewerInstance.current.getHfov() : 100,
+          minHfov: 30,
+          maxHfov: 130,
+          minPitch: -85,
+          maxPitch: 85,
+          compass: false,
+          mouseZoom: true,
+          doubleClickZoom: true,
+          keyboardZoom: true,
+          draggable: true,
+          disableKeyboardCtrl: false,
+          filter: 'sepia(30%) brightness(80%)',
+          hotSpots: []
+        });
+
+        // Улучшенная синхронизация движения с основным viewer
+        if (viewerInstance.current && comparisonViewerInstance.current) {
+          const syncFromMainToComparison = () => {
+            if (viewerInstance.current && comparisonViewerInstance.current) {
+              try {
+                const mainYaw = viewerInstance.current.getYaw();
+                const mainPitch = viewerInstance.current.getPitch();
+                const mainHfov = viewerInstance.current.getHfov();
+                
+                comparisonViewerInstance.current.setYaw(mainYaw);
+                comparisonViewerInstance.current.setPitch(mainPitch);
+                comparisonViewerInstance.current.setHfov(mainHfov);
+              } catch (error) {
+                console.warn('Ошибка синхронизации:', error);
+              }
+            }
+          };
+
+          const syncFromComparisonToMain = () => {
+            if (viewerInstance.current && comparisonViewerInstance.current) {
+              try {
+                const compYaw = comparisonViewerInstance.current.getYaw();
+                const compPitch = comparisonViewerInstance.current.getPitch();
+                const compHfov = comparisonViewerInstance.current.getHfov();
+                
+                viewerInstance.current.setYaw(compYaw);
+                viewerInstance.current.setPitch(compPitch);
+                viewerInstance.current.setHfov(compHfov);
+              } catch (error) {
+                console.warn('Ошибка синхронизации:', error);
+              }
+            }
+          };
+
+          // Добавляем обработчики для основного viewer'а
+          viewerInstance.current.on('mouseup', syncFromMainToComparison);
+          viewerInstance.current.on('animatefinished', syncFromMainToComparison);
+          viewerInstance.current.on('zoom', syncFromMainToComparison);
+
+          // Добавляем обработчики для сравнительного viewer'а
+          comparisonViewerInstance.current.on('mouseup', syncFromComparisonToMain);
+          comparisonViewerInstance.current.on('animatefinished', syncFromComparisonToMain);
+          comparisonViewerInstance.current.on('zoom', syncFromComparisonToMain);
+
+          // Сохраняем ссылки на обработчики для очистки
+          syncHandlersRef.current = [
+            { viewer: viewerInstance.current, event: 'mouseup', handler: syncFromMainToComparison },
+            { viewer: viewerInstance.current, event: 'animatefinished', handler: syncFromMainToComparison },
+            { viewer: viewerInstance.current, event: 'zoom', handler: syncFromMainToComparison },
+            { viewer: comparisonViewerInstance.current, event: 'mouseup', handler: syncFromComparisonToMain },
+            { viewer: comparisonViewerInstance.current, event: 'animatefinished', handler: syncFromComparisonToMain },
+            { viewer: comparisonViewerInstance.current, event: 'zoom', handler: syncFromComparisonToMain }
+          ];
+        }
+
+      } catch (error) {
+        console.error('Ошибка инициализации сравнительного Pannellum:', error);
+      }
+    } else if (!isComparisonMode && comparisonViewerInstance.current) {
+      try {
+        // Очищаем все обработчики событий перед уничтожением
+        clearSyncHandlers();
+
+        comparisonViewerInstance.current.destroy();
+        comparisonViewerInstance.current = null;
+      } catch (error) {
+        console.error('Ошибка при уничтожении сравнительного viewer:', error);
+      }
+    }
+
+    // Cleanup функция
+    return () => {
+      clearSyncHandlers();
+    };
+  }, [isComparisonMode, currentYaw, currentPitch]);
 
   // Обработчик клика по пункту сайдбара
   const handleSidebarClick = (item) => {
     console.log('Клик по пункту сайдбара:', item.label);
     if (item.action) {
       item.action();
+    } else if (item.id === 'fullscreen') {
+      if (viewerInstance.current) {
+        viewerInstance.current.toggleFullscreen();
+      }
+    } else if (item.id === 'settings') {
+      // Настройки - можно добавить другие функции
+      console.log('Открыть настройки');
     }
   };
 
   // Обработчик клика по навигационной точке
   const handleNavigationClick = (point) => {
     console.log('Переход к точке:', point.label);
-    // Здесь можно добавить логику перехода к определенной точке
-    // Например, изменить rotation или загрузить новое изображение
+    if (viewerInstance.current) {
+      viewerInstance.current.lookAt(point.yaw, point.pitch, 100, 1000);
+    }
+    if (comparisonViewerInstance.current) {
+      comparisonViewerInstance.current.lookAt(point.yaw, point.pitch, 100, 1000);
+    }
   };
 
   // Обработчик переключения режима сравнения
@@ -215,25 +344,18 @@ const Viewer360 = ({ project, onBack }) => {
         {/* Панорамные изображения */}
         <div className={`panorama-section ${isComparisonMode ? 'comparison-mode' : ''}`}>
           {/* Первое изображение */}
-          <div 
-            className="panorama-container"
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-          >
+          <div className="panorama-wrapper">
             <div 
-              className="panorama-image"
-              style={{
-                transform: `rotateY(${rotation}deg)`,
-                backgroundImage: `url(${img360})`
-              }}
+              className="panorama-container"
+              ref={panoramaRef}
+              style={{ width: '100%', height: '100%' }}
             />
             
             {/* Сайдбар для первого изображения */}
             <div className="bottom-sidebar">
               <div className="sidebar-left">
                 <div className="rotation-indicator">
-                  <span>{Math.round(((rotation % 360) + 360) % 360)}°</span>
+                  <span>{Math.round(((currentYaw % 360) + 360) % 360)}°</span>
                 </div>
                 <div className="navigation-points">
                   {navigationPoints.map((point) => (
@@ -260,26 +382,18 @@ const Viewer360 = ({ project, onBack }) => {
 
           {/* Второе изображение (только в режиме сравнения) */}
           {isComparisonMode && (
-            <div 
-              className="panorama-container comparison-image"
-              onMouseDown={handleMouseDown}
-              onTouchStart={handleTouchStart}
-              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-            >
+            <div className="panorama-wrapper">
               <div 
-                className="panorama-image"
-                style={{
-                  transform: `rotateY(${rotation}deg)`,
-                  backgroundImage: `url(${img360})`,
-                  filter: 'sepia(0.3) brightness(0.8)'
-                }}
+                className="panorama-container comparison-image"
+                ref={comparisonPanoramaRef}
+                style={{ width: '100%', height: '100%' }}
               />
               
               {/* Сайдбар для второго изображения */}
               <div className="bottom-sidebar comparison-sidebar">
                 <div className="sidebar-left">
                   <div className="rotation-indicator">
-                    <span>{Math.round(((rotation % 360) + 360) % 360)}°</span>
+                    <span>{Math.round(((currentYaw % 360) + 360) % 360)}°</span>
                   </div>
                   <div className="navigation-points">
                     {navigationPoints.map((point) => (

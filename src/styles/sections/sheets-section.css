@@ -172,6 +172,51 @@
   font-size: var(--font-size-md);
 }
 
+/* Empty state styles */
+.empty-floors-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  text-align: center;
+  background: var(--background-card);
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--border-color);
+  margin: var(--spacing-xl) 0;
+}
+
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.empty-icon i {
+  font-size: var(--font-size-3xl);
+  color: var(--white);
+}
+
+.empty-floors-state h4 {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+.empty-floors-state p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+  max-width: 400px;
+  line-height: var(--line-height-tight);
+}
+
 /* Helpful Tips Styles */
 .helpful-tips {
   background: var(--background-card);

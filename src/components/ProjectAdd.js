@@ -7,7 +7,7 @@ import useFileUpload from './ProjectEditor/hooks/useFileUpload';
 import useFloorManagement from './ProjectEditor/hooks/useFloorManagement';
 
 // Components
-import GeneralSection from './ProjectEditor/sections/GeneralSection';
+import GeneralAddSection from './ProjectAdd/sections/GeneralAddSection';
 import SheetsSection from './ProjectEditor/sections/SheetsSection';
 import BIMSection from './ProjectEditor/sections/BIMSection';
 import FloorModal from './ProjectEditor/modals/FloorModal';
@@ -17,17 +17,18 @@ import NavigationTabs from './ProjectEditor/components/NavigationTabs';
 import HelpfulTips from './ProjectEditor/components/HelpfulTips';
 
 // Utils
-import { validateForm, isFormValid, isFormCompletelyValid, validateSingleField } from './ProjectEditor/utils/validation';
+import { validateAddForm, isAddFormValid, isAddFormCompletelyValid, validateSingleField } from './ProjectAdd/utils/validation';
 
-function ProjectEditor({ project, onBack, onSave }) {
-  // Основные состояния    // Don't call preventDefault on passive wheel events
-    // Only handle wheel events inside the image container
+function ProjectAdd({ onBack, onSave }) {
+  // Основные состояния
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     propertyName: '',
     address: '',
     latitude: '',
     longitude: '',
-    status: ''
+    status: 'черновик'
   });
   const [errors, setErrors] = useState({});
   const [activeSection, setActiveSection] = useState('general');
@@ -37,29 +38,7 @@ function ProjectEditor({ project, onBack, onSave }) {
   const imageZoom = useImageZoom();
   const previewZoom = useImageZoom();
   const fileUpload = useFileUpload();
-  const floorManagement = useFloorManagement(project?.floors || [
-    {
-      id: 1,
-      name: 'Первый этаж',
-      thumbnail: require('../data/img/scheme.jpeg'),
-      fullImage: require('../data/img/scheme.jpeg'),
-      description: 'Главный этаж с входной зоной'
-    },
-    {
-      id: 2,
-      name: 'Второй этаж',
-      thumbnail: require('../data/img/scheme.jpeg'),
-      fullImage: require('../data/img/scheme.jpeg'),
-      description: 'Жилая зона'
-    },
-    {
-      id: 3,
-      name: 'Подвал',
-      thumbnail: require('../data/img/scheme.jpeg'),
-      fullImage: require('../data/img/scheme.jpeg'),
-      description: 'Техническое помещение'
-    }
-  ]);
+  const floorManagement = useFloorManagement([]); // Пустой массив для новых проектов
   
   // Refs
   const imageInputRef = useRef(null);
@@ -85,20 +64,6 @@ function ProjectEditor({ project, onBack, onSave }) {
       active: true
     }
   ], []);
-
-  // Инициализация данных проекта
-  useEffect(() => {
-    if (project) {
-      setFormData({
-        propertyName: project.name || '',
-        address: project.address || '',
-        latitude: project.latitude || '',
-        longitude: project.longitude || '',
-        status: project.status || ''
-      });
-      setPreviewImage(project.preview || null);
-    }
-  }, [project]);
 
   // Блокировка прокрутки body при открытии модального окна
   useEffect(() => {
@@ -132,7 +97,7 @@ function ProjectEditor({ project, onBack, onSave }) {
   };
 
   const handleValidation = () => {
-    const validationErrors = validateForm(formData);
+    const validationErrors = validateAddForm(formData);
     setErrors(validationErrors);
     return Object.keys(validationErrors).length === 0;
   };
@@ -160,38 +125,41 @@ function ProjectEditor({ project, onBack, onSave }) {
       setActiveSection('bim');
     } else if (activeSection === 'bim') {
       // Проверяем полную валидность формы перед завершением
-      if (!isFormCompletelyValid(formData)) {
+      if (!isAddFormCompletelyValid(formData)) {
         alert('Пожалуйста, заполните все обязательные поля в разделе "Общая информация"');
         setActiveSection('general');
         return;
       }
       
-      console.log('Проект завершен');
+      console.log('Проект создан');
+      // Создаем объект проекта
+      const newProject = {
+        id: Date.now(), // Временный ID
+        name: formData.propertyName,
+        lastUpdate: new Date().toISOString(), // Включаем часы и минуты для точной сортировки
+        user: `${formData.firstName} ${formData.lastName}`,
+        address: formData.address,
+        latitude: parseFloat(formData.latitude) || 0,
+        longitude: parseFloat(formData.longitude) || 0,
+        status: formData.status,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        startDate: new Date().toISOString().split('T')[0], // Сегодняшняя дата
+        preview: previewImage || require('../data/img/plug_img.jpeg'),
+        floors: floorManagement.floors,
+        bimFiles: fileUpload.uploadedFiles
+      };
       
-      // Сохраняем изменения проекта
-      if (onSave && project) {
-        const updatedProject = {
-          ...project,
-          name: formData.propertyName,
-          lastUpdate: new Date().toISOString(), // Включаем часы и минуты для точной сортировки
-          address: formData.address,
-          latitude: parseFloat(formData.latitude) || project.latitude,
-          longitude: parseFloat(formData.longitude) || project.longitude,
-          status: formData.status,
-          preview: previewImage || project.preview,
-          floors: floorManagement.floors,
-          bimFiles: fileUpload.uploadedFiles
-        };
-        onSave(updatedProject);
+      if (onSave) {
+        onSave(newProject);
       }
-      
       onBack();
     }
   };
 
   const handleSectionClick = (sectionId) => {
     // Если пытаемся перейти с первой секции без валидации
-    if (activeSection === 'general' && sectionId !== 'general' && !isFormValid(formData)) {
+    if (activeSection === 'general' && sectionId !== 'general' && !isAddFormValid(formData)) {
       alert('Пожалуйста, заполните все обязательные поля в разделе "Общая информация"');
       return;
     }
@@ -258,7 +226,7 @@ function ProjectEditor({ project, onBack, onSave }) {
     switch (activeSection) {
       case 'general':
         return (
-          <GeneralSection
+          <GeneralAddSection
             formData={formData}
             errors={errors}
             onInputChange={handleInputChange}
@@ -295,13 +263,13 @@ function ProjectEditor({ project, onBack, onSave }) {
     }
   };
 
-  const formIsValid = isFormValid(formData);
-  const formCompletelyValid = isFormCompletelyValid(formData);
+  const formIsValid = isAddFormValid(formData);
+  const formCompletelyValid = isAddFormCompletelyValid(formData);
 
   return (
     <div className="project-editor">
       <header className="editor-header">
-        <h1>Редактирование проекта</h1>
+        <h1>Добавление нового проекта</h1>
         <NavigationTabs
           sections={sections}
           activeSection={activeSection}
@@ -320,13 +288,13 @@ function ProjectEditor({ project, onBack, onSave }) {
             <div className="preview-container">
               <div className="preview-image-container" onClick={handleImageClick}>
                 <img 
-                  src={previewImage || project?.preview || require('../data/img/house.jpeg')} 
+                  src={previewImage || require('../data/img/plug_img.jpeg')} 
                   alt="Превью проекта" 
                   className="preview-image"
                 />
                 <div className="image-overlay">
                   <i className="fas fa-camera"></i>
-                  <span>Сменить изображение</span>
+                  <span>Добавить изображение</span>
                 </div>
               </div>
               <input
@@ -339,6 +307,14 @@ function ProjectEditor({ project, onBack, onSave }) {
               <div className="preview-info">
                 <h4>{formData.propertyName || 'Название объекта'}</h4>
                 <p>{formData.address || 'Адрес будет отображен здесь'}</p>
+                {(formData.firstName || formData.lastName) && (
+                  <p className="author">
+                    Автор: {formData.firstName} {formData.lastName}
+                  </p>
+                )}
+                <p className="start-date">
+                  Дата создания: {new Date().toLocaleDateString('ru-RU')}
+                </p>
                 {(formData.latitude || formData.longitude) && (
                   <p className="coordinates">
                     {formData.latitude && `Широта: ${formData.latitude}`}
@@ -360,7 +336,7 @@ function ProjectEditor({ project, onBack, onSave }) {
           onClick={handleBack}
         >
           <i className="fas fa-arrow-left"></i>
-          {activeSection === 'general' ? 'НАЗАД К ПРОЕКТАМ' : 
+          {activeSection === 'general' ? 'ОТМЕНА' : 
            activeSection === 'sheets' ? 'НАЗАД К ОБЩЕЙ ИНФОРМАЦИИ' : 
            'НАЗАД К СПИСКУ ЭТАЖЕЙ'}
         </button>
@@ -375,8 +351,8 @@ function ProjectEditor({ project, onBack, onSave }) {
             (activeSection === 'bim' && !formCompletelyValid)
           }
         >
-          {activeSection === 'bim' ? 'ЗАВЕРШИТЬ' : 'ДАЛЕЕ'}
-          <i className={`fas ${activeSection === 'bim' ? 'fa-check' : 'fa-arrow-right'}`}></i>
+          {activeSection === 'bim' ? 'СОЗДАТЬ ПРОЕКТ' : 'ДАЛЕЕ'}
+          <i className={`fas ${activeSection === 'bim' ? 'fa-plus' : 'fa-arrow-right'}`}></i>
         </button>
       </div>
 
@@ -446,18 +422,9 @@ function ProjectEditor({ project, onBack, onSave }) {
   );
 }
 
-ProjectEditor.propTypes = {
-  project: PropTypes.shape({
-    id: PropTypes.number,
-    name: PropTypes.string,
-    address: PropTypes.string,
-    latitude: PropTypes.number,
-    longitude: PropTypes.number,
-    status: PropTypes.string,
-    preview: PropTypes.string,
-  }),
+ProjectAdd.propTypes = {
   onBack: PropTypes.func.isRequired,
   onSave: PropTypes.func,
 };
 
-export default ProjectEditor; 
+export default ProjectAdd; 

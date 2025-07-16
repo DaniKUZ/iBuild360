@@ -5,9 +5,11 @@ import ImageViewer from '../components/ImageViewer';
 function FloorEditModal({ 
   floor, 
   floorFormData, 
+  floorErrors,
   onClose, 
   onSave, 
   onFormChange, 
+  onBlur,
   onImageChange,
   zoom, 
   pan, 
@@ -33,15 +35,22 @@ function FloorEditModal({
         
         <div className="modal-body">
           <div className="form-group">
-            <label htmlFor="floorName">Название этажа</label>
+            <label htmlFor="floorName">
+              Название этажа <span className="required">*</span>
+            </label>
             <input
               type="text"
               id="floorName"
               name="name"
               value={floorFormData.name}
               onChange={onFormChange}
+              onBlur={onBlur}
+              className={floorErrors.name ? 'error' : ''}
               placeholder="Введите название этажа"
             />
+            {floorErrors.name && (
+              <span className="error-message">{floorErrors.name}</span>
+            )}
           </div>
           
           <div className="form-group">
@@ -121,9 +130,11 @@ FloorEditModal.propTypes = {
     description: PropTypes.string,
     image: PropTypes.string
   }).isRequired,
+  floorErrors: PropTypes.object.isRequired,
   onClose: PropTypes.func.isRequired,
   onSave: PropTypes.func.isRequired,
   onFormChange: PropTypes.func.isRequired,
+  onBlur: PropTypes.func.isRequired,
   onImageChange: PropTypes.func.isRequired,
   zoom: PropTypes.number.isRequired,
   pan: PropTypes.shape({

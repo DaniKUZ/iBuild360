@@ -128,6 +128,32 @@
   color: var(--white);
 }
 
+/* Date sort filter styles */
+.date-sort-filter {
+  background: var(--white-alpha-10);
+  border: 1px solid var(--white-alpha-20);
+  border-radius: var(--radius-full);
+  color: var(--white);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-lg);
+  outline: none;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.date-sort-filter:hover {
+  background: var(--white-alpha-20);
+  border-color: var(--white-alpha-30);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.date-sort-filter option {
+  background: var(--text-secondary);
+  color: var(--white);
+}
+
 /* File input hidden styles */
 input[type="file"] {
   display: none;

@@ -41,6 +41,8 @@
   --white-alpha-30: rgba(255, 255, 255, 0.3);
   --white-alpha-70: rgba(255, 255, 255, 0.7);
   --white-alpha-90: rgba(255, 255, 255, 0.9);
+
+  --gray: #bdbdbd;
   
   --black-alpha-50: rgba(0, 0, 0, 0.5);
   --black-alpha-80: rgba(0, 0, 0, 0.8);

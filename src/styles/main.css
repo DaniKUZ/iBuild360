@@ -205,6 +205,24 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
+.modal-body .form-group input.error,
+.modal-body .form-group textarea.error {
+  border-color: var(--error-color);
+}
+
+.modal-body .form-group input.error:focus,
+.modal-body .form-group textarea.error:focus {
+  border-color: var(--error-color);
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1);
+}
+
+.modal-body .form-group .error-message {
+  color: var(--error-color);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+  display: block;
+}
+
 .image-upload-container {
   display: flex;
   align-items: flex-start;

@@ -97,6 +97,23 @@
   height: calc(100vh - 160px);
 }
 
+.panorama-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.panorama-section.comparison-mode .panorama-wrapper {
+  width: 50%;
+  border-right: 2px solid var(--primary-color);
+}
+
+.panorama-section.comparison-mode .panorama-wrapper:last-child {
+  border-right: none;
+  border-left: 2px solid var(--primary-color);
+}
+
 .panorama-container {
   width: 100%;
   height: 100%;
@@ -105,25 +122,31 @@
   user-select: none;
 }
 
-.panorama-section.comparison-mode .panorama-container {
-  width: 50%;
-  border-right: 2px solid var(--primary-color);
+/* Стили для Pannellum */
+.panorama-container .pnlm-container {
+  height: 100% !important;
+  width: 100% !important;
 }
 
-.panorama-section.comparison-mode .panorama-container.comparison-image {
-  border-right: none;
-  border-left: 2px solid var(--primary-color);
+.panorama-container .pnlm-panorama {
+  cursor: grab !important;
 }
 
-.panorama-image {
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  transition: transform 0.1s ease-out;
-  position: relative;
-  transform-style: preserve-3d;
+.panorama-container .pnlm-panorama:active {
+  cursor: grabbing !important;
+}
+
+/* Скрываем стандартные контролы Pannellum */
+.panorama-container .pnlm-controls {
+  display: none !important;
+}
+
+.panorama-container .pnlm-zoom-controls {
+  display: none !important;
+}
+
+.panorama-container .pnlm-fullscreen-toggle-button {
+  display: none !important;
 }
 
 /* Нижние сайдбары */
@@ -139,12 +162,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 80px;
+  height: 65px;
   border-radius: var(--radius-lg);
   backdrop-filter: blur(10px);
   border: 1px solid var(--white-alpha-10);
   pointer-events: auto;
-  width: 42%;
+  width: 50%;
   max-width: 600px;
   min-width: 300px;
   z-index: var(--z-index-dropdown);
@@ -177,6 +200,31 @@
 .navigation-points {
   display: flex;
   gap: var(--spacing-sm);
+}
+
+.nav-point {
+  width: 40px;
+  height: 40px;
+  background: var(--white-alpha-10);
+  border: 1px solid var(--white-alpha-20);
+  color: var(--white);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+}
+
+.nav-point:hover {
+  background: var(--white-alpha-20);
+  transform: scale(1.1);
+}
+
+.nav-point:active {
+  transform: scale(0.95);
 }
 
 .comparison-btn {
@@ -250,13 +298,16 @@
   margin-bottom: var(--spacing-md);
   padding-bottom: var(--spacing-sm);
   border-bottom: 1px solid var(--border-color);
+  position: relative;
 }
 
 .calendar-header h3 {
-  margin: 0;
+  margin: 0 1rem;
   font-size: var(--font-size-xl);
   color: var(--text-secondary);
   font-weight: var(--font-weight-semibold);
+  flex: 1;
+  text-align: center;
 }
 
 .calendar-nav {
@@ -275,19 +326,27 @@
 }
 
 .calendar-close {
-  background: none;
+  position: absolute;
+  top: -1.55rem;
+  right: -1.55rem;
+  background: var(--gray);
   border: none;
-  color: var(--text-disabled);
+  color: var(--white);
   cursor: pointer;
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-sm);
+  width: 2rem;
+  height: 2rem;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 12px;
   transition: all var(--transition-normal);
   font-size: var(--font-size-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
 }
 
 .calendar-close:hover {
-  background: var(--error-bg);
-  color: var(--error-hover);
+  background: var(--error-hover);
 }
 
 .calendar-weekdays {
@@ -465,20 +524,20 @@
     flex-direction: column;
   }
   
-  .panorama-section.comparison-mode .panorama-container {
+  .panorama-section.comparison-mode .panorama-wrapper {
     width: 100%;
     height: 50%;
     border-right: none;
     border-bottom: 2px solid var(--primary-color);
   }
   
-  .panorama-section.comparison-mode .panorama-container.comparison-image {
+  .panorama-section.comparison-mode .panorama-wrapper:last-child {
     border-left: none;
     border-top: 2px solid var(--primary-color);
     border-bottom: none;
   }
   
-  .panorama-section.comparison-mode .panorama-container .bottom-sidebar {
+  .panorama-section.comparison-mode .panorama-wrapper .bottom-sidebar {
     bottom: 10px;
     width: 95%;
     min-width: 250px;
@@ -527,5 +586,14 @@
     min-width: 28px;
     min-height: 28px;
     font-size: var(--font-size-sm);
+  }
+
+  .calendar-close {
+    top: -1.05rem;
+    right: -1.1rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-top-right-radius: 8px;
+    border-bottom-left-radius: 10px;
   }
 } 

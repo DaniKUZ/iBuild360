@@ -1,29 +1,7 @@
 import { useState, useCallback } from 'react';
 
-function useFloorManagement() {
-  const [floors, setFloors] = useState([
-    {
-      id: 1,
-      name: 'Первый этаж',
-      thumbnail: require('../../../data/img/scheme.jpeg'),
-      fullImage: require('../../../data/img/scheme.jpeg'),
-      description: 'Главный этаж с входной зоной'
-    },
-    {
-      id: 2,
-      name: 'Второй этаж',
-      thumbnail: require('../../../data/img/scheme.jpeg'),
-      fullImage: require('../../../data/img/scheme.jpeg'),
-      description: 'Жилая зона'
-    },
-    {
-      id: 3,
-      name: 'Подвал',
-      thumbnail: require('../../../data/img/scheme.jpeg'),
-      fullImage: require('../../../data/img/scheme.jpeg'),
-      description: 'Техническое помещение'
-    }
-  ]);
+function useFloorManagement(initialFloors = []) {
+  const [floors, setFloors] = useState(initialFloors);
 
   const [floorFormData, setFloorFormData] = useState({
     name: '',
@@ -31,6 +9,7 @@ function useFloorManagement() {
     image: null
   });
 
+  const [floorErrors, setFloorErrors] = useState({});
   const [selectedFloor, setSelectedFloor] = useState(null);
   const [editingFloor, setEditingFloor] = useState(null);
   const [addingFloor, setAddingFloor] = useState(false);
@@ -50,6 +29,7 @@ function useFloorManagement() {
       description: '',
       image: null
     });
+    setFloorErrors({});
   }, []);
 
   const handleEditFloor = useCallback((floorId) => {
@@ -61,6 +41,7 @@ function useFloorManagement() {
         description: floor.description,
         image: null
       });
+      setFloorErrors({});
     }
   }, [floors]);
 
@@ -76,13 +57,47 @@ function useFloorManagement() {
     }
   }, [floors]);
 
+  const validateFloorField = useCallback((fieldName, value) => {
+    const errors = {};
+    
+    if (fieldName === 'name') {
+      if (!value.trim()) {
+        errors.name = 'Название этажа обязательно для заполнения';
+      } else if (value.trim().length < 3) {
+        errors.name = 'Название этажа должно содержать минимум 3 символа';
+      }
+    }
+    
+    return errors;
+  }, []);
+
   const handleFloorFormChange = useCallback((e) => {
     const { name, value } = e.target;
     setFloorFormData(prev => ({
       ...prev,
       [name]: value
     }));
-  }, []);
+    
+    // Убираем ошибку при изменении поля
+    if (floorErrors[name]) {
+      setFloorErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  }, [floorErrors]);
+
+  const handleFloorBlur = useCallback((e) => {
+    const { name, value } = e.target;
+    const fieldErrors = validateFloorField(name, value);
+    
+    setFloorErrors(prev => ({
+      ...prev,
+      ...fieldErrors,
+      // Убираем ошибку для этого поля, если валидация прошла успешно
+      ...(Object.keys(fieldErrors).length === 0 && { [name]: '' })
+    }));
+  }, [validateFloorField]);
 
   const handleFloorImageChange = useCallback((e) => {
     const file = e.target.files[0];
@@ -104,8 +119,9 @@ function useFloorManagement() {
   }, []);
 
   const handleSaveFloor = useCallback(() => {
-    if (!floorFormData.name.trim()) {
-      alert('Название этажа не может быть пустым');
+    const validationErrors = validateFloorField('name', floorFormData.name);
+    if (Object.keys(validationErrors).length > 0) {
+      setFloorErrors(validationErrors);
       return;
     }
 
@@ -129,11 +145,13 @@ function useFloorManagement() {
       description: '',
       image: null
     });
-  }, [floorFormData, editingFloor, floors]);
+    setFloorErrors({});
+  }, [floorFormData, editingFloor, floors, validateFloorField]);
 
   const handleSaveNewFloor = useCallback(() => {
-    if (!floorFormData.name.trim()) {
-      alert('Название этажа не может быть пустым');
+    const validationErrors = validateFloorField('name', floorFormData.name);
+    if (Object.keys(validationErrors).length > 0) {
+      setFloorErrors(validationErrors);
       return;
     }
 
@@ -152,7 +170,8 @@ function useFloorManagement() {
       description: '',
       image: null
     });
-  }, [floorFormData]);
+    setFloorErrors({});
+  }, [floorFormData, validateFloorField]);
 
   const handleCancelFloorEdit = useCallback(() => {
     setEditingFloor(null);
@@ -162,11 +181,13 @@ function useFloorManagement() {
       description: '',
       image: null
     });
+    setFloorErrors({});
   }, []);
 
   return {
     floors,
     floorFormData,
+    floorErrors,
     selectedFloor,
     editingFloor,
     addingFloor,
@@ -176,6 +197,7 @@ function useFloorManagement() {
     handleEditFloor,
     handleDeleteFloor,
     handleFloorFormChange,
+    handleFloorBlur,
     handleFloorImageChange,
     handleSaveFloor,
     handleSaveNewFloor,
