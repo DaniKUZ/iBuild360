@@ -9,14 +9,24 @@
   --secondary-hover: #cbd5e0;
   
   --success-color: #38a169;
+  --success-dark: #2f855a;
+  --success-light: #c6f6d5;
   --success-bg: #c6f6d5;
   
   --warning-color: #3182ce;
   --warning-bg: #bee3f8;
   
+  --info-color: #3182ce;
+  --info-light: #bee3f8;
+  --info-bg: #bee3f8;
+  
   --error-color: #e53e3e;
   --error-bg: #fed7d7;
   --error-hover: #c53030;
+  
+  --danger-color: #e53e3e;
+  --danger-light: #fed7d7;
+  --danger-dark: #c53030;
   
   --draft-color: #c53030;
   --draft-bg: #fed7d7;
@@ -24,9 +34,14 @@
   --background-primary: #f8fafc;
   --background-secondary: #f7fafc;
   --background-card: #ffffff;
+  --background-hover: #f7fafc;
+  
+  --surface-color: #ffffff;
+  --border-light: #f1f5f9;
   
   --text-primary: #1a202c;
   --text-secondary: #2d3748;
+  --text-tertiary: #718096;
   --text-muted: #718096;
   --text-light: #4a5568;
   --text-disabled: #a0aec0;

@@ -1,0 +1,364 @@
+/* Video 360 Section Styles */
+.video360-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0;
+}
+
+.video360-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.video360-header h3 {
+  color: var(--text-primary);
+  font-size: 24px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.video360-header h3 i {
+  color: var(--primary-color);
+}
+
+.video360-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.video360-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Drag and Drop Zone */
+.drag-drop-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: var(--surface-color);
+}
+
+.drag-drop-zone.active {
+  border-color: var(--primary-color);
+  background: var(--primary-light);
+}
+
+.drag-drop-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.drag-drop-icon {
+  font-size: 48px;
+  color: var(--primary-color);
+  margin-bottom: 8px;
+}
+
+.drag-drop-content h4 {
+  color: var(--text-primary);
+  font-size: 18px;
+  margin: 0;
+}
+
+.drag-drop-content p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.upload-btn {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Uploaded Videos */
+.uploaded-videos {
+  margin-top: 24px;
+}
+
+.uploaded-videos h4 {
+  color: var(--text-primary);
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.videos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.video-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.video-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.video-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+}
+
+.video-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-light);
+  border-radius: 8px;
+  color: var(--primary-color);
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.video-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.video-name-section {
+  margin-bottom: 8px;
+}
+
+.video-name h5 {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editable-name {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.editable-name:hover {
+  background-color: var(--background-hover);
+}
+
+.edit-icon {
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.editable-name:hover .edit-icon {
+  opacity: 1;
+}
+
+.name-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.name-edit-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+.name-edit-input:focus {
+  border-color: var(--primary-color);
+}
+
+.name-edit-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-save,
+.btn-cancel {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-save {
+  background: var(--success-color);
+  color: white;
+}
+
+.btn-save:hover {
+  background: var(--success-dark);
+  color: white;
+}
+
+.btn-cancel {
+  background: var(--danger-light);
+  color: var(--danger-color);
+}
+
+.btn-cancel:hover {
+  background: var(--danger-color);
+  color: white;
+}
+
+.video-meta {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin: 0 0 4px 0;
+}
+
+.video-filename {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  margin: 0;
+  font-family: 'Courier New', monospace;
+}
+
+/* Upload Progress */
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.progress-bar {
+  width: 120px;
+  height: 6px;
+  background: var(--background-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.upload-progress span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 30px;
+}
+
+/* Remove Video Button */
+.remove-video-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--danger-light);
+  color: var(--danger-color);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.remove-video-btn:hover {
+  background: var(--danger-color);
+  color: white;
+}
+
+/* Instructions */
+.video360-instructions {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--surface-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.video360-instructions h4 {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.video360-instructions ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-secondary);
+}
+
+.video360-instructions li {
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .video360-section {
+    gap: 16px;
+  }
+  
+  .video-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .video-info {
+    width: 100%;
+  }
+  
+  .upload-progress {
+    width: 100%;
+    margin-left: 0;
+  }
+  
+  .remove-video-btn {
+    align-self: flex-end;
+  }
+  
+  .name-edit-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .name-edit-actions {
+    align-self: flex-end;
+  }
+} 

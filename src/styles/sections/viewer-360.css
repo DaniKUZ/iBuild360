@@ -81,9 +81,25 @@
 .viewer-main {
   flex: 1;
   position: relative;
+  padding: 0 30px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(79, 70, 229, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 50% 10%, rgba(156, 163, 175, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 80% 40%, rgba(99, 102, 241, 0.03) 0%, transparent 45%),
+    linear-gradient(135deg, rgba(248, 250, 252, 0.3) 0%, rgba(241, 245, 249, 0.5) 100%),
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 4px,
+      rgba(102, 126, 234, 0.008) 4px,
+      rgba(102, 126, 234, 0.008) 8px
+    );
+  background-color: #cfe7ff;
 }
 
 .panorama-section {
@@ -120,12 +136,20 @@
   position: relative;
   overflow: hidden;
   user-select: none;
+  border: 3px solid var(--primary-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Стили для Pannellum */
 .panorama-container .pnlm-container {
-  height: 100% !important;
-  width: 100% !important;
+  height: calc(100% - 6px) !important;
+  width: calc(100% - 6px) !important;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .panorama-container .pnlm-panorama {

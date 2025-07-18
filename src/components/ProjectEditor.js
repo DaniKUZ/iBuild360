@@ -5,11 +5,15 @@ import PropTypes from 'prop-types';
 import useImageZoom from './ProjectEditor/hooks/useImageZoom';
 import useFileUpload from './ProjectEditor/hooks/useFileUpload';
 import useFloorManagement from './ProjectEditor/hooks/useFloorManagement';
+import useVideo360Management from './ProjectEditor/hooks/useVideo360Management';
+import useScheduleManagement from './ProjectEditor/hooks/useScheduleManagement';
 
 // Components
 import GeneralSection from './ProjectEditor/sections/GeneralSection';
 import SheetsSection from './ProjectEditor/sections/SheetsSection';
 import BIMSection from './ProjectEditor/sections/BIMSection';
+import Video360Section from './ProjectEditor/sections/Video360Section';
+import ScheduleSection from './ProjectEditor/sections/ScheduleSection';
 import FloorModal from './ProjectEditor/modals/FloorModal';
 import FloorEditModal from './ProjectEditor/modals/FloorEditModal';
 import FloorAddModal from './ProjectEditor/modals/FloorAddModal';
@@ -37,6 +41,8 @@ function ProjectEditor({ project, onBack, onSave }) {
   const imageZoom = useImageZoom();
   const previewZoom = useImageZoom();
   const fileUpload = useFileUpload();
+  const video360Management = useVideo360Management(project?.videos360 || []);
+  const scheduleManagement = useScheduleManagement(project?.schedule || []);
   const floorManagement = useFloorManagement(project?.floors || [
     {
       id: 1,
@@ -79,6 +85,18 @@ function ProjectEditor({ project, onBack, onSave }) {
       active: true
     },
     {
+      id: 'video360',
+      title: 'Видео 360°',
+      icon: 'fas fa-video',
+      active: true
+    },
+    {
+      id: 'schedule',
+      title: 'План-график',
+      icon: 'fas fa-calendar-alt',
+      active: true
+    },
+    {
       id: 'bim',
       title: 'Загрузка BIM',
       icon: 'fas fa-cube',
@@ -102,7 +120,7 @@ function ProjectEditor({ project, onBack, onSave }) {
 
   // Блокировка прокрутки body при открытии модального окна
   useEffect(() => {
-    const hasModal = floorManagement.selectedFloor || floorManagement.editingFloor || floorManagement.addingFloor;
+    const hasModal = floorManagement.selectedFloor || floorManagement.editingFloor || floorManagement.addingFloor || scheduleManagement.editingTask;
     if (hasModal) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -112,7 +130,7 @@ function ProjectEditor({ project, onBack, onSave }) {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [floorManagement.selectedFloor, floorManagement.editingFloor, floorManagement.addingFloor]);
+  }, [floorManagement.selectedFloor, floorManagement.editingFloor, floorManagement.addingFloor, scheduleManagement.editingTask]);
 
   // Обработчики форм
   const handleInputChange = (e) => {
@@ -157,6 +175,10 @@ function ProjectEditor({ project, onBack, onSave }) {
         setActiveSection('sheets');
       }
     } else if (activeSection === 'sheets') {
+      setActiveSection('video360');
+    } else if (activeSection === 'video360') {
+      setActiveSection('schedule');
+    } else if (activeSection === 'schedule') {
       setActiveSection('bim');
     } else if (activeSection === 'bim') {
       // Проверяем полную валидность формы перед завершением
@@ -180,6 +202,8 @@ function ProjectEditor({ project, onBack, onSave }) {
           status: formData.status,
           preview: previewImage || project.preview,
           floors: floorManagement.floors,
+          videos360: video360Management.videos,
+          schedule: scheduleManagement.tasks,
           bimFiles: fileUpload.uploadedFiles
         };
         onSave(updatedProject);
@@ -201,8 +225,12 @@ function ProjectEditor({ project, onBack, onSave }) {
   const handleBack = () => {
     if (activeSection === 'sheets') {
       setActiveSection('general');
-    } else if (activeSection === 'bim') {
+    } else if (activeSection === 'video360') {
       setActiveSection('sheets');
+    } else if (activeSection === 'schedule') {
+      setActiveSection('video360');
+    } else if (activeSection === 'bim') {
+      setActiveSection('schedule');
     } else {
       onBack();
     }
@@ -273,6 +301,39 @@ function ProjectEditor({ project, onBack, onSave }) {
             onAddSheet={floorManagement.handleAddSheet}
             onEditFloor={floorManagement.handleEditFloor}
             onDeleteFloor={floorManagement.handleDeleteFloor}
+          />
+        );
+      case 'video360':
+        return (
+          <Video360Section
+            videos={video360Management.videos}
+            dragActive={video360Management.dragActive}
+            uploadProgress={video360Management.uploadProgress}
+            onDragIn={video360Management.handleDragIn}
+            onDragOut={video360Management.handleDragOut}
+            onDrag={video360Management.handleDrag}
+            onDrop={video360Management.handleDrop}
+            onFileInput={video360Management.handleFileInput}
+            onRemoveVideo={video360Management.removeVideo}
+            onUpdateVideoName={video360Management.updateVideoName}
+            formatFileSize={video360Management.formatFileSize}
+          />
+        );
+      case 'schedule':
+        return (
+          <ScheduleSection
+            tasks={scheduleManagement.tasks}
+            editingTask={scheduleManagement.editingTask}
+            taskFormData={scheduleManagement.taskFormData}
+            onAddTask={scheduleManagement.addTask}
+            onUpdateTask={scheduleManagement.updateTask}
+            onRemoveTask={scheduleManagement.removeTask}
+            onStartEditTask={scheduleManagement.startEditTask}
+            onCancelEdit={scheduleManagement.cancelEdit}
+            onSaveTask={scheduleManagement.saveTask}
+            onUpdateTaskForm={scheduleManagement.updateTaskForm}
+            getAvailableDependencies={scheduleManagement.getAvailableDependencies}
+            getProjectStats={scheduleManagement.getProjectStats}
           />
         );
       case 'bim':
@@ -362,7 +423,9 @@ function ProjectEditor({ project, onBack, onSave }) {
           <i className="fas fa-arrow-left"></i>
           {activeSection === 'general' ? 'НАЗАД К ПРОЕКТАМ' : 
            activeSection === 'sheets' ? 'НАЗАД К ОБЩЕЙ ИНФОРМАЦИИ' : 
-           'НАЗАД К СПИСКУ ЭТАЖЕЙ'}
+           activeSection === 'video360' ? 'НАЗАД К СПИСКУ ЭТАЖЕЙ' :
+           activeSection === 'schedule' ? 'НАЗАД К ВИДЕО 360°' :
+           'НАЗАД К ПЛАНУ-ГРАФИКУ'}
         </button>
         <button 
           className={`btn btn-primary ${

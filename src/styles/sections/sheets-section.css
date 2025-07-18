@@ -131,7 +131,7 @@
   height: 35px;
   background: var(--primary-color);
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,7 +154,7 @@
   height: 35px;
   background: var(--error-color);
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -11,6 +11,7 @@ module.exports = {
     filename: 'js/[name].[contenthash].js',
     chunkFilename: 'js/[name].[contenthash].chunk.js',
     assetModuleFilename: 'assets/[name].[contenthash][ext]',
+    publicPath: '/',
     clean: true,
   },
   module: {
@@ -111,6 +112,7 @@ module.exports = {
     compress: true,
     port: 3000,
     open: true,
+    historyApiFallback: true,
   },
   resolve: {
     extensions: ['.js', '.jsx'],

@@ -15,8 +15,11 @@
 /* Sections */
 @import './sections/project-editor.css';
 @import './sections/sheets-section.css';
+@import './sections/video360-section.css';
+@import './sections/schedule-section.css';
 @import './sections/bim-section.css';
 @import './sections/viewer-360.css';
+@import './sections/settings.css';
 
 /* Global styles that need to remain global */
 
@@ -48,8 +51,9 @@
 }
 
 .modal-preview {
-  max-width: 95vw;
-  max-height: 95vh;
+  max-width: 80vw;
+  max-height: 90vh;
+  width: 1200px;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -334,8 +338,8 @@
   }
 
   .modal-preview {
-    max-width: 98vw;
-    max-height: 98vh;
+    max-width: 90vw;
+    max-height: 95vh;
   }
 
   .preview-zoom-controls {
@@ -408,8 +412,8 @@
   }
    
   .modal-preview {
-    max-width: 100vw;
-    max-height: 100vh;
+    max-width: 95vw;
+    max-height: 98vh;
     margin: 0;
   }
 
@@ -427,4 +431,38 @@
   .preview-zoom-controls .zoom-level {
     font-size: 14px;
   }
+}
+
+/* Loading container styles */
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-primary);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.loading::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-primary);
+  border-top: 2px solid var(--primary);
+  border-radius: 50%;
+  margin-right: 12px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 } 

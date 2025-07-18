@@ -10,6 +10,8 @@ function NavigationTabs({ sections, activeSection, onSectionClick }) {
           className={`nav-item ${activeSection === section.id ? 'active' : ''} ${!section.active ? 'disabled' : ''}`}
           onClick={() => onSectionClick(section.id)}
           disabled={!section.active}
+          title={section.title}
+          aria-label={section.title}
         >
           <i className={section.icon}></i>
           <span>{section.title}</span>

@@ -84,7 +84,7 @@ function BIMSection({
                     className="remove-file-btn"
                     onClick={() => onRemoveFile(file.id)}
                   >
-                    <i className="fas fa-times"></i>
+                    <i className="fas fa-trash"></i>
                   </button>
                 </div>
               ))}

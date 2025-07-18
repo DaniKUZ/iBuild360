@@ -21,6 +21,8 @@ const Viewer360 = ({ project, onBack }) => {
   const sidebarItems = [
     { id: 'home', icon: 'fas fa-home', label: 'Главная', action: onBack },
     { id: 'layers', icon: 'fas fa-layer-group', label: 'Слои' },
+    { id: 'video360', icon: 'fas fa-video', label: 'Видео 360°' },
+    { id: 'schedule', icon: 'fas fa-calendar-alt', label: 'План-график' },
     { id: 'measure', icon: 'fas fa-ruler', label: 'Измерения' },
     { id: 'comments', icon: 'fas fa-comments', label: 'Комментарии' },
     { id: 'settings', icon: 'fas fa-cog', label: 'Настройки' },
@@ -240,6 +242,14 @@ const Viewer360 = ({ project, onBack }) => {
       if (viewerInstance.current) {
         viewerInstance.current.toggleFullscreen();
       }
+    } else if (item.id === 'video360') {
+      // Открыть панель управления видео 360°
+      console.log('Открыть видео 360°');
+      // TODO: Реализовать открытие панели с видео 360°
+    } else if (item.id === 'schedule') {
+      // Открыть план-график работ
+      console.log('Открыть план-график');
+      // TODO: Реализовать открытие панели с планом-графиком
     } else if (item.id === 'settings') {
       // Настройки - можно добавить другие функции
       console.log('Открыть настройки');
