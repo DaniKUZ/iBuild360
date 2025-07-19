@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import test from '../data/img/test.jpg';
+import styles from './Viewer360.module.css';
 
 const Viewer360 = ({ project, onBack }) => {
   const [isComparisonMode, setIsComparisonMode] = useState(false);
@@ -327,13 +328,13 @@ const Viewer360 = ({ project, onBack }) => {
   const weekDays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
 
   return (
-    <div className="viewer-360">
+    <div className={styles.viewer360}>
       {/* Сайдбар слева */}
-      <div className="viewer-sidebar">
+      <div className={styles.viewerSidebar}>
         {sidebarItems.map((item) => (
           <button
             key={item.id}
-            className="sidebar-item"
+            className={styles.sidebarItem}
             onClick={() => handleSidebarClick(item)}
             onMouseEnter={() => setHoveredSidebarItem(item.id)}
             onMouseLeave={() => setHoveredSidebarItem(null)}
@@ -341,7 +342,7 @@ const Viewer360 = ({ project, onBack }) => {
           >
             <i className={item.icon} aria-hidden="true"></i>
             {hoveredSidebarItem === item.id && (
-              <div className="tooltip" role="tooltip">
+              <div className={styles.tooltip} role="tooltip">
                 {item.label}
               </div>
             )}
@@ -350,28 +351,28 @@ const Viewer360 = ({ project, onBack }) => {
       </div>
 
       {/* Основная область просмотра */}
-      <div className="viewer-main">
+      <div className={styles.viewerMain}>
         {/* Панорамные изображения */}
-        <div className={`panorama-section ${isComparisonMode ? 'comparison-mode' : ''}`}>
+        <div className={`${styles.panoramaSection} ${isComparisonMode ? styles.comparisonMode : ''}`}>
           {/* Первое изображение */}
-          <div className="panorama-wrapper">
+          <div className={styles.panoramaWrapper}>
             <div 
-              className="panorama-container"
+              className={styles.panoramaContainer}
               ref={panoramaRef}
               style={{ width: '100%', height: '100%' }}
             />
             
             {/* Сайдбар для первого изображения */}
-            <div className="bottom-sidebar">
-              <div className="sidebar-left">
-                <div className="rotation-indicator">
+            <div className={styles.bottomSidebar}>
+              <div className={styles.sidebarLeft}>
+                <div className={styles.rotationIndicator}>
                   <span>{Math.round(((currentYaw % 360) + 360) % 360)}°</span>
                 </div>
-                <div className="navigation-points">
+                <div className={styles.navigationPoints}>
                   {navigationPoints.map((point) => (
                     <button
                       key={point.id}
-                      className="nav-point"
+                      className={styles.navPoint}
                       onClick={() => handleNavigationClick(point)}
                       title={point.label}
                     >
@@ -381,7 +382,7 @@ const Viewer360 = ({ project, onBack }) => {
                 </div>
               </div>
               <button 
-                className="comparison-btn"
+                className={styles.comparisonBtn}
                 onClick={handleComparisonToggle}
                 title="Сравнение по датам"
               >
@@ -392,24 +393,24 @@ const Viewer360 = ({ project, onBack }) => {
 
           {/* Второе изображение (только в режиме сравнения) */}
           {isComparisonMode && (
-            <div className="panorama-wrapper">
+            <div className={styles.panoramaWrapper}>
               <div 
-                className="panorama-container comparison-image"
+                className={`${styles.panoramaContainer} ${styles.comparisonImage}`}
                 ref={comparisonPanoramaRef}
                 style={{ width: '100%', height: '100%' }}
               />
               
               {/* Сайдбар для второго изображения */}
-              <div className="bottom-sidebar comparison-sidebar">
-                <div className="sidebar-left">
-                  <div className="rotation-indicator">
+              <div className={`${styles.bottomSidebar} ${styles.comparisonSidebar}`}>
+                <div className={styles.sidebarLeft}>
+                  <div className={styles.rotationIndicator}>
                     <span>{Math.round(((currentYaw % 360) + 360) % 360)}°</span>
                   </div>
-                  <div className="navigation-points">
+                  <div className={styles.navigationPoints}>
                     {navigationPoints.map((point) => (
                       <button
                         key={`comp-${point.id}`}
-                        className="nav-point"
+                        className={styles.navPoint}
                         onClick={() => handleNavigationClick(point)}
                         title={point.label}
                       >
@@ -419,7 +420,7 @@ const Viewer360 = ({ project, onBack }) => {
                   </div>
                 </div>
                 <button 
-                  className="close-comparison-btn"
+                  className={styles.closeComparisonBtn}
                   onClick={handleCloseComparison}
                   title="Закрыть сравнение"
                 >
@@ -432,39 +433,39 @@ const Viewer360 = ({ project, onBack }) => {
 
         {/* Календарь */}
         {showDatePicker && (
-          <div className="calendar-overlay">
-            <div className="calendar-popup">
-              <div className="calendar-header">
+          <div className={styles.calendarOverlay}>
+            <div className={styles.calendarPopup}>
+              <div className={styles.calendarHeader}>
                 <button 
-                  className="calendar-nav"
+                  className={styles.calendarNav}
                   onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1))}
                 >
                   <i className="fas fa-chevron-left"></i>
                 </button>
                 <h3>{monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}</h3>
                 <button 
-                  className="calendar-nav"
+                  className={styles.calendarNav}
                   onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1))}
                 >
                   <i className="fas fa-chevron-right"></i>
                 </button>
                 <button 
-                  className="calendar-close"
+                  className={styles.calendarClose}
                   onClick={() => setShowDatePicker(false)}
                 >
                   <i className="fas fa-times"></i>
                 </button>
               </div>
-              <div className="calendar-weekdays">
+              <div className={styles.calendarWeekdays}>
                 {weekDays.map((day) => (
-                  <div key={day} className="weekday">{day}</div>
+                  <div key={day} className={styles.weekday}>{day}</div>
                 ))}
               </div>
-              <div className="calendar-days">
+              <div className={styles.calendarDays}>
                 {generateCalendar().map((day, index) => (
                   <button
                     key={index}
-                    className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''} ${day.isToday ? 'today' : ''} ${day.isSelected ? 'selected' : ''}`}
+                    className={`${styles.calendarDay} ${!day.isCurrentMonth ? styles.otherMonth : ''} ${day.isToday ? styles.today : ''} ${day.isSelected ? styles.selected : ''}`}
                     onClick={() => handleDateSelect(day.dateString)}
                   >
                     {day.day}

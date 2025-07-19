@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PhoneInput from './PhoneInput';
-import './RequestModal.css';
+import styles from './RequestModal.module.css';
 
 const RequestModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -172,12 +172,12 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="request-modal-overlay" onClick={handleOverlayClick}>
-      <div className="request-modal">
-        <div className="request-modal-header">
+    <div className={styles.requestModalOverlay} onClick={handleOverlayClick}>
+      <div className={styles.requestModal}>
+        <div className={styles.requestModalHeader}>
           <h2>Оставить заявку</h2>
           <button 
-            className="request-modal-close"
+            className={styles.requestModalClose}
             onClick={handleClose}
             aria-label="Закрыть модальное окно"
           >
@@ -185,67 +185,67 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
           </button>
         </div>
 
-        <div className="request-modal-body">
-          <p className="request-modal-description">
+        <div className={styles.requestModalBody}>
+          <p className={styles.requestModalDescription}>
             Заполните форму ниже, и наш менеджер свяжется с вами для обсуждения деталей сотрудничества.
           </p>
 
-          <form onSubmit={handleSubmit} className="request-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="firstName" className="form-label">
+          <form onSubmit={handleSubmit} className={styles.requestForm}>
+            <div className={styles.formRow}>
+              <div className={styles.formGroup}>
+                <label htmlFor="firstName" className={styles.formLabel}>
                   Имя *
                 </label>
                 <input
                   type="text"
                   id="firstName"
-                  className={`form-input ${errors.firstName ? 'error' : ''}`}
+                  className={`${styles.formInput} ${errors.firstName ? styles.error : ''}`}
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
                   placeholder="Введите ваше имя"
                 />
                 {errors.firstName && (
-                  <span className="form-error">{errors.firstName}</span>
+                  <span className={styles.formError}>{errors.firstName}</span>
                 )}
               </div>
 
-              <div className="form-group">
-                <label htmlFor="lastName" className="form-label">
+              <div className={styles.formGroup}>
+                <label htmlFor="lastName" className={styles.formLabel}>
                   Фамилия *
                 </label>
                 <input
                   type="text"
                   id="lastName"
-                  className={`form-input ${errors.lastName ? 'error' : ''}`}
+                  className={`${styles.formInput} ${errors.lastName ? styles.error : ''}`}
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   placeholder="Введите вашу фамилию"
                 />
                 {errors.lastName && (
-                  <span className="form-error">{errors.lastName}</span>
+                  <span className={styles.formError}>{errors.lastName}</span>
                 )}
               </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">
+            <div className={styles.formGroup}>
+              <label htmlFor="email" className={styles.formLabel}>
                 Электронная почта *
               </label>
               <input
                 type="email"
                 id="email"
-                className={`form-input ${errors.email ? 'error' : ''}`}
+                className={`${styles.formInput} ${errors.email ? styles.error : ''}`}
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 placeholder="example@company.com"
               />
               {errors.email && (
-                <span className="form-error">{errors.email}</span>
+                <span className={styles.formError}>{errors.email}</span>
               )}
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
+            <div className={styles.formGroup}>
+              <label className={styles.formLabel}>
                 Номер телефона *
               </label>
               <PhoneInput
@@ -255,31 +255,31 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
                 error={errors.phone}
               />
               {errors.phone && (
-                <span className="form-error">{errors.phone}</span>
+                <span className={styles.formError}>{errors.phone}</span>
               )}
             </div>
 
-            <div className="form-group">
-              <label htmlFor="company" className="form-label">
+            <div className={styles.formGroup}>
+              <label htmlFor="company" className={styles.formLabel}>
                 Название компании *
               </label>
               <input
                 type="text"
                 id="company"
-                className={`form-input ${errors.company ? 'error' : ''}`}
+                className={`${styles.formInput} ${errors.company ? styles.error : ''}`}
                 value={formData.company}
                 onChange={(e) => handleInputChange('company', e.target.value)}
                 placeholder="ООО 'Название компании'"
               />
               {errors.company && (
-                <span className="form-error">{errors.company}</span>
+                <span className={styles.formError}>{errors.company}</span>
               )}
             </div>
 
-            <div className="form-actions">
+            <div className={styles.formActions}>
               <button 
                 type="button" 
-                className="btn btn-secondary"
+                className={`${styles.btn} ${styles.btnSecondary}`}
                 onClick={handleClose}
                 disabled={isSubmitting}
               >
@@ -287,12 +287,12 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
               </button>
               <button 
                 type="submit" 
-                className="btn btn-primary"
+                className={`${styles.btn} ${styles.btnPrimary}`}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
-                    <span className="spinner"></span>
+                    <span className={styles.spinner}></span>
                     Отправка...
                   </>
                 ) : (

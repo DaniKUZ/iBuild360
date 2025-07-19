@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Login.css';
+import styles from './Login.module.css';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -49,11 +49,11 @@ const Login = () => {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-header">
+    <div className={styles.loginPage}>
+      <div className={styles.loginContainer}>
+        <div className={styles.loginHeader}>
           <button 
-            className="back-button"
+            className={styles.backButton}
             onClick={handleBackToLanding}
             aria-label="Вернуться на главную"
           >
@@ -63,9 +63,9 @@ const Login = () => {
           <p>Центр управления качеством и рисками города Москва</p>
         </div>
 
-        <div className="login-form-container">
-          <form className="login-form" onSubmit={handleSubmit}>
-            <div className="form-group">
+        <div className={styles.loginFormContainer}>
+          <form className={styles.loginForm} onSubmit={handleSubmit}>
+            <div className={styles.formGroup}>
               <label htmlFor="login">Логин</label>
               <input
                 type="text"
@@ -73,14 +73,14 @@ const Login = () => {
                 name="login"
                 value={formData.login}
                 onChange={handleInputChange}
-                className={errors.login ? 'error' : ''}
+                className={errors.login ? styles.error : ''}
                 placeholder="Введите логин"
                 required
               />
-              {errors.login && <span className="error-message">{errors.login}</span>}
+              {errors.login && <span className={styles.errorMessage}>{errors.login}</span>}
             </div>
 
-            <div className="form-group">
+            <div className={styles.formGroup}>
               <label htmlFor="password">Пароль</label>
               <input
                 type="password"
@@ -88,32 +88,32 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className={errors.password ? 'error' : ''}
+                className={errors.password ? styles.error : ''}
                 placeholder="Введите пароль"
                 required
               />
-              {errors.password && <span className="error-message">{errors.password}</span>}
+              {errors.password && <span className={styles.errorMessage}>{errors.password}</span>}
             </div>
 
             <button 
               type="button" 
-              className="forgot-password-link"
+              className={styles.forgotPasswordLink}
               onClick={handleForgotPassword}
             >
               Забыли пароль?
             </button>
 
-            <div className="form-actions">
+            <div className={styles.formActions}>
               <button 
                 type="submit" 
-                className="btn btn-primary login-btn"
+                className={`${styles.btn} ${styles.btnPrimary}`}
               >
                 Войти
               </button>
               
               <button 
                 type="button" 
-                className="btn btn-secondary test-login-btn"
+                className={`${styles.btn} ${styles.btnSecondary}`}
                 onClick={handleTestLogin}
               >
                 Тестовый вход

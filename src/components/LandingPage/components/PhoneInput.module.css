@@ -1,10 +1,10 @@
 /* Phone Input Styles */
-.phone-input-container {
+.phoneInputContainer {
   position: relative;
   width: 100%;
 }
 
-.phone-input-wrapper {
+.phoneInputWrapper {
   display: flex;
   align-items: center;
   border: 1px solid #d1d5db;
@@ -14,22 +14,22 @@
   overflow: hidden;
 }
 
-.phone-input-wrapper:focus-within {
+.phoneInputWrapper:focus-within {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.phone-input-wrapper.error {
+.phoneInputWrapper.error {
   border-color: #dc2626;
 }
 
-.phone-input-wrapper.error:focus-within {
+.phoneInputWrapper.error:focus-within {
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 /* Country Selector */
-.country-selector {
+.countrySelector {
   display: flex;
   align-items: center;
   padding: 0.75rem 0.5rem 0.75rem 0.75rem;
@@ -42,39 +42,39 @@
   gap: 0.5rem;
 }
 
-.country-selector:hover {
+.countrySelector:hover {
   background-color: #f3f4f6;
 }
 
-.country-selector:focus {
+.countrySelector:focus {
   outline: none;
   background-color: #f3f4f6;
 }
 
-.country-flag {
+.countryFlag {
   font-size: 1.125rem;
   line-height: 1;
 }
 
-.country-code {
+.countryCode {
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
   min-width: 35px;
 }
 
-.dropdown-arrow {
+.dropdownArrow {
   color: #6b7280;
   transition: transform 0.2s ease;
   margin-left: auto;
 }
 
-.dropdown-arrow.open {
+.dropdownArrow.open {
   transform: rotate(180deg);
 }
 
 /* Phone Number Input */
-.phone-number-input {
+.phoneNumberInput {
   flex: 1;
   border: none;
   outline: none;
@@ -84,12 +84,12 @@
   color: #111827;
 }
 
-.phone-number-input::placeholder {
+.phoneNumberInput::placeholder {
   color: #9ca3af;
 }
 
 /* Country Dropdown */
-.country-dropdown {
+.countryDropdown {
   position: absolute;
   top: 100%;
   left: 0;
@@ -107,13 +107,13 @@
 }
 
 /* Dropdown Search */
-.dropdown-search {
+.dropdownSearch {
   padding: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
   background-color: #f9fafb;
 }
 
-.search-input {
+.searchInput {
   width: 100%;
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
@@ -123,23 +123,23 @@
   transition: border-color 0.2s ease;
 }
 
-.search-input:focus {
+.searchInput:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
-.search-input::placeholder {
+.searchInput::placeholder {
   color: #9ca3af;
 }
 
 /* Countries List */
-.countries-list {
+.countriesList {
   flex: 1;
   overflow-y: auto;
   max-height: 200px;
 }
 
-.country-option {
+.countryOption {
   display: flex;
   align-items: center;
   padding: 0.75rem;
@@ -149,42 +149,42 @@
   border-bottom: 1px solid #f3f4f6;
 }
 
-.country-option:last-child {
+.countryOption:last-child {
   border-bottom: none;
 }
 
-.country-option:hover {
+.countryOption:hover {
   background-color: #f9fafb;
 }
 
-.country-option:focus {
+.countryOption:focus {
   outline: none;
   background-color: #f3f4f6;
 }
 
-.country-option.selected {
+.countryOption.selected {
   background-color: #eff6ff;
   color: #2563eb;
 }
 
-.country-option .country-flag {
+.countryOption .countryFlag {
   font-size: 1.125rem;
   line-height: 1;
   min-width: 24px;
 }
 
-.country-option .country-name {
+.countryOption .countryName {
   flex: 1;
   font-size: 0.875rem;
   color: #374151;
 }
 
-.country-option.selected .country-name {
+.countryOption.selected .countryName {
   color: #2563eb;
   font-weight: 500;
 }
 
-.country-option .country-code {
+.countryOption .countryCode {
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 500;
@@ -192,12 +192,12 @@
   text-align: right;
 }
 
-.country-option.selected .country-code {
+.countryOption.selected .countryCode {
   color: #2563eb;
 }
 
 /* No Results */
-.no-results {
+.noResults {
   padding: 1.5rem;
   text-align: center;
   color: #6b7280;
@@ -206,57 +206,57 @@
 }
 
 /* Scrollbar Styling */
-.countries-list::-webkit-scrollbar {
+.countriesList::-webkit-scrollbar {
   width: 6px;
 }
 
-.countries-list::-webkit-scrollbar-track {
+.countriesList::-webkit-scrollbar-track {
   background: #f3f4f6;
 }
 
-.countries-list::-webkit-scrollbar-thumb {
+.countriesList::-webkit-scrollbar-thumb {
   background-color: #d1d5db;
   border-radius: 3px;
 }
 
-.countries-list::-webkit-scrollbar-thumb:hover {
+.countriesList::-webkit-scrollbar-thumb:hover {
   background-color: #9ca3af;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .country-dropdown {
+  .countryDropdown {
     max-height: 240px;
   }
   
-  .countries-list {
+  .countriesList {
     max-height: 160px;
   }
   
-  .country-selector {
+  .countrySelector {
     min-width: 90px;
     padding: 0.75rem 0.375rem 0.75rem 0.5rem;
   }
   
-  .country-code {
+  .countryCode {
     font-size: 0.8125rem;
     min-width: 30px;
   }
   
-  .phone-number-input {
+  .phoneNumberInput {
     padding: 0.75rem 0.5rem;
     font-size: 0.8125rem;
   }
   
-  .country-option {
+  .countryOption {
     padding: 0.625rem 0.75rem;
   }
   
-  .country-option .country-name {
+  .countryOption .countryName {
     font-size: 0.8125rem;
   }
   
-  .country-option .country-code {
+  .countryOption .countryCode {
     font-size: 0.8125rem;
     min-width: 40px;
   }
@@ -274,32 +274,32 @@
   }
 }
 
-.country-dropdown {
+.countryDropdown {
   animation: dropdown-slide-down 0.2s ease-out;
 }
 
 /* Focus styles for accessibility */
-.country-selector:focus {
+.countrySelector:focus {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
 
-.country-option:focus {
+.countryOption:focus {
   outline: 2px solid #2563eb;
   outline-offset: -2px;
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .phone-input-wrapper {
+  .phoneInputWrapper {
     border-width: 2px;
   }
   
-  .country-selector {
+  .countrySelector {
     border-right-width: 2px;
   }
   
-  .country-option.selected {
+  .countryOption.selected {
     background-color: #1e40af;
     color: white;
   }

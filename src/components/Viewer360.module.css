@@ -1,5 +1,5 @@
 /* Viewer 360 Styles */
-.viewer-360 {
+.viewer360 {
   min-height: 100vh;
   background: var(--background-primary);
   color: var(--text-primary);
@@ -7,7 +7,7 @@
   position: relative;
 }
 
-.viewer-sidebar {
+.viewerSidebar {
   width: 60px;
   background: var(--primary-color);
   display: flex;
@@ -19,7 +19,7 @@
   z-index: var(--z-index-sidebar);
 }
 
-.viewer-sidebar .sidebar-item {
+.viewerSidebar .sidebarItem {
   width: 40px;
   height: 40px;
   background: var(--white-alpha-10);
@@ -34,26 +34,26 @@
   font-size: var(--font-size-xl);
 }
 
-.viewer-sidebar .sidebar-item:hover {
+.viewerSidebar .sidebarItem:hover {
   background: var(--white-alpha-20);
   transform: scale(1.1);
 }
 
-.viewer-sidebar .sidebar-item:first-child {
+.viewerSidebar .sidebarItem:first-child {
   background: var(--white-alpha-20);
   border: 2px solid var(--white-alpha-30);
 }
 
-.viewer-sidebar .sidebar-item:first-child:hover {
+.viewerSidebar .sidebarItem:first-child:hover {
   background: var(--white-alpha-30);
 }
 
 /* Tooltip для пунктов сайдбара */
-.viewer-sidebar .sidebar-item {
+.viewerSidebar .sidebarItem {
   position: relative;
 }
 
-.viewer-sidebar .tooltip {
+.viewerSidebar .tooltip {
   position: absolute;
   left: 60px;
   top: 50%;
@@ -68,7 +68,7 @@
   animation: fadeIn var(--transition-fast) ease-in-out;
 }
 
-.viewer-sidebar .tooltip::before {
+.viewerSidebar .tooltip::before {
   content: '';
   position: absolute;
   right: 100%;
@@ -78,7 +78,7 @@
   border-right-color: var(--black-alpha-80);
 }
 
-.viewer-main {
+.viewerMain {
   flex: 1;
   position: relative;
   padding: 0 30px;
@@ -102,35 +102,35 @@
   background-color: #cfe7ff;
 }
 
-.panorama-section {
+.panoramaSection {
   width: 100%;
   height: calc(100vh - 80px);
   display: flex;
   position: relative;
 }
 
-.panorama-section.comparison-mode {
+.panoramaSection.comparisonMode {
   height: calc(100vh - 160px);
 }
 
-.panorama-wrapper {
+.panoramaWrapper {
   width: 100%;
   height: 100%;
   position: relative;
   overflow: hidden;
 }
 
-.panorama-section.comparison-mode .panorama-wrapper {
+.panoramaSection.comparisonMode .panoramaWrapper {
   width: 50%;
   border-right: 2px solid var(--primary-color);
 }
 
-.panorama-section.comparison-mode .panorama-wrapper:last-child {
+.panoramaSection.comparisonMode .panoramaWrapper:last-child {
   border-right: none;
   border-left: 2px solid var(--primary-color);
 }
 
-.panorama-container {
+.panoramaContainer {
   width: 100%;
   height: 100%;
   position: relative;
@@ -144,7 +144,7 @@
 }
 
 /* Стили для Pannellum */
-.panorama-container .pnlm-container {
+.panoramaContainer .pnlm-container {
   height: calc(100% - 6px) !important;
   width: calc(100% - 6px) !important;
   border-radius: var(--radius-sm);
@@ -152,29 +152,29 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-.panorama-container .pnlm-panorama {
+.panoramaContainer .pnlm-panorama {
   cursor: grab !important;
 }
 
-.panorama-container .pnlm-panorama:active {
+.panoramaContainer .pnlm-panorama:active {
   cursor: grabbing !important;
 }
 
 /* Скрываем стандартные контролы Pannellum */
-.panorama-container .pnlm-controls {
+.panoramaContainer .pnlm-controls {
   display: none !important;
 }
 
-.panorama-container .pnlm-zoom-controls {
+.panoramaContainer .pnlm-zoom-controls {
   display: none !important;
 }
 
-.panorama-container .pnlm-fullscreen-toggle-button {
+.panoramaContainer .pnlm-fullscreen-toggle-button {
   display: none !important;
 }
 
 /* Нижние сайдбары */
-.bottom-sidebar {
+.bottomSidebar {
   position: absolute;
   bottom: 20px;
   left: 50%;
@@ -197,18 +197,18 @@
   z-index: var(--z-index-dropdown);
 }
 
-.bottom-sidebar.comparison-sidebar {
+.bottomSidebar.comparisonSidebar {
   background: rgba(76, 81, 191, 0.85);
   border: 1px solid var(--white-alpha-10);
 }
 
-.sidebar-left {
+.sidebarLeft {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
 }
 
-.rotation-indicator {
+.rotationIndicator {
   background: var(--white-alpha-10);
   border: 1px solid var(--white-alpha-20);
   padding: var(--spacing-sm) var(--spacing-md);
@@ -221,12 +221,12 @@
   color: var(--white);
 }
 
-.navigation-points {
+.navigationPoints {
   display: flex;
   gap: var(--spacing-sm);
 }
 
-.nav-point {
+.navPoint {
   width: 40px;
   height: 40px;
   background: var(--white-alpha-10);
@@ -242,16 +242,16 @@
   font-size: var(--font-size-lg);
 }
 
-.nav-point:hover {
+.navPoint:hover {
   background: var(--white-alpha-20);
   transform: scale(1.1);
 }
 
-.nav-point:active {
+.navPoint:active {
   transform: scale(0.95);
 }
 
-.comparison-btn {
+.comparisonBtn {
   background: var(--white-alpha-10);
   border: 1px solid var(--white-alpha-20);
   color: var(--white);
@@ -265,11 +265,11 @@
   font-size: var(--font-size-lg);
 }
 
-.comparison-btn:hover {
+.comparisonBtn:hover {
   background: var(--white-alpha-20);
 }
 
-.close-comparison-btn {
+.closeComparisonBtn {
   background: var(--white-alpha-10);
   border: 1px solid var(--white-alpha-20);
   color: var(--white);
@@ -285,14 +285,14 @@
   font-size: var(--font-size-xl);
 }
 
-.close-comparison-btn:hover {
+.closeComparisonBtn:hover {
   background: rgba(255, 0, 0, 0.2);
   border-color: rgba(255, 0, 0, 0.3);
   transform: scale(1.1);
 }
 
 /* Calendar Overlay */
-.calendar-overlay {
+.calendarOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -305,7 +305,7 @@
   z-index: var(--z-index-modal);
 }
 
-.calendar-popup {
+.calendarPopup {
   background: var(--background-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -315,7 +315,7 @@
   animation: slideIn var(--transition-normal) ease;
 }
 
-.calendar-header {
+.calendarHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -325,7 +325,7 @@
   position: relative;
 }
 
-.calendar-header h3 {
+.calendarHeader h3 {
   margin: 0 1rem;
   font-size: var(--font-size-xl);
   color: var(--text-secondary);
@@ -334,7 +334,7 @@
   text-align: center;
 }
 
-.calendar-nav {
+.calendarNav {
   background: none;
   border: none;
   color: var(--primary-color);
@@ -345,11 +345,11 @@
   font-size: var(--font-size-md);
 }
 
-.calendar-nav:hover {
+.calendarNav:hover {
   background: var(--background-secondary);
 }
 
-.calendar-close {
+.calendarClose {
   position: absolute;
   top: -1.55rem;
   right: -1.55rem;
@@ -369,11 +369,11 @@
   z-index: 10;
 }
 
-.calendar-close:hover {
+.calendarClose:hover {
   background: var(--error-hover);
 }
 
-.calendar-weekdays {
+.calendarWeekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: var(--spacing-xs);
@@ -388,13 +388,13 @@
   padding: var(--spacing-sm);
 }
 
-.calendar-days {
+.calendarDays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: var(--spacing-xs);
 }
 
-.calendar-day {
+.calendarDay {
   background: none;
   border: none;
   padding: 0.75rem var(--spacing-sm);
@@ -412,102 +412,102 @@
   justify-content: center;
 }
 
-.calendar-day:hover {
+.calendarDay:hover {
   background: #edf2f7;
 }
 
-.calendar-day.other-month {
+.calendarDay.otherMonth {
   color: var(--border-color-hover);
 }
 
-.calendar-day.today {
+.calendarDay.today {
   background: var(--primary-color);
   color: var(--white);
   font-weight: var(--font-weight-semibold);
 }
 
-.calendar-day.selected {
+.calendarDay.selected {
   background: var(--primary-light);
   color: var(--white);
   font-weight: var(--font-weight-semibold);
 }
 
-.calendar-day.today:hover,
-.calendar-day.selected:hover {
+.calendarDay.today:hover,
+.calendarDay.selected:hover {
   background: var(--primary-dark);
 }
 
 /* Адаптивность */
 @media (max-width: 768px) {
-  .viewer-sidebar {
+  .viewerSidebar {
     width: 50px;
     padding: var(--spacing-sm) 0;
   }
   
-  .viewer-sidebar .sidebar-item {
+  .viewerSidebar .sidebarItem {
     width: 35px;
     height: 35px;
     font-size: var(--font-size-lg);
   }
   
-  .viewer-sidebar .tooltip {
+  .viewerSidebar .tooltip {
     left: 55px;
     font-size: var(--font-size-sm);
   }
   
-  .bottom-sidebar {
+  .bottomSidebar {
     bottom: 15px;
     width: 90%;
     max-width: none;
     min-width: 280px;
   }
   
-  .panorama-section {
+  .panoramaSection {
     height: 100vh;
   }
   
-  .panorama-section.comparison-mode {
+  .panoramaSection.comparisonMode {
     height: 100vh;
   }
   
-  .bottom-sidebar {
+  .bottomSidebar {
     padding: 0.75rem var(--spacing-md);
     height: 70px;
   }
   
-  .sidebar-left {
+  .sidebarLeft {
     gap: 0.75rem;
   }
   
-  .rotation-indicator {
+  .rotationIndicator {
     padding: 0.4rem 0.8rem;
     font-size: var(--font-size-md);
     min-width: 50px;
   }
   
-  .nav-point {
+  .navPoint {
     width: 35px;
     height: 35px;
     font-size: var(--font-size-md);
   }
   
-  .comparison-btn {
+  .comparisonBtn {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-md);
   }
   
-  .close-comparison-btn {
+  .closeComparisonBtn {
     width: 45px;
     height: 45px;
     font-size: var(--font-size-lg);
   }
   
-  .calendar-popup {
+  .calendarPopup {
     width: 90%;
     max-width: 350px;
   }
   
-  .calendar-day {
+  .calendarDay {
     padding: var(--spacing-sm) var(--spacing-xs);
     min-width: 32px;
     min-height: 32px;
@@ -516,103 +516,103 @@
 }
 
 @media (max-width: 480px) {
-  .viewer-sidebar {
+  .viewerSidebar {
     width: 45px;
     padding: var(--spacing-sm) 0;
   }
   
-  .viewer-sidebar .sidebar-item {
+  .viewerSidebar .sidebarItem {
     width: 30px;
     height: 30px;
     font-size: var(--font-size-md);
   }
   
-  .viewer-sidebar .tooltip {
+  .viewerSidebar .tooltip {
     left: 50px;
     font-size: var(--font-size-sm);
   }
   
-  .bottom-sidebar {
+  .bottomSidebar {
     bottom: 10px;
     width: 95%;
     max-width: none;
     min-width: 250px;
   }
   
-  .panorama-section {
+  .panoramaSection {
     height: 100vh;
   }
   
-  .panorama-section.comparison-mode {
+  .panoramaSection.comparisonMode {
     height: 100vh;
     flex-direction: column;
   }
   
-  .panorama-section.comparison-mode .panorama-wrapper {
+  .panoramaSection.comparisonMode .panoramaWrapper {
     width: 100%;
     height: 50%;
     border-right: none;
     border-bottom: 2px solid var(--primary-color);
   }
   
-  .panorama-section.comparison-mode .panorama-wrapper:last-child {
+  .panoramaSection.comparisonMode .panoramaWrapper:last-child {
     border-left: none;
     border-top: 2px solid var(--primary-color);
     border-bottom: none;
   }
   
-  .panorama-section.comparison-mode .panorama-wrapper .bottom-sidebar {
+  .panoramaSection.comparisonMode .panoramaWrapper .bottomSidebar {
     bottom: 10px;
     width: 95%;
     min-width: 250px;
   }
   
-  .bottom-sidebar {
+  .bottomSidebar {
     padding: var(--spacing-sm) var(--spacing-md);
     height: 60px;
   }
   
-  .sidebar-left {
+  .sidebarLeft {
     gap: var(--spacing-sm);
   }
   
-  .rotation-indicator {
+  .rotationIndicator {
     padding: 0.3rem 0.6rem;
     font-size: var(--font-size-sm);
     min-width: 45px;
   }
   
-  .nav-point {
+  .navPoint {
     width: 30px;
     height: 30px;
     font-size: var(--font-size-sm);
   }
   
-  .comparison-btn {
+  .comparisonBtn {
     padding: var(--spacing-sm);
     font-size: var(--font-size-sm);
   }
   
-  .close-comparison-btn {
+  .closeComparisonBtn {
     width: 40px;
     height: 40px;
     font-size: var(--font-size-md);
   }
   
-  .calendar-popup {
+  .calendarPopup {
     width: 95%;
     padding: var(--spacing-md);
     max-width: 340px;
   }
   
-  .calendar-day {
+  .calendarDay {
     padding: 0.4rem 0.2rem;
     min-width: 28px;
     min-height: 28px;
     font-size: var(--font-size-sm);
   }
 
-  .calendar-close {
+  .calendarClose {
     top: -1.05rem;
     right: -1.1rem;
     width: 1.5rem;

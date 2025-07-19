@@ -1,5 +1,5 @@
 /* Request Modal Styles */
-.request-modal-overlay {
+.requestModalOverlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -15,7 +15,7 @@
   animation: modal-overlay-appear 0.3s ease-out;
 }
 
-.request-modal {
+.requestModal {
   background: white;
   border-radius: 1rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -29,7 +29,7 @@
 }
 
 /* Modal Header */
-.request-modal-header {
+.requestModalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -39,13 +39,13 @@
   color: white;
 }
 
-.request-modal-header h2 {
+.requestModalHeader h2 {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
 }
 
-.request-modal-close {
+.requestModalClose {
   background: none;
   border: none;
   font-size: 1.5rem;
@@ -62,23 +62,23 @@
   justify-content: center;
 }
 
-.request-modal-close:hover {
+.requestModalClose:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.request-modal-close:focus {
+.requestModalClose:focus {
   outline: 2px solid rgba(255, 255, 255, 0.5);
   outline-offset: 2px;
 }
 
 /* Modal Body */
-.request-modal-body {
+.requestModalBody {
   padding: 2rem;
   overflow-y: auto;
   flex: 1;
 }
 
-.request-modal-description {
+.requestModalDescription {
   font-size: 0.875rem;
   color: #6b7280;
   margin-bottom: 2rem;
@@ -87,32 +87,32 @@
 }
 
 /* Form Styles */
-.request-form {
+.requestForm {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.form-row {
+.formRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
-.form-group {
+.formGroup {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.form-label {
+.formLabel {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
   margin-bottom: 0.25rem;
 }
 
-.form-input {
+.formInput {
   padding: 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
@@ -121,26 +121,26 @@
   background-color: white;
 }
 
-.form-input:focus {
+.formInput:focus {
   outline: none;
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.form-input.error {
+.formInput.error {
   border-color: #dc2626;
 }
 
-.form-input.error:focus {
+.formInput.error:focus {
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
-.form-input::placeholder {
+.formInput::placeholder {
   color: #9ca3af;
 }
 
-.form-error {
+.formError {
   font-size: 0.75rem;
   color: #dc2626;
   margin-top: 0.25rem;
@@ -149,13 +149,13 @@
   gap: 0.25rem;
 }
 
-.form-error::before {
+.formError::before {
   content: '⚠';
   font-size: 0.875rem;
 }
 
 /* Form Actions */
-.form-actions {
+.formActions {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
@@ -185,34 +185,34 @@
   cursor: not-allowed;
 }
 
-.btn-primary {
+.btnPrimary {
   background-color: #2563eb;
   color: white;
 }
 
-.btn-primary:hover:not(:disabled) {
+.btnPrimary:hover:not(:disabled) {
   background-color: #1d4ed8;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-.btn-primary:focus {
+.btnPrimary:focus {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
 
-.btn-secondary {
+.btnSecondary {
   background-color: #f3f4f6;
   color: #374151;
   border: 1px solid #d1d5db;
 }
 
-.btn-secondary:hover:not(:disabled) {
+.btnSecondary:hover:not(:disabled) {
   background-color: #e5e7eb;
   transform: translateY(-1px);
 }
 
-.btn-secondary:focus {
+.btnSecondary:focus {
   outline: 2px solid #6b7280;
   outline-offset: 2px;
 }
@@ -256,32 +256,32 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .request-modal-overlay {
+  .requestModalOverlay {
     padding: 0.5rem;
   }
   
-  .request-modal {
+  .requestModal {
     max-height: 95vh;
   }
   
-  .request-modal-header {
+  .requestModalHeader {
     padding: 1rem 1.5rem;
   }
   
-  .request-modal-header h2 {
+  .requestModalHeader h2 {
     font-size: 1.25rem;
   }
   
-  .request-modal-body {
+  .requestModalBody {
     padding: 1.5rem;
   }
   
-  .form-row {
+  .formRow {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
   
-  .form-actions {
+  .formActions {
     flex-direction: column-reverse;
     gap: 0.75rem;
   }
@@ -293,46 +293,46 @@
 }
 
 @media (max-width: 480px) {
-  .request-modal-overlay {
+  .requestModalOverlay {
     padding: 0.25rem;
   }
   
-  .request-modal {
+  .requestModal {
     border-radius: 0.75rem;
   }
   
-  .request-modal-header {
+  .requestModalHeader {
     padding: 1rem;
   }
   
-  .request-modal-body {
+  .requestModalBody {
     padding: 1rem;
   }
   
-  .form-group {
+  .formGroup {
     gap: 0.375rem;
   }
   
-  .form-input {
+  .formInput {
     padding: 0.625rem;
   }
   
-  .form-label {
+  .formLabel {
     font-size: 0.8125rem;
   }
 }
 
 /* Focus management for accessibility */
-.request-modal:focus {
+.requestModal:focus {
   outline: none;
 }
 
 /* Smooth transitions for form validation */
-.form-input {
+.formInput {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-error {
+.formError {
   animation: error-appear 0.2s ease-out;
 }
 
@@ -349,34 +349,34 @@
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .request-modal {
+  .requestModal {
     border: 2px solid #000;
   }
   
-  .form-input {
+  .formInput {
     border-width: 2px;
   }
   
-  .form-input:focus {
+  .formInput:focus {
     border-width: 2px;
   }
   
-  .btn-primary {
+  .btnPrimary {
     border: 2px solid #000;
   }
   
-  .btn-secondary {
+  .btnSecondary {
     border-width: 2px;
   }
 }
 
 /* Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .request-modal-overlay,
-  .request-modal,
-  .form-error,
+  .requestModalOverlay,
+  .requestModal,
+  .formError,
   .btn,
-  .form-input,
+  .formInput,
   .spinner {
     animation: none;
     transition: none;

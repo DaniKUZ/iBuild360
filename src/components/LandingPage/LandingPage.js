@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RequestModal from './components/RequestModal';
-import './LandingPage.css';
+import styles from './LandingPage.module.css';
 
 const LandingPage = ({ onEnterApp }) => {
   const navigate = useNavigate();
@@ -43,23 +43,23 @@ const LandingPage = ({ onEnterApp }) => {
   };
 
   return (
-    <div className="landing-page">
+    <div className={styles.landingPage}>
       {/* Header с навигацией */}
-      <header className="landing-header">
-        <div className="container">
-          <div className="header-content">
-            <div className="logo">
+      <header className={styles.landingHeader}>
+        <div className={styles.container}>
+          <div className={styles.headerContent}>
+            <div className={styles.logo}>
               <h1>NameProject</h1>
               <p>Центр управления качеством и рисками</p>
             </div>
             
-            <nav className="navigation">
-              <ul className="nav-list">
+            <nav className={styles.navigation}>
+              <ul className={styles.navList}>
                 {navigationItems.map(item => (
-                  <li key={item.id} className="nav-item">
+                  <li key={item.id} className={styles.navItem}>
                     <a
                       href={item.href}
-                      className={`nav-link ${activeSection === item.id ? 'active' : ''}`}
+                      className={`${styles.navLink} ${activeSection === item.id ? styles.active : ''}`}
                       onClick={(e) => {
                         e.preventDefault();
                         handleNavClick(item.id);
@@ -72,15 +72,15 @@ const LandingPage = ({ onEnterApp }) => {
               </ul>
             </nav>
 
-            <div className="header-actions">
+            <div className={styles.headerActions}>
               <button 
-                className="btn btn-outline"
+                className={`${styles.btn} ${styles.btnOutline}`}
                 onClick={handleRequestClick}
               >
                 Заявка
               </button>
               <button 
-                className="btn btn-primary"
+                className={`${styles.btn} ${styles.btnPrimary}`}
                 onClick={handleLoginClick}
               >
                 Войти
@@ -91,25 +91,25 @@ const LandingPage = ({ onEnterApp }) => {
       </header>
 
       {/* Hero секция */}
-      <section id="home" className="hero-section">
-        <div className="container">
-          <div className="hero-content">
-            <h1 className="hero-title">
+      <section id="home" className={styles.heroSection}>
+        <div className={styles.container}>
+          <div className={styles.heroContent}>
+            <h1 className={styles.heroTitle}>
               Управление строительными проектами нового поколения
             </h1>
-            <p className="hero-description">
+            <p className={styles.heroDescription}>
               Инновационная платформа для контроля качества и управления рисками 
               в строительной отрасли города Москвы
             </p>
-            <div className="hero-actions">
+            <div className={styles.heroActions}>
               <button 
-                className="btn btn-primary btn-large"
+                className={`${styles.btn} ${styles.btnPrimary} ${styles.btnLarge}`}
                 onClick={onEnterApp}
               >
                 Перейти в приложение
               </button>
               <button 
-                className="btn btn-outline btn-large"
+                className={`${styles.btn} ${styles.btnOutline} ${styles.btnLarge}`}
                 onClick={() => handleNavClick('about')}
               >
                 Узнать больше
@@ -120,17 +120,17 @@ const LandingPage = ({ onEnterApp }) => {
       </section>
 
       {/* О компании */}
-      <section id="about" className="about-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">О компании</h2>
-            <p className="section-subtitle">
+      <section id="about" className={styles.aboutSection}>
+        <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>О компании</h2>
+            <p className={styles.sectionSubtitle}>
               Здесь будет общая информация о компании
             </p>
           </div>
           
-          <div className="about-content">
-            <div className="about-text">
+          <div className={styles.aboutContent}>
+            <div className={styles.aboutText}>
               <h3>Наша миссия</h3>
               <p>
                 Мы создаем инновационные решения для управления качеством и рисками 
@@ -139,7 +139,7 @@ const LandingPage = ({ onEnterApp }) => {
               </p>
               
               <h3>Наши преимущества</h3>
-              <ul className="advantages-list">
+              <ul className={styles.advantagesList}>
                 <li>360° просмотр строительных объектов</li>
                 <li>Управление BIM-моделями</li>
                 <li>Контроль качества в реальном времени</li>
@@ -148,18 +148,18 @@ const LandingPage = ({ onEnterApp }) => {
               </ul>
             </div>
             
-            <div className="about-stats">
-              <div className="stat-item">
-                <div className="stat-number">100+</div>
-                <div className="stat-label">Завершенных проектов</div>
+            <div className={styles.aboutStats}>
+              <div className={styles.statItem}>
+                <div className={styles.statNumber}>100+</div>
+                <div className={styles.statLabel}>Завершенных проектов</div>
               </div>
-              <div className="stat-item">
-                <div className="stat-number">50+</div>
-                <div className="stat-label">Партнеров</div>
+              <div className={styles.statItem}>
+                <div className={styles.statNumber}>50+</div>
+                <div className={styles.statLabel}>Партнеров</div>
               </div>
-              <div className="stat-item">
-                <div className="stat-number">99%</div>
-                <div className="stat-label">Удовлетворенность клиентов</div>
+              <div className={styles.statItem}>
+                <div className={styles.statNumber}>99%</div>
+                <div className={styles.statLabel}>Удовлетворенность клиентов</div>
               </div>
             </div>
           </div>
@@ -167,36 +167,36 @@ const LandingPage = ({ onEnterApp }) => {
       </section>
 
       {/* Услуги */}
-      <section id="services" className="services-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Наши услуги</h2>
-            <p className="section-subtitle">
+      <section id="services" className={styles.servicesSection}>
+        <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Наши услуги</h2>
+            <p className={styles.sectionSubtitle}>
               Комплексные решения для строительной отрасли
             </p>
           </div>
           
-          <div className="services-grid">
-            <div className="service-card">
-              <div className="service-icon">🏗️</div>
+          <div className={styles.servicesGrid}>
+            <div className={styles.serviceCard}>
+              <div className={styles.serviceIcon}>🏗️</div>
               <h3>Управление проектами</h3>
               <p>Полный цикл управления строительными проектами от планирования до сдачи</p>
             </div>
             
-            <div className="service-card">
-              <div className="service-icon">📐</div>
+            <div className={styles.serviceCard}>
+              <div className={styles.serviceIcon}>📐</div>
               <h3>BIM-моделирование</h3>
               <p>Работа с 3D-моделями и интеграция BIM-технологий</p>
             </div>
             
-            <div className="service-card">
-              <div className="service-icon">🔍</div>
+            <div className={styles.serviceCard}>
+              <div className={styles.serviceIcon}>🔍</div>
               <h3>Контроль качества</h3>
               <p>Мониторинг качества выполнения работ в режиме реального времени</p>
             </div>
             
-            <div className="service-card">
-              <div className="service-icon">⚠️</div>
+            <div className={styles.serviceCard}>
+              <div className={styles.serviceIcon}>⚠️</div>
               <h3>Управление рисками</h3>
               <p>Выявление, анализ и минимизация рисков на всех этапах строительства</p>
             </div>
@@ -205,35 +205,35 @@ const LandingPage = ({ onEnterApp }) => {
       </section>
 
       {/* Проекты */}
-      <section id="projects" className="projects-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Проекты</h2>
-            <p className="section-subtitle">
+      <section id="projects" className={styles.projectsSection}>
+        <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Проекты</h2>
+            <p className={styles.sectionSubtitle}>
               Примеры наших успешных реализаций
             </p>
           </div>
           
-          <div className="projects-preview">
-            <div className="project-preview-card">
+          <div className={styles.projectsPreview}>
+            <div className={styles.projectPreviewCard}>
               <h3>Жилой комплекс "Современный"</h3>
               <p>Многоэтажный жилой комплекс с применением современных технологий BIM</p>
             </div>
             
-            <div className="project-preview-card">
+            <div className={styles.projectPreviewCard}>
               <h3>Торговый центр "Метрополис"</h3>
               <p>Крупный торговый комплекс с инновационными решениями управления качеством</p>
             </div>
             
-            <div className="project-preview-card">
+            <div className={styles.projectPreviewCard}>
               <h3>Офисный центр "Технопарк"</h3>
               <p>Современный бизнес-центр с интеграцией цифровых технологий</p>
             </div>
           </div>
           
-          <div className="projects-cta">
+          <div className={styles.projectsCta}>
             <button 
-              className="btn btn-primary"
+              className={`${styles.btn} ${styles.btnPrimary}`}
               onClick={onEnterApp}
             >
               Посмотреть все проекты
@@ -243,38 +243,38 @@ const LandingPage = ({ onEnterApp }) => {
       </section>
 
       {/* Контакты */}
-      <section id="contacts" className="contacts-section">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Контакты</h2>
-            <p className="section-subtitle">
+      <section id="contacts" className={styles.contactsSection}>
+        <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <h2 className={styles.sectionTitle}>Контакты</h2>
+            <p className={styles.sectionSubtitle}>
               Свяжитесь с нами для получения консультации
             </p>
           </div>
           
-          <div className="contacts-content">
-            <div className="contact-info">
-              <div className="contact-item">
+          <div className={styles.contactsContent}>
+            <div className={styles.contactInfo}>
+              <div className={styles.contactItem}>
                 <h4>Адрес</h4>
                 <p>г. Москва, ул. Строительная, д. 1</p>
               </div>
               
-              <div className="contact-item">
+              <div className={styles.contactItem}>
                 <h4>Телефон</h4>
                 <p>+7 (495) 123-45-67</p>
               </div>
               
-              <div className="contact-item">
+              <div className={styles.contactItem}>
                 <h4>Email</h4>
                 <p>info@NameProject.ru</p>
               </div>
             </div>
             
-            <div className="contact-form">
+            <div className={styles.contactForm}>
               <h4>Оставить заявку</h4>
               <p>Хотите узнать больше о наших услугах или обсудить ваш проект?</p>
               <button 
-                className="btn btn-primary"
+                className={`${styles.btn} ${styles.btnPrimary}`}
                 onClick={handleRequestClick}
               >
                 Оставить заявку
@@ -285,16 +285,16 @@ const LandingPage = ({ onEnterApp }) => {
       </section>
 
       {/* Footer */}
-      <footer className="landing-footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-brand">
+      <footer className={styles.landingFooter}>
+        <div className={styles.container}>
+          <div className={styles.footerContent}>
+            <div className={styles.footerBrand}>
               <h3>NameProject</h3>
               <p>Центр управления качеством и рисками города Москва</p>
             </div>
             
-            <div className="footer-links">
-              <div className="footer-column">
+            <div className={styles.footerLinks}>
+              <div className={styles.footerColumn}>
                 <h4>Компания</h4>
                 <ul>
                   <li><a href="#about">О нас</a></li>
@@ -303,7 +303,7 @@ const LandingPage = ({ onEnterApp }) => {
                 </ul>
               </div>
               
-              <div className="footer-column">
+              <div className={styles.footerColumn}>
                 <h4>Поддержка</h4>
                 <ul>
                   <li><a href="#contacts">Контакты</a></li>
@@ -314,7 +314,7 @@ const LandingPage = ({ onEnterApp }) => {
             </div>
           </div>
           
-          <div className="footer-bottom">
+          <div className={styles.footerBottom}>
             <p>&copy; 2024 NameProject. Все права защищены.</p>
           </div>
         </div>

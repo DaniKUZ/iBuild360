@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import './PhoneInput.css';
+import styles from './PhoneInput.module.css';
 
 const COUNTRY_CODES = [
   { code: '+7', country: 'RU', name: 'Россия', flag: '🇷🇺', mask: '(999) 999-99-99' },
@@ -99,10 +99,10 @@ const PhoneInput = ({ value, countryCode, onChange, error }) => {
   };
 
   return (
-    <div className="phone-input-container">
-      <div className={`phone-input-wrapper ${error ? 'error' : ''}`}>
+    <div className={styles.phoneInputContainer}>
+      <div className={`${styles.phoneInputWrapper} ${error ? styles.error : ''}`}>
         <div 
-          className="country-selector"
+          className={styles.countrySelector}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           role="button"
           tabIndex={0}
@@ -114,10 +114,10 @@ const PhoneInput = ({ value, countryCode, onChange, error }) => {
             }
           }}
         >
-          <span className="country-flag">{selectedCountry.flag}</span>
-          <span className="country-code">{selectedCountry.code}</span>
+          <span className={styles.countryFlag}>{selectedCountry.flag}</span>
+          <span className={styles.countryCode}>{selectedCountry.code}</span>
           <svg 
-            className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`}
+            className={`${styles.dropdownArrow} ${isDropdownOpen ? styles.open : ''}`}
             width="12" 
             height="8" 
             viewBox="0 0 12 8"
@@ -136,7 +136,7 @@ const PhoneInput = ({ value, countryCode, onChange, error }) => {
         <input
           ref={inputRef}
           type="tel"
-          className="phone-number-input"
+          className={styles.phoneNumberInput}
           value={value}
           onChange={handlePhoneChange}
           placeholder={selectedCountry.mask.replace(/9/g, '0')}
@@ -144,11 +144,11 @@ const PhoneInput = ({ value, countryCode, onChange, error }) => {
         />
 
         {isDropdownOpen && (
-          <div className="country-dropdown" ref={dropdownRef}>
-            <div className="dropdown-search">
+          <div className={styles.countryDropdown} ref={dropdownRef}>
+            <div className={styles.dropdownSearch}>
               <input
                 type="text"
-                className="search-input"
+                className={styles.searchInput}
                 placeholder="Поиск страны..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -157,14 +157,14 @@ const PhoneInput = ({ value, countryCode, onChange, error }) => {
               />
             </div>
             
-            <div className="countries-list">
+            <div className={styles.countriesList}>
               {filteredCountries.length > 0 ? (
                 filteredCountries.map((country) => (
                   <div
                     key={`${country.code}-${country.country}`}
-                    className={`country-option ${
+                    className={`${styles.countryOption} ${
                       selectedCountry.code === country.code && selectedCountry.country === country.country 
-                        ? 'selected' 
+                        ? styles.selected 
                         : ''
                     }`}
                     onClick={() => handleCountrySelect(country)}
@@ -176,13 +176,13 @@ const PhoneInput = ({ value, countryCode, onChange, error }) => {
                       }
                     }}
                   >
-                    <span className="country-flag">{country.flag}</span>
-                    <span className="country-name">{country.name}</span>
-                    <span className="country-code">{country.code}</span>
+                    <span className={styles.countryFlag}>{country.flag}</span>
+                    <span className={styles.countryName}>{country.name}</span>
+                    <span className={styles.countryCode}>{country.code}</span>
                   </div>
                 ))
               ) : (
-                <div className="no-results">
+                <div className={styles.noResults}>
                   Страна не найдена
                 </div>
               )}
