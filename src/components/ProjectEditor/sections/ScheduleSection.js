@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import TaskEditModal from '../modals/TaskEditModal';
 
 function ScheduleSection({ 
   tasks,
@@ -15,7 +16,103 @@ function ScheduleSection({
   getAvailableDependencies,
   getProjectStats
 }) {
+  // Состояние для сортировки
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: null // 'asc', 'desc', null
+  });
+
   const stats = getProjectStats();
+
+  // Функция для обработки клика по заголовку
+  const handleSort = (key) => {
+    let direction = 'asc';
+    
+    if (sortConfig.key === key) {
+      if (sortConfig.direction === 'asc') {
+        direction = 'desc';
+      } else if (sortConfig.direction === 'desc') {
+        direction = null;
+      }
+    }
+    
+    setSortConfig({ key, direction });
+  };
+
+  // Функция сортировки задач
+  const sortedTasks = useMemo(() => {
+    if (!sortConfig.key || !sortConfig.direction) {
+      return tasks;
+    }
+
+    const sorted = [...tasks].sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortConfig.key) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'startDate':
+          aValue = new Date(a.startDate);
+          bValue = new Date(b.startDate);
+          break;
+        case 'progress':
+          aValue = a.progress;
+          bValue = b.progress;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [tasks, sortConfig]);
+
+  // Функция для получения иконки сортировки
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return 'fas fa-sort';
+    }
+    
+    switch (sortConfig.direction) {
+      case 'asc':
+        return 'fas fa-sort-up';
+      case 'desc':
+        return 'fas fa-sort-down';
+      default:
+        return 'fas fa-sort';
+    }
+  };
+
+  // Функция для получения цвета прогресса от темно-серого до синего
+  const getProgressColor = (progress) => {
+    const percentage = Math.max(0, Math.min(100, progress));
+    const ratio = percentage / 100;
+    
+    // От темно-серого (#2d3748) к синему (#667eea)
+    const startR = 45;  // #2d3748
+    const startG = 55;
+    const startB = 72;
+    
+    const endR = 102;   // #667eea
+    const endG = 126;
+    const endB = 234;
+    
+    const r = Math.round(startR + (endR - startR) * ratio);
+    const g = Math.round(startG + (endG - startG) * ratio);
+    const b = Math.round(startB + (endB - startB) * ratio);
+    
+    return `rgb(${r}, ${g}, ${b})`;
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -125,16 +222,40 @@ function ScheduleSection({
       {/* Список задач */}
       <div className="tasks-container">
         <div className="tasks-header">
-          <div className="task-name-col">Название задачи</div>
-          <div className="task-dates-col">Даты</div>
-          <div className="task-progress-col">Прогресс</div>
+          <div 
+            className="task-name-col sortable-header"
+            onClick={() => handleSort('name')}
+          >
+            Название задач
+            <i className={getSortIcon('name')}></i>
+          </div>
+          <div 
+            className="task-dates-col sortable-header"
+            onClick={() => handleSort('startDate')}
+          >
+            Даты
+            <i className={getSortIcon('startDate')}></i>
+          </div>
+          <div 
+            className="task-progress-col sortable-header"
+            onClick={() => handleSort('progress')}
+          >
+            Прогресс
+            <i className={getSortIcon('progress')}></i>
+          </div>
           <div className="task-status-col">Статус</div>
           <div className="task-actions-col">Действия</div>
         </div>
 
         <div className="tasks-list">
-          {tasks.map(task => (
-            <div key={task.id} className="task-item">
+          {sortedTasks.map(task => (
+            <div 
+              key={task.id} 
+              className="task-item"
+              data-dates={`${formatDate(task.startDate)} - ${formatDate(task.endDate)}`}
+              data-progress={task.progress}
+              data-status={getStatusText(task.status)}
+            >
               <div className="task-name-col">
                 <div className="task-name">
                   <h4>{task.name}</h4>
@@ -173,7 +294,7 @@ function ScheduleSection({
                       className="progress-fill"
                       style={{ 
                         width: `${task.progress}%`,
-                        backgroundColor: getStatusColor(task.status)
+                        backgroundColor: getProgressColor(task.progress)
                       }}
                     ></div>
                   </div>
@@ -209,132 +330,17 @@ function ScheduleSection({
         </div>
       </div>
 
-      {/* Модальное окно редактирования задачи */}
-      {editingTask && (
-        <div className="modal-overlay">
-          <div className="task-edit-modal">
-            <div className="modal-header">
-              <h3>Редактирование задачи</h3>
-              <button 
-                className="btn-close"
-                onClick={onCancelEdit}
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-
-            <div className="modal-content">
-              <div className="form-group">
-                <label>Название задачи</label>
-                <input
-                  type="text"
-                  value={taskFormData.name}
-                  onChange={(e) => onUpdateTaskForm('name', e.target.value)}
-                  placeholder="Введите название задачи"
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Дата начала</label>
-                  <input
-                    type="date"
-                    value={taskFormData.startDate}
-                    onChange={(e) => onUpdateTaskForm('startDate', e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Дата окончания</label>
-                  <input
-                    type="date"
-                    value={taskFormData.endDate}
-                    onChange={(e) => onUpdateTaskForm('endDate', e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Прогресс (%)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={taskFormData.progress}
-                    onChange={(e) => onUpdateTaskForm('progress', e.target.value)}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Статус</label>
-                  <select
-                    value={taskFormData.status}
-                    onChange={(e) => onUpdateTaskForm('status', e.target.value)}
-                  >
-                    <option value="planned">Запланировано</option>
-                    <option value="in_progress">В работе</option>
-                    <option value="completed">Завершено</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Ответственный</label>
-                <input
-                  type="text"
-                  value={taskFormData.responsible}
-                  onChange={(e) => onUpdateTaskForm('responsible', e.target.value)}
-                  placeholder="Введите ответственного"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Описание</label>
-                <textarea
-                  value={taskFormData.description}
-                  onChange={(e) => onUpdateTaskForm('description', e.target.value)}
-                  placeholder="Введите описание задачи"
-                  rows={3}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Зависимости</label>
-                <select
-                  multiple
-                  value={taskFormData.dependencies.map(String)}
-                  onChange={(e) => {
-                    const selectedValues = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-                    onUpdateTaskForm('dependencies', selectedValues);
-                  }}
-                  className="dependencies-select"
-                >
-                  {getAvailableDependencies(editingTask.id).map(task => (
-                    <option key={task.id} value={task.id}>
-                      {task.name}
-                    </option>
-                  ))}
-                </select>
-                <small>Выберите задачи, которые должны быть завершены перед началом этой задачи</small>
-              </div>
-            </div>
-
-            <div className="modal-actions">
-              <button 
-                className="btn btn-secondary"
-                onClick={onCancelEdit}
-              >
-                Отмена
-              </button>
-              <button 
-                className="btn btn-primary"
-                onClick={onSaveTask}
-              >
-                Сохранить
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              {/* Модальное окно редактирования задачи */}
+        {editingTask && (
+          <TaskEditModal
+            editingTask={editingTask}
+            taskFormData={taskFormData}
+            onUpdateTaskForm={onUpdateTaskForm}
+            onSaveTask={onSaveTask}
+            onCancelEdit={onCancelEdit}
+            getAvailableDependencies={getAvailableDependencies}
+          />
+        )}
 
       <div className="schedule-instructions">
         <h4>Инструкции по использованию:</h4>
