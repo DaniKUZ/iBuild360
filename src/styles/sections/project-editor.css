@@ -4,6 +4,7 @@
   background: var(--background-primary);
   display: flex;
   flex-direction: column;
+  padding-bottom: 100px; /* Отступ для фиксированных кнопок */
 }
 
 .editor-header {
@@ -229,12 +230,20 @@
 }
 
 .editor-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-xl) var(--editor-content-gap);
-  background: var(--background-card);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   border-top: 1px solid var(--border-color);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  transition: all 0.3s ease;
 }
 
 /* Responsive design for editor */
@@ -269,6 +278,10 @@
 }
 
 @media (max-width: 768px) {
+  .project-editor {
+    padding-bottom: 140px; /* Увеличенный отступ для мобильных */
+  }
+  
   .editor-content {
     padding: var(--editor-content-gap-mobile) var(--spacing-md);
   }
@@ -309,6 +322,10 @@
     padding: var(--spacing-lg) var(--spacing-md);
     flex-direction: column;
     gap: var(--spacing-md);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
   
   .preview-container {
@@ -333,6 +350,10 @@
 }
 
 @media (max-width: 480px) {
+  .project-editor {
+    padding-bottom: 160px; /* Еще больший отступ для очень маленьких экранов */
+  }
+  
   .editor-content {
     padding: var(--spacing-md);
   }
@@ -588,4 +609,355 @@
 
 .calendar-day.selected:hover {
   background: #388e3c;
-} 
+}
+
+/* === Стили для импорта/экспорта === */
+
+/* Обновленные стили для schedule-controls */
+.schedule-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  gap: var(--spacing-lg);
+}
+
+.controls-left, .controls-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* Стили для dropdown экспорта */
+.export-dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.dropdown-toggle i:last-child {
+  margin-left: var(--spacing-xs);
+  font-size: 0.8em;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  min-width: 200px;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all var(--transition-normal);
+}
+
+.export-dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-md);
+  border: none;
+  background: none;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dropdown-item:hover:not(:disabled) {
+  background: var(--background-secondary);
+}
+
+.dropdown-item:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.dropdown-divider {
+  height: 1px;
+  margin: var(--spacing-sm) 0;
+  background: var(--border-color);
+}
+
+/* === Стили для TableImportModal === */
+.table-import-modal {
+  max-width: 900px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-import-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.table-import-modal .modal-header h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: 0;
+  font-size: var(--font-size-xl);
+  color: var(--text-primary);
+}
+
+.table-import-modal .btn-close {
+  background: none;
+  border: none;
+  font-size: var(--font-size-lg);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.table-import-modal .btn-close:hover {
+  background: var(--background-secondary);
+  color: var(--text-primary);
+}
+
+.table-import-modal .modal-body {
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.table-import-modal .modal-footer {
+  padding: var(--spacing-xl);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+}
+
+/* Зона загрузки файла */
+.file-drop-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-3xl);
+  text-align: center;
+  background: var(--background-secondary);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.file-drop-zone.active,
+.file-drop-zone:hover {
+  border-color: var(--primary-color);
+  background: var(--primary-color-alpha-10);
+}
+
+.drop-zone-content i {
+  font-size: 3rem;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-lg);
+}
+
+.drop-zone-content p {
+  font-size: var(--font-size-lg);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.file-types {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin-top: var(--spacing-md) !important;
+}
+
+/* Индикатор загрузки */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-xl);
+  color: var(--primary-color);
+  font-size: var(--font-size-lg);
+}
+
+.loading-indicator i {
+  font-size: 1.5rem;
+}
+
+/* Сопоставление колонок */
+.column-mapping {
+  margin-bottom: var(--spacing-xl);
+}
+
+.column-mapping h4 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.column-mapping p {
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-lg);
+}
+
+.mapping-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.mapping-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.mapping-item label {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.mapping-item select {
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast);
+}
+
+.mapping-item select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-color-alpha-20);
+}
+
+/* Превью данных */
+.data-preview {
+  margin-bottom: var(--spacing-xl);
+}
+
+.data-preview h4 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.preview-table {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--white);
+}
+
+.preview-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.preview-table th {
+  background: var(--background-secondary);
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.preview-table td {
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.preview-note {
+  padding: var(--spacing-md);
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  background: var(--background-secondary);
+}
+
+/* Сообщение об ошибке */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  background: var(--error-color-alpha-10);
+  border: 1px solid var(--error-color-alpha-30);
+  border-radius: var(--radius-md);
+  color: var(--error-color);
+  margin-top: var(--spacing-lg);
+}
+
+.error-message i {
+  font-size: 1.2rem;
+}
+
+/* Адаптивность для импорта/экспорта */
+@media (max-width: 768px) {
+  .schedule-controls {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .controls-left, .controls-right {
+    justify-content: center;
+  }
+
+  .export-dropdown .dropdown-menu {
+    position: relative;
+    display: block;
+    box-shadow: none;
+    margin-top: var(--spacing-sm);
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .table-import-modal {
+    max-width: 95vw;
+    margin: var(--spacing-md);
+  }
+
+  .mapping-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-table {
+    overflow-x: auto;
+  }
+}

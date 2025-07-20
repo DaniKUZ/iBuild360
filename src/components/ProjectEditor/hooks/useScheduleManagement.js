@@ -1,76 +1,12 @@
 import { useState, useCallback } from 'react';
+import * as XLSX from 'xlsx';
 
 const useScheduleManagement = (initialTasks = []) => {
-  const [tasks, setTasks] = useState(initialTasks.length > 0 ? initialTasks : [
-    {
-      id: 1,
-      name: "Подготовительные работы",
-      startDate: "2024-01-15",
-      endDate: "2024-01-20",
-      progress: 100,
-      status: "completed",
-      description: "Подготовка участка, геодезические работы",
-      dependencies: [],
-      responsible: "Инженер"
-    },
-    {
-      id: 2,
-      name: "Земляные работы",
-      startDate: "2024-01-21",
-      endDate: "2024-01-30",
-      progress: 100,
-      status: "completed",
-      description: "Рытье котлована, планировка участка",
-      dependencies: [1],
-      responsible: "Бригада №1"
-    },
-    {
-      id: 3,
-      name: "Фундаментные работы",
-      startDate: "2024-02-01",
-      endDate: "2024-02-15",
-      progress: 75,
-      status: "in_progress",
-      description: "Заливка фундамента, армирование",
-      dependencies: [2],
-      responsible: "Бригада №2"
-    },
-    {
-      id: 4,
-      name: "Возведение стен",
-      startDate: "2024-02-16",
-      endDate: "2024-03-15",
-      progress: 0,
-      status: "planned",
-      description: "Кладка стен, монтаж перекрытий",
-      dependencies: [3],
-      responsible: "Бригада №3"
-    },
-    {
-      id: 5,
-      name: "Кровельные работы",
-      startDate: "2024-03-16",
-      endDate: "2024-04-01",
-      progress: 0,
-      status: "planned",
-      description: "Монтаж кровли, утепление",
-      dependencies: [4],
-      responsible: "Кровельщики"
-    },
-    {
-      id: 6,
-      name: "Отделочные работы",
-      startDate: "2024-04-02",
-      endDate: "2024-05-15",
-      progress: 0,
-      status: "planned",
-      description: "Внутренняя и наружная отделка",
-      dependencies: [5],
-      responsible: "Отделочники"
-    }
-  ]);
+  const [tasks, setTasks] = useState(initialTasks);
 
   const [editingTask, setEditingTask] = useState(null);
+  const [addingTask, setAddingTask] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [taskFormData, setTaskFormData] = useState({
     name: '',
     startDate: '',
@@ -82,21 +18,19 @@ const useScheduleManagement = (initialTasks = []) => {
     dependencies: []
   });
 
-  // Добавление новой задачи
+  // Начало добавления новой задачи (открытие модального окна)
   const addTask = useCallback(() => {
-    const newTask = {
-      id: Date.now() + Math.random(),
-      name: "Новая задача",
+    setAddingTask(true);
+    setTaskFormData({
+      name: '',
       startDate: new Date().toISOString().split('T')[0],
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       progress: 0,
-      status: "planned",
-      description: "",
-      dependencies: [],
-      responsible: ""
-    };
-    setTasks(prev => [...prev, newTask]);
-    return newTask.id;
+      status: 'planned',
+      description: '',
+      responsible: '',
+      dependencies: []
+    });
   }, []);
 
   // Обновление задачи
@@ -137,6 +71,7 @@ const useScheduleManagement = (initialTasks = []) => {
   // Отмена редактирования
   const cancelEdit = useCallback(() => {
     setEditingTask(null);
+    setAddingTask(false);
     setTaskFormData({
       name: '',
       startDate: '',
@@ -161,6 +96,26 @@ const useScheduleManagement = (initialTasks = []) => {
     
     cancelEdit();
   }, [editingTask, taskFormData, updateTask, cancelEdit]);
+
+  // Сохранение новой задачи
+  const saveNewTask = useCallback(() => {
+    if (!addingTask) return;
+    
+    const newTask = {
+      id: Date.now() + Math.random(),
+      name: taskFormData.name || "Новая задача",
+      startDate: taskFormData.startDate,
+      endDate: taskFormData.endDate,
+      progress: parseInt(taskFormData.progress),
+      status: taskFormData.status,
+      description: taskFormData.description,
+      dependencies: taskFormData.dependencies,
+      responsible: taskFormData.responsible
+    };
+    
+    setTasks(prev => [...prev, newTask]);
+    cancelEdit();
+  }, [addingTask, taskFormData]);
 
   // Обновление формы редактирования
   const updateTaskForm = useCallback((field, value) => {
@@ -232,9 +187,261 @@ const useScheduleManagement = (initialTasks = []) => {
     return criticalPath;
   }, [tasks]);
 
+  // Функции для работы с импортом/экспортом
+  const openImportModal = useCallback(() => {
+    setShowImportModal(true);
+  }, []);
+
+  const closeImportModal = useCallback(() => {
+    setShowImportModal(false);
+  }, []);
+
+  // Импорт задач из таблицы
+  const importTasks = useCallback((importedTasks, replaceAll = false) => {
+    if (replaceAll) {
+      setTasks(importedTasks);
+    } else {
+      setTasks(prev => [...prev, ...importedTasks]);
+    }
+    setShowImportModal(false);
+  }, []);
+
+  // Экспорт задач в CSV
+  const exportToCSV = useCallback(() => {
+    if (tasks.length === 0) {
+      alert('Нет задач для экспорта');
+      return;
+    }
+
+    const headers = [
+      'Название задачи',
+      'Дата начала',
+      'Дата окончания',
+      'Прогресс (%)',
+      'Статус',
+      'Описание',
+      'Ответственный'
+    ];
+
+    const rows = tasks.map(task => [
+      task.name,
+      task.startDate,
+      task.endDate,
+      task.progress,
+      getStatusText(task.status),
+      task.description || '',
+      task.responsible || ''
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `план-график_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [tasks]);
+
+  // Экспорт в формате диаграммы Ганта (упрощенный CSV)
+  const exportToGanttCSV = useCallback(() => {
+    if (tasks.length === 0) {
+      alert('Нет задач для экспорта');
+      return;
+    }
+
+    const headers = [
+      'Task Name',
+      'Start Date',
+      'End Date',
+      'Duration (days)',
+      'Progress',
+      'Status',
+      'Resource',
+      'Predecessor'
+    ];
+
+    const rows = tasks.map(task => {
+      const startDate = new Date(task.startDate);
+      const endDate = new Date(task.endDate);
+      const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+      
+      return [
+        task.name,
+        task.startDate,
+        task.endDate,
+        duration,
+        `${task.progress}%`,
+        getStatusText(task.status),
+        task.responsible || '',
+        task.dependencies.join(';')
+      ];
+    });
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `gantt-chart_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [tasks]);
+
+  // Экспорт в Excel формат
+  const exportToExcel = useCallback(() => {
+    if (tasks.length === 0) {
+      alert('Нет задач для экспорта');
+      return;
+    }
+
+    const worksheetData = [
+      // Заголовки
+      [
+        'Название задачи',
+        'Дата начала',
+        'Дата окончания',
+        'Длительность (дней)',
+        'Прогресс (%)',
+        'Статус',
+        'Описание',
+        'Ответственный'
+      ],
+      // Данные
+      ...tasks.map(task => {
+        const startDate = new Date(task.startDate);
+        const endDate = new Date(task.endDate);
+        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+        
+        return [
+          task.name,
+          task.startDate,
+          task.endDate,
+          duration,
+          task.progress,
+          getStatusText(task.status),
+          task.description || '',
+          task.responsible || ''
+        ];
+      })
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    
+    // Настройка ширины колонок
+    const columnWidths = [
+      { wch: 30 }, // Название задачи
+      { wch: 12 }, // Дата начала
+      { wch: 12 }, // Дата окончания
+      { wch: 15 }, // Длительность
+      { wch: 10 }, // Прогресс
+      { wch: 12 }, // Статус
+      { wch: 40 }, // Описание
+      { wch: 20 }  // Ответственный
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // Создание рабочей книги
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'План-график');
+
+    // Сохранение файла
+    XLSX.writeFile(workbook, `план-график_${new Date().toISOString().split('T')[0]}.xlsx`);
+  }, [tasks]);
+
+  // Экспорт диаграммы Ганта в Excel
+  const exportToGanttExcel = useCallback(() => {
+    if (tasks.length === 0) {
+      alert('Нет задач для экспорта');
+      return;
+    }
+
+    const worksheetData = [
+      // Заголовки для диаграммы Ганта
+      [
+        'Task Name',
+        'Start Date',
+        'End Date',
+        'Duration (days)',
+        'Progress',
+        'Status',
+        'Resource',
+        'Predecessor',
+        'Notes'
+      ],
+      // Данные
+      ...tasks.map(task => {
+        const startDate = new Date(task.startDate);
+        const endDate = new Date(task.endDate);
+        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 1000));
+        
+        return [
+          task.name,
+          task.startDate,
+          task.endDate,
+          duration,
+          `${task.progress}%`,
+          getStatusText(task.status),
+          task.responsible || '',
+          task.dependencies.length > 0 ? task.dependencies.join(';') : '',
+          task.description || ''
+        ];
+      })
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    
+    // Настройка ширины колонок для Ганта
+    const columnWidths = [
+      { wch: 25 }, // Task Name
+      { wch: 12 }, // Start Date
+      { wch: 12 }, // End Date
+      { wch: 15 }, // Duration
+      { wch: 10 }, // Progress
+      { wch: 12 }, // Status
+      { wch: 20 }, // Resource
+      { wch: 15 }, // Predecessor
+      { wch: 30 }  // Notes
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Gantt Chart');
+
+    XLSX.writeFile(workbook, `gantt-chart_${new Date().toISOString().split('T')[0]}.xlsx`);
+  }, [tasks]);
+
+  // Вспомогательная функция для получения текста статуса
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'completed': return 'Завершено';
+      case 'in_progress': return 'В работе';
+      case 'planned': return 'Запланировано';
+      default: return 'Неизвестно';
+    }
+  };
+
   return {
     tasks,
     editingTask,
+    addingTask,
+    showImportModal,
     taskFormData,
     addTask,
     updateTask,
@@ -242,10 +449,18 @@ const useScheduleManagement = (initialTasks = []) => {
     startEditTask,
     cancelEdit,
     saveTask,
+    saveNewTask,
     updateTaskForm,
     getAvailableDependencies,
     getProjectStats,
-    getCriticalPath
+    getCriticalPath,
+    openImportModal,
+    closeImportModal,
+    importTasks,
+    exportToCSV,
+    exportToGanttCSV,
+    exportToExcel,
+    exportToGanttExcel
   };
 };
 

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 function TaskEditModal({ 
   editingTask,
+  addingTask,
   taskFormData,
   onCancelEdit,
   onSaveTask,
@@ -41,7 +42,7 @@ function TaskEditModal({
     <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="task-edit-modal">
         <div className="modal-header">
-          <h3>Редактирование задачи</h3>
+          <h3>{editingTask ? 'Редактирование задачи' : 'Добавление задачи'}</h3>
           <button 
             className="btn-close"
             onClick={onCancelEdit}
@@ -175,7 +176,8 @@ function TaskEditModal({
 }
 
 TaskEditModal.propTypes = {
-  editingTask: PropTypes.object.isRequired,
+  editingTask: PropTypes.object,
+  addingTask: PropTypes.bool,
   taskFormData: PropTypes.object.isRequired,
   onCancelEdit: PropTypes.func.isRequired,
   onSaveTask: PropTypes.func.isRequired,

@@ -85,7 +85,7 @@ function ProjectAdd({ onBack, onSave }) {
 
   // Блокировка прокрутки body при открытии модального окна
   useEffect(() => {
-    const hasModal = floorManagement.selectedFloor || floorManagement.editingFloor || floorManagement.addingFloor;
+    const hasModal = floorManagement.selectedFloor || floorManagement.editingFloor || floorManagement.addingFloor || scheduleManagement.editingTask || scheduleManagement.addingTask;
     if (hasModal) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -95,7 +95,7 @@ function ProjectAdd({ onBack, onSave }) {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [floorManagement.selectedFloor, floorManagement.editingFloor, floorManagement.addingFloor]);
+  }, [floorManagement.selectedFloor, floorManagement.editingFloor, floorManagement.addingFloor, scheduleManagement.editingTask, scheduleManagement.addingTask]);
 
   // Обработчики форм
   const handleInputChange = (e) => {
@@ -292,6 +292,8 @@ function ProjectAdd({ onBack, onSave }) {
           <ScheduleSection
             tasks={scheduleManagement.tasks}
             editingTask={scheduleManagement.editingTask}
+            addingTask={scheduleManagement.addingTask}
+            showImportModal={scheduleManagement.showImportModal}
             taskFormData={scheduleManagement.taskFormData}
             onAddTask={scheduleManagement.addTask}
             onUpdateTask={scheduleManagement.updateTask}
@@ -299,9 +301,17 @@ function ProjectAdd({ onBack, onSave }) {
             onStartEditTask={scheduleManagement.startEditTask}
             onCancelEdit={scheduleManagement.cancelEdit}
             onSaveTask={scheduleManagement.saveTask}
+            onSaveNewTask={scheduleManagement.saveNewTask}
             onUpdateTaskForm={scheduleManagement.updateTaskForm}
             getAvailableDependencies={scheduleManagement.getAvailableDependencies}
             getProjectStats={scheduleManagement.getProjectStats}
+            onOpenImportModal={scheduleManagement.openImportModal}
+            onCloseImportModal={scheduleManagement.closeImportModal}
+            onImportTasks={scheduleManagement.importTasks}
+            onExportCSV={scheduleManagement.exportToCSV}
+            onExportGanttCSV={scheduleManagement.exportToGanttCSV}
+            onExportExcel={scheduleManagement.exportToExcel}
+            onExportGanttExcel={scheduleManagement.exportToGanttExcel}
           />
         );
       case 'bim':

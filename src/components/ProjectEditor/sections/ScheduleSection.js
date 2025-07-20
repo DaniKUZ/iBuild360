@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import TaskEditModal from '../modals/TaskEditModal';
+import TableImportModal from '../modals/TableImportModal';
 
 function ScheduleSection({ 
   tasks,
   editingTask,
+  addingTask,
+  showImportModal,
   taskFormData,
   onAddTask,
   onUpdateTask,
@@ -12,9 +15,17 @@ function ScheduleSection({
   onStartEditTask,
   onCancelEdit,
   onSaveTask,
+  onSaveNewTask,
   onUpdateTaskForm,
   getAvailableDependencies,
-  getProjectStats
+  getProjectStats,
+  onOpenImportModal,
+  onCloseImportModal,
+  onImportTasks,
+  onExportCSV,
+  onExportGanttCSV,
+  onExportExcel,
+  onExportGanttExcel
 }) {
   // Состояние для сортировки
   const [sortConfig, setSortConfig] = useState({
@@ -208,15 +219,71 @@ function ScheduleSection({
         </div>
       </div>
 
-      {/* Кнопка добавления новой задачи */}
+      {/* Кнопки управления задачами */}
       <div className="schedule-controls">
-        <button 
-          className="btn btn-primary add-task-btn"
-          onClick={onAddTask}
-        >
-          <i className="fas fa-plus"></i>
-          Добавить задачу
-        </button>
+        <div className="controls-left">
+          <button 
+            className="btn btn-primary add-task-btn"
+            onClick={onAddTask}
+          >
+            <i className="fas fa-plus"></i>
+            Добавить задачу
+          </button>
+          
+          <button 
+            className="btn btn-secondary"
+            onClick={onOpenImportModal}
+            title="Импорт из таблицы"
+          >
+            <i className="fas fa-file-import"></i>
+            Импорт
+          </button>
+        </div>
+
+        <div className="controls-right">
+          <div className="export-dropdown">
+            <button className="btn btn-outline dropdown-toggle">
+              <i className="fas fa-download"></i>
+              Экспорт
+              <i className="fas fa-chevron-down"></i>
+            </button>
+            <div className="dropdown-menu">
+              <button 
+                className="dropdown-item"
+                onClick={onExportCSV}
+                disabled={tasks.length === 0}
+              >
+                <i className="fas fa-file-csv"></i>
+                CSV формат
+              </button>
+              <button 
+                className="dropdown-item"
+                onClick={onExportExcel}
+                disabled={tasks.length === 0}
+              >
+                <i className="fas fa-file-excel"></i>
+                Excel формат
+              </button>
+              <div className="dropdown-divider"></div>
+              <button 
+                className="dropdown-item"
+                onClick={onExportGanttCSV}
+                disabled={tasks.length === 0}
+              >
+                <i className="fas fa-chart-gantt"></i>
+                Диаграмма Ганта (CSV)
+              </button>
+              <button 
+                className="dropdown-item"
+                onClick={onExportGanttExcel}
+                disabled={tasks.length === 0}
+              >
+                <i className="fas fa-chart-gantt"></i>
+                Диаграмма Ганта (Excel)
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Список задач */}
@@ -330,17 +397,25 @@ function ScheduleSection({
         </div>
       </div>
 
-              {/* Модальное окно редактирования задачи */}
-        {editingTask && (
-          <TaskEditModal
-            editingTask={editingTask}
-            taskFormData={taskFormData}
-            onUpdateTaskForm={onUpdateTaskForm}
-            onSaveTask={onSaveTask}
-            onCancelEdit={onCancelEdit}
-            getAvailableDependencies={getAvailableDependencies}
-          />
-        )}
+      {/* Модальное окно импорта данных из таблицы */}
+      <TableImportModal
+        isOpen={showImportModal}
+        onClose={onCloseImportModal}
+        onImport={onImportTasks}
+      />
+
+      {/* Модальное окно редактирования/добавления задачи */}
+      {(editingTask || addingTask) && (
+        <TaskEditModal
+          editingTask={editingTask}
+          addingTask={addingTask}
+          taskFormData={taskFormData}
+          onUpdateTaskForm={onUpdateTaskForm}
+          onSaveTask={editingTask ? onSaveTask : onSaveNewTask}
+          onCancelEdit={onCancelEdit}
+          getAvailableDependencies={getAvailableDependencies}
+        />
+      )}
 
       <div className="schedule-instructions">
         <h4>Инструкции по использованию:</h4>
@@ -350,6 +425,8 @@ function ScheduleSection({
           <li>Регулярно обновляйте прогресс выполнения</li>
           <li>Используйте статусы для контроля хода работ</li>
           <li>Назначайте ответственных за каждую задачу</li>
+          <li><strong>Импорт:</strong> Загружайте готовые планы из Excel (.xlsx, .xls) и CSV файлов</li>
+          <li><strong>Экспорт:</strong> Сохраняйте план-график в CSV или Excel формате, включая диаграммы Ганта</li>
         </ul>
       </div>
     </div>
@@ -359,6 +436,8 @@ function ScheduleSection({
 ScheduleSection.propTypes = {
   tasks: PropTypes.array.isRequired,
   editingTask: PropTypes.object,
+  addingTask: PropTypes.bool,
+  showImportModal: PropTypes.bool.isRequired,
   taskFormData: PropTypes.object.isRequired,
   onAddTask: PropTypes.func.isRequired,
   onUpdateTask: PropTypes.func.isRequired,
@@ -366,9 +445,17 @@ ScheduleSection.propTypes = {
   onStartEditTask: PropTypes.func.isRequired,
   onCancelEdit: PropTypes.func.isRequired,
   onSaveTask: PropTypes.func.isRequired,
+  onSaveNewTask: PropTypes.func.isRequired,
   onUpdateTaskForm: PropTypes.func.isRequired,
   getAvailableDependencies: PropTypes.func.isRequired,
-  getProjectStats: PropTypes.func.isRequired
+  getProjectStats: PropTypes.func.isRequired,
+  onOpenImportModal: PropTypes.func.isRequired,
+  onCloseImportModal: PropTypes.func.isRequired,
+  onImportTasks: PropTypes.func.isRequired,
+  onExportCSV: PropTypes.func.isRequired,
+  onExportGanttCSV: PropTypes.func.isRequired,
+  onExportExcel: PropTypes.func.isRequired,
+  onExportGanttExcel: PropTypes.func.isRequired
 };
 
 export default ScheduleSection; 

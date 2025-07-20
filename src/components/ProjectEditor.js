@@ -120,7 +120,7 @@ function ProjectEditor({ project, onBack, onSave }) {
 
   // Блокировка прокрутки body при открытии модального окна
   useEffect(() => {
-    const hasModal = floorManagement.selectedFloor || floorManagement.editingFloor || floorManagement.addingFloor || scheduleManagement.editingTask;
+    const hasModal = floorManagement.selectedFloor || floorManagement.editingFloor || floorManagement.addingFloor || scheduleManagement.editingTask || scheduleManagement.addingTask;
     if (hasModal) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -130,7 +130,7 @@ function ProjectEditor({ project, onBack, onSave }) {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [floorManagement.selectedFloor, floorManagement.editingFloor, floorManagement.addingFloor, scheduleManagement.editingTask]);
+  }, [floorManagement.selectedFloor, floorManagement.editingFloor, floorManagement.addingFloor, scheduleManagement.editingTask, scheduleManagement.addingTask]);
 
   // Обработчики форм
   const handleInputChange = (e) => {
@@ -195,7 +195,6 @@ function ProjectEditor({ project, onBack, onSave }) {
         const updatedProject = {
           ...project,
           name: formData.propertyName,
-          lastUpdate: new Date().toISOString(), // Включаем часы и минуты для точной сортировки
           address: formData.address,
           latitude: parseFloat(formData.latitude) || project.latitude,
           longitude: parseFloat(formData.longitude) || project.longitude,
@@ -324,6 +323,8 @@ function ProjectEditor({ project, onBack, onSave }) {
           <ScheduleSection
             tasks={scheduleManagement.tasks}
             editingTask={scheduleManagement.editingTask}
+            addingTask={scheduleManagement.addingTask}
+            showImportModal={scheduleManagement.showImportModal}
             taskFormData={scheduleManagement.taskFormData}
             onAddTask={scheduleManagement.addTask}
             onUpdateTask={scheduleManagement.updateTask}
@@ -331,9 +332,17 @@ function ProjectEditor({ project, onBack, onSave }) {
             onStartEditTask={scheduleManagement.startEditTask}
             onCancelEdit={scheduleManagement.cancelEdit}
             onSaveTask={scheduleManagement.saveTask}
+            onSaveNewTask={scheduleManagement.saveNewTask}
             onUpdateTaskForm={scheduleManagement.updateTaskForm}
             getAvailableDependencies={scheduleManagement.getAvailableDependencies}
             getProjectStats={scheduleManagement.getProjectStats}
+            onOpenImportModal={scheduleManagement.openImportModal}
+            onCloseImportModal={scheduleManagement.closeImportModal}
+            onImportTasks={scheduleManagement.importTasks}
+            onExportCSV={scheduleManagement.exportToCSV}
+            onExportGanttCSV={scheduleManagement.exportToGanttCSV}
+            onExportExcel={scheduleManagement.exportToExcel}
+            onExportGanttExcel={scheduleManagement.exportToGanttExcel}
           />
         );
       case 'bim':
@@ -438,8 +447,8 @@ function ProjectEditor({ project, onBack, onSave }) {
             (activeSection === 'bim' && !formCompletelyValid)
           }
         >
-          {activeSection === 'bim' ? 'ЗАВЕРШИТЬ' : 'ДАЛЕЕ'}
-          <i className={`fas ${activeSection === 'bim' ? 'fa-check' : 'fa-arrow-right'}`}></i>
+          {activeSection === 'bim' ? 'СОХРАНИТЬ' : 'ДАЛЕЕ'}
+          <i className={`fas ${activeSection === 'bim' ? 'fa-save' : 'fa-arrow-right'}`}></i>
         </button>
       </div>
 

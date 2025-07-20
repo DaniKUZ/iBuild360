@@ -126,7 +126,6 @@
 .btnOutline:hover {
   background-color: #2563eb;
   color: white;
-  transform: translateY(-1px);
 }
 
 .btnLarge {
