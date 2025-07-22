@@ -48,6 +48,17 @@
   background: var(--white-alpha-30);
 }
 
+.viewerSidebar .sidebarItem.active {
+  background: var(--white-alpha-30);
+  border: 2px solid var(--white);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.viewerSidebar .sidebarItem.active:hover {
+  background: var(--white-alpha-40);
+  transform: scale(1.05);
+}
+
 /* Tooltip для пунктов сайдбара */
 .viewerSidebar .sidebarItem {
   position: relative;
@@ -86,20 +97,612 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: 
-    radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(79, 70, 229, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 50% 10%, rgba(156, 163, 175, 0.06) 0%, transparent 40%),
-    radial-gradient(circle at 80% 40%, rgba(99, 102, 241, 0.03) 0%, transparent 45%),
-    linear-gradient(135deg, rgba(248, 250, 252, 0.3) 0%, rgba(241, 245, 249, 0.5) 100%),
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 4px,
-      rgba(102, 126, 234, 0.008) 4px,
-      rgba(102, 126, 234, 0.008) 8px
-    );
-  background-color: #cfe7ff;
+  background: var(--background-primary);
+}
+
+/* Initial Screen Styles */
+.initialScreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 80vh;
+}
+
+.initialContent {
+  text-align: center;
+  max-width: 500px;
+  padding: var(--spacing-xl);
+  background: var(--background-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+}
+
+.initialIcon {
+  width: 80px;
+  height: 80px;
+  background: var(--primary-color);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--spacing-lg) auto;
+  font-size: 2rem;
+  color: var(--white);
+}
+
+.initialContent h2 {
+  color: var(--text-secondary);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-md);
+}
+
+.initialContent p {
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-xl);
+  line-height: var(--line-height-normal);
+}
+
+.openArchiveBtn {
+  background: var(--primary-color);
+  color: var(--white);
+  border: none;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.openArchiveBtn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Comparison Selector Styles */
+.comparisonSelectorOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--black-alpha-80);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-index-modal);
+  padding: var(--spacing-xl);
+}
+
+.comparisonSelectorModal {
+  background: var(--background-card);
+  border-radius: var(--radius-xl);
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 1000px;
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl);
+  border: 1px solid var(--border-color);
+}
+
+.selectorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-secondary);
+}
+
+.selectorHeader h3 {
+  color: var(--text-secondary);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.closeSelectorBtn {
+  background: var(--gray);
+  border: none;
+  color: var(--white);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+}
+
+.closeSelectorBtn:hover {
+  background: var(--error-color);
+  transform: scale(1.1);
+}
+
+.selectorContent {
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+  padding: var(--spacing-xl);
+}
+
+.selectorDateGroup {
+  margin-bottom: var(--spacing-xl);
+}
+
+.selectorDateGroup h4 {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.selectorPhotosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.selectorPhotoCard {
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.selectorPhotoCard:hover:not(.disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.selectorPhotoCard.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--background-secondary);
+}
+
+.selectorPhotoCard img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+
+.selectorPhotoInfo {
+  padding: var(--spacing-sm);
+  text-align: center;
+}
+
+.selectorPhotoInfo span {
+  display: block;
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+.selectorPhotoInfo small {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.currentPhotoLabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--black-alpha-80);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Photo Info для панорамы */
+.panoramaPhotoInfo {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--white);
+  padding: 8px 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 100;
+  max-width: 280px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  opacity: 0.9;
+}
+
+.panoramaPhotoInfo:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.panoramaPhotoInfo .photoTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  line-height: 1.3;
+  color: var(--white);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panoramaPhotoInfo .photoDate {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.75;
+  line-height: 1.2;
+  color: #ccc;
+}
+
+/* Photo Labels (deprecated - keeping for compatibility) */
+.photoLabel {
+  position: absolute;
+  top: var(--spacing-md);
+  left: var(--spacing-md);
+  background: var(--black-alpha-80);
+  color: var(--white);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  backdrop-filter: blur(4px);
+  z-index: var(--z-index-dropdown);
+}
+
+.photoLabel span {
+  display: block;
+}
+
+/* Photo Archive Styles */
+.photoArchive {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) 0;
+}
+
+.archiveHeader {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-xl);
+  background: var(--background-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.archiveHeader h2 {
+  color: var(--text-secondary);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-md);
+}
+
+.archiveHeader p {
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+.dateGroups {
+  display: grid;
+  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+.dateGroup {
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.dateGroup:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border-color-hover);
+}
+
+.dateGroup > i {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-lg);
+  transform: translateY(-50%);
+  color: var(--primary-color);
+  font-size: var(--font-size-lg);
+  opacity: 0.7;
+  transition: all var(--transition-normal);
+}
+
+.dateGroup:hover > i {
+  opacity: 1;
+  transform: translateY(-50%) translateX(4px);
+}
+
+.dateGroupHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.dateGroupHeader i {
+  color: var(--primary-color);
+  font-size: var(--font-size-xl);
+}
+
+.dateTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.photoCount {
+  font-size: var(--font-size-md);
+  color: var(--text-muted);
+  background: var(--background-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid var(--border-color);
+}
+
+.dateGroupPreview {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.previewImage {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+  transition: all var(--transition-normal);
+}
+
+.previewImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.previewImage:hover {
+  transform: scale(1.1);
+  border-color: var(--primary-color);
+}
+
+.morePhotos {
+  width: 60px;
+  height: 60px;
+  background: var(--primary-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+/* Date Group Photos Styles */
+.dateGroupPhotos {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) 0;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--background-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
+}
+
+.backButton {
+  background: var(--primary-color);
+  border: none;
+  color: var(--white);
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.backButton:hover {
+  background: var(--primary-hover);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.groupHeader div {
+  flex: 1;
+}
+
+.groupHeader h2 {
+  color: var(--text-secondary);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-sm);
+}
+
+.groupHeader p {
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  margin: 0;
+}
+
+.photosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.photoCard {
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.photoCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border-color-hover);
+}
+
+.photoImage {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.photoImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-normal);
+}
+
+.photoCard:hover .photoImage img {
+  transform: scale(1.05);
+}
+
+.photoOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--black-alpha-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.photoCard:hover .photoOverlay {
+  opacity: 1;
+}
+
+.photoOverlay i {
+  color: var(--white);
+  font-size: 3rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Photo Info Overlay для карточек */
+.photoCard .photoInfo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(102, 126, 234, 0.8) 0%, rgba(102, 126, 234, 0.6) 60%, transparent 100%);
+  color: var(--white);
+  padding: var(--spacing-lg) var(--spacing-md) var(--spacing-md) var(--spacing-md);
+  opacity: 1;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(2px);
+}
+
+.photoCard:hover .photoInfo {
+  background: linear-gradient(to top, rgba(102, 126, 234, 0.9) 0%, rgba(102, 126, 234, 0.7) 60%, transparent 100%);
+  backdrop-filter: blur(4px);
+}
+
+.photoCard .photoInfo h3 {
+  color: var(--white);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  line-height: 1.3;
+}
+
+.photoCard .photoInfo p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Close Viewer Button */
+.closeViewerBtn {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  width: 50px;
+  height: 50px;
+  background: var(--black-alpha-80);
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--white);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xl);
+  z-index: var(--z-index-dropdown);
+  backdrop-filter: blur(4px);
+}
+
+.closeViewerBtn:hover {
+  background: var(--error-color);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
 }
 
 .panoramaSection {
@@ -269,27 +872,7 @@
   background: var(--white-alpha-20);
 }
 
-.closeComparisonBtn {
-  background: var(--white-alpha-10);
-  border: 1px solid var(--white-alpha-20);
-  color: var(--white);
-  padding: 0.75rem;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  font-size: var(--font-size-xl);
-}
 
-.closeComparisonBtn:hover {
-  background: rgba(255, 0, 0, 0.2);
-  border-color: rgba(255, 0, 0, 0.3);
-  transform: scale(1.1);
-}
 
 /* Calendar Overlay */
 .calendarOverlay {
@@ -496,11 +1079,7 @@
     font-size: var(--font-size-md);
   }
   
-  .closeComparisonBtn {
-    width: 45px;
-    height: 45px;
-    font-size: var(--font-size-lg);
-  }
+
   
   .calendarPopup {
     width: 90%;
@@ -512,6 +1091,87 @@
     min-width: 32px;
     min-height: 32px;
     font-size: 0.85rem;
+  }
+
+  /* Archive responsive styles */
+  .photoArchive {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .archiveHeader {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-lg);
+  }
+
+  .archiveHeader h2 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .dateGroups {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .dateGroup {
+    padding: var(--spacing-md);
+  }
+
+  .dateGroupPhotos {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .groupHeader {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .groupHeader h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .photosGrid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .closeViewerBtn {
+    width: 45px;
+    height: 45px;
+    font-size: var(--font-size-lg);
+  }
+
+  /* Initial screen responsive */
+  .initialContent {
+    padding: var(--spacing-lg);
+  }
+
+  .initialIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  .initialContent h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .openArchiveBtn {
+    font-size: var(--font-size-md);
+    padding: var(--spacing-sm) var(--spacing-lg);
+  }
+
+  /* Comparison selector responsive */
+  .comparisonSelectorModal {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .selectorPhotosGrid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .selectorPhotoCard img {
+    height: 100px;
   }
 }
 
@@ -593,11 +1253,7 @@
     font-size: var(--font-size-sm);
   }
   
-  .closeComparisonBtn {
-    width: 40px;
-    height: 40px;
-    font-size: var(--font-size-md);
-  }
+
   
   .calendarPopup {
     width: 95%;
@@ -619,5 +1275,143 @@
     height: 1.5rem;
     border-top-right-radius: 8px;
     border-bottom-left-radius: 10px;
+  }
+
+  /* Mobile archive styles */
+  .photoArchive {
+    padding: var(--spacing-md) 0;
+  }
+
+  .archiveHeader {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .archiveHeader h2 {
+    font-size: var(--font-size-2xl);
+  }
+
+  .archiveHeader p {
+    font-size: var(--font-size-md);
+  }
+
+  .dateGroups {
+    gap: var(--spacing-sm);
+  }
+
+  .dateGroup {
+    padding: var(--spacing-md);
+  }
+
+  .dateTitle {
+    font-size: var(--font-size-lg);
+  }
+
+  .previewImage {
+    width: 50px;
+    height: 50px;
+  }
+
+  .morePhotos {
+    width: 50px;
+    height: 50px;
+    font-size: var(--font-size-xs);
+  }
+
+  .dateGroupPhotos {
+    padding: var(--spacing-md) 0;
+  }
+
+  .groupHeader {
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .backButton {
+    width: 40px;
+    height: 40px;
+    font-size: var(--font-size-md);
+  }
+
+  .groupHeader h2 {
+    font-size: var(--font-size-xl);
+  }
+
+  .groupHeader p {
+    font-size: var(--font-size-sm);
+  }
+
+  .photosGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .photoImage {
+    height: 180px;
+  }
+
+  .closeViewerBtn {
+    width: 40px;
+    height: 40px;
+    font-size: var(--font-size-md);
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+  }
+
+  /* Mobile initial screen */
+  .initialContent {
+    padding: var(--spacing-md);
+  }
+
+  .initialIcon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+  }
+
+  .initialContent h2 {
+    font-size: var(--font-size-xl);
+  }
+
+  .openArchiveBtn {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  /* Mobile comparison selector */
+  .comparisonSelectorModal {
+    width: 100%;
+    max-height: 95vh;
+    border-radius: var(--radius-lg);
+  }
+
+  .selectorHeader {
+    padding: var(--spacing-md);
+  }
+
+  .selectorHeader h3 {
+    font-size: var(--font-size-xl);
+  }
+
+  .selectorContent {
+    padding: var(--spacing-md);
+  }
+
+  .selectorPhotosGrid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--spacing-sm);
+  }
+
+  .selectorPhotoCard img {
+    height: 80px;
+  }
+
+  .selectorPhotoInfo {
+    padding: var(--spacing-xs);
+  }
+
+  .selectorPhotoInfo span {
+    font-size: var(--font-size-xs);
   }
 } 
