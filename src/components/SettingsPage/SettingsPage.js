@@ -1,14 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../Sidebar';
+import { clearUserData } from '../../utils/userManager';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
     // Очищаем данные пользователя (локальное хранилище, токены и т.д.)
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userData');
+    clearUserData();
     sessionStorage.clear();
     
     // Перенаправляем на лендинг

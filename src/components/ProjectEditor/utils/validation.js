@@ -21,6 +21,16 @@ export const validateForm = (formData) => {
   if (formData.longitude && (isNaN(formData.longitude) || formData.longitude < -180 || formData.longitude > 180)) {
     errors.longitude = 'Долгота должна быть числом от -180 до 180';
   }
+
+  // Проверка корректности дат (только если обе заполнены)
+  if (formData.constructionStartDate && formData.constructionEndDate) {
+    const startDate = new Date(formData.constructionStartDate);
+    const endDate = new Date(formData.constructionEndDate);
+    
+    if (startDate >= endDate) {
+      errors.constructionEndDate = 'Дата окончания должна быть позже даты начала строительства';
+    }
+  }
   
   return errors;
 };
@@ -66,6 +76,26 @@ export const validateSingleField = (fieldName, value, formData) => {
     case 'longitude':
       if (value && (isNaN(value) || value < -180 || value > 180)) {
         errors.longitude = 'Долгота должна быть числом от -180 до 180';
+      }
+      break;
+
+    case 'constructionStartDate':
+      if (value && formData.constructionEndDate) {
+        const startDate = new Date(value);
+        const endDate = new Date(formData.constructionEndDate);
+        if (startDate >= endDate) {
+          errors.constructionStartDate = 'Дата начала должна быть раньше даты окончания';
+        }
+      }
+      break;
+
+    case 'constructionEndDate':
+      if (value && formData.constructionStartDate) {
+        const startDate = new Date(formData.constructionStartDate);
+        const endDate = new Date(value);
+        if (startDate >= endDate) {
+          errors.constructionEndDate = 'Дата окончания должна быть позже даты начала строительства';
+        }
       }
       break;
       

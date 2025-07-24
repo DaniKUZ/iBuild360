@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { projectStatuses } from '../../../data/mockData';
 
 function GeneralAddSection({ formData, errors, onInputChange, onBlur }) {
 
@@ -122,22 +121,41 @@ function GeneralAddSection({ formData, errors, onInputChange, onBlur }) {
         </div>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="status">Статус проекта</label>
-        <select
-          id="status"
-          name="status"
-          value={formData.status}
-          onChange={onInputChange}
-          className="form-select"
-        >
-          <option value="" disabled>Выберите статус</option>
-          {projectStatuses.filter(s => s.value !== 'all').map(status => (
-            <option key={status.value} value={status.value}>
-              {status.label}
-            </option>
-          ))}
-        </select>
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="constructionStartDate">
+            Дата начала строительства
+          </label>
+          <input
+            type="date"
+            id="constructionStartDate"
+            name="constructionStartDate"
+            value={formData.constructionStartDate}
+            onChange={onInputChange}
+            onBlur={onBlur}
+            className={errors.constructionStartDate ? 'error' : ''}
+          />
+          {errors.constructionStartDate && (
+            <div className="error-message">{errors.constructionStartDate}</div>
+          )}
+        </div>
+        <div className="form-group">
+          <label htmlFor="constructionEndDate">
+            Дата окончания строительства
+          </label>
+          <input
+            type="date"
+            id="constructionEndDate"
+            name="constructionEndDate"
+            value={formData.constructionEndDate}
+            onChange={onInputChange}
+            onBlur={onBlur}
+            className={errors.constructionEndDate ? 'error' : ''}
+          />
+          {errors.constructionEndDate && (
+            <div className="error-message">{errors.constructionEndDate}</div>
+          )}
+        </div>
       </div>
 
 
@@ -153,7 +171,8 @@ GeneralAddSection.propTypes = {
     address: PropTypes.string.isRequired,
     latitude: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     longitude: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    status: PropTypes.string.isRequired
+    constructionStartDate: PropTypes.string,
+    constructionEndDate: PropTypes.string
   }).isRequired,
   errors: PropTypes.object.isRequired,
   onInputChange: PropTypes.func.isRequired,

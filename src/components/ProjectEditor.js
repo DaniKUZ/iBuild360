@@ -11,6 +11,8 @@ import useScheduleManagement from './ProjectEditor/hooks/useScheduleManagement';
 // Components
 import GeneralSection from './ProjectEditor/sections/GeneralSection';
 import SheetsSection from './ProjectEditor/sections/SheetsSection';
+import ZonesSection from './ProjectEditor/sections/ZonesSection';
+import FieldNotesSection from './ProjectEditor/sections/FieldNotesSection';
 import BIMSection from './ProjectEditor/sections/BIMSection';
 import Video360Section from './ProjectEditor/sections/Video360Section';
 import ScheduleSection from './ProjectEditor/sections/ScheduleSection';
@@ -23,7 +25,7 @@ import HelpfulTips from './ProjectEditor/components/HelpfulTips';
 // Utils
 import { validateForm, isFormValid, isFormCompletelyValid, validateSingleField } from './ProjectEditor/utils/validation';
 
-function ProjectEditor({ project, onBack, onSave }) {
+function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
   // Основные состояния    // Don't call preventDefault on passive wheel events
     // Only handle wheel events inside the image container
   const [formData, setFormData] = useState({
@@ -31,7 +33,8 @@ function ProjectEditor({ project, onBack, onSave }) {
     address: '',
     latitude: '',
     longitude: '',
-    status: ''
+    constructionStartDate: '',
+    constructionEndDate: ''
   });
   const [errors, setErrors] = useState({});
   const [activeSection, setActiveSection] = useState('general');
@@ -47,23 +50,16 @@ function ProjectEditor({ project, onBack, onSave }) {
     {
       id: 1,
       name: 'Первый этаж',
-      thumbnail: require('../data/img/scheme.jpeg'),
-      fullImage: require('../data/img/scheme.jpeg'),
+      thumbnail: require('../data/img/schemeFloor1.png'),
+      fullImage: require('../data/img/schemeFloor1.png'),
       description: 'Главный этаж с входной зоной'
     },
     {
       id: 2,
       name: 'Второй этаж',
-      thumbnail: require('../data/img/scheme.jpeg'),
-      fullImage: require('../data/img/scheme.jpeg'),
+      thumbnail: require('../data/img/schemeFloor2.png'),
+      fullImage: require('../data/img/schemeFloor2.png'),
       description: 'Жилая зона'
-    },
-    {
-      id: 3,
-      name: 'Подвал',
-      thumbnail: require('../data/img/scheme.jpeg'),
-      fullImage: require('../data/img/scheme.jpeg'),
-      description: 'Техническое помещение'
     }
   ]);
   
@@ -79,9 +75,21 @@ function ProjectEditor({ project, onBack, onSave }) {
       active: true
     },
     {
-      id: 'sheets',
-      title: 'Список этажей',
+      id: 'schemes',
+      title: 'Схемы',
       icon: 'fas fa-layer-group',
+      active: true
+    },
+    {
+      id: 'zones',
+      title: 'Зоны',
+      icon: 'fas fa-map-marked-alt',
+      active: true
+    },
+    {
+      id: 'field-notes',
+      title: 'Полевые заметки',
+      icon: 'fas fa-sticky-note',
       active: true
     },
     {
@@ -112,7 +120,8 @@ function ProjectEditor({ project, onBack, onSave }) {
         address: project.address || '',
         latitude: project.latitude || '',
         longitude: project.longitude || '',
-        status: project.status || ''
+        constructionStartDate: project.constructionStartDate || '',
+        constructionEndDate: project.constructionEndDate || ''
       });
       setPreviewImage(project.preview || null);
     }
@@ -169,47 +178,41 @@ function ProjectEditor({ project, onBack, onSave }) {
 
   // Навигация между секциями
   const handleNext = () => {
-    if (activeSection === 'general') {
-      if (handleValidation()) {
-        console.log('Form data:', formData);
-        setActiveSection('sheets');
-      }
-    } else if (activeSection === 'sheets') {
-      setActiveSection('video360');
-    } else if (activeSection === 'video360') {
-      setActiveSection('schedule');
-    } else if (activeSection === 'schedule') {
-      setActiveSection('bim');
-    } else if (activeSection === 'bim') {
-      // Проверяем полную валидность формы перед завершением
-      if (!isFormCompletelyValid(formData)) {
-        alert('Пожалуйста, заполните все обязательные поля в разделе "Общая информация"');
-        setActiveSection('general');
-        return;
-      }
-      
-      console.log('Проект завершен');
-      
-      // Сохраняем изменения проекта
-      if (onSave && project) {
-        const updatedProject = {
-          ...project,
-          name: formData.propertyName,
-          address: formData.address,
-          latitude: parseFloat(formData.latitude) || project.latitude,
-          longitude: parseFloat(formData.longitude) || project.longitude,
-          status: formData.status,
-          preview: previewImage || project.preview,
-          floors: floorManagement.floors,
-          videos360: video360Management.videos,
-          schedule: scheduleManagement.tasks,
-          bimFiles: fileUpload.uploadedFiles
-        };
-        onSave(updatedProject);
-      }
-      
-      onBack();
+    // Проверяем валидность общей информации
+    if (activeSection === 'general' && !isFormValid(formData)) {
+      alert('Пожалуйста, заполните все обязательные поля в разделе "Общая информация"');
+      return;
     }
+    
+    // Проверяем полную валидность формы перед сохранением
+    if (!isFormCompletelyValid(formData)) {
+      alert('Пожалуйста, заполните все обязательные поля в разделе "Общая информация"');
+      setActiveSection('general');
+      return;
+    }
+    
+    console.log('Проект сохранен');
+    
+    // Сохраняем изменения проекта
+    if (onSave && project) {
+      const updatedProject = {
+        ...project,
+        name: formData.propertyName,
+        address: formData.address,
+        latitude: parseFloat(formData.latitude) || project.latitude,
+        longitude: parseFloat(formData.longitude) || project.longitude,
+        constructionStartDate: formData.constructionStartDate,
+        constructionEndDate: formData.constructionEndDate,
+        preview: previewImage || project.preview,
+        floors: floorManagement.floors,
+        videos360: video360Management.videos,
+        schedule: scheduleManagement.tasks,
+        bimFiles: fileUpload.uploadedFiles
+      };
+      onSave(updatedProject);
+    }
+    
+    onBack();
   };
 
   const handleSectionClick = (sectionId) => {
@@ -222,17 +225,7 @@ function ProjectEditor({ project, onBack, onSave }) {
   };
 
   const handleBack = () => {
-    if (activeSection === 'sheets') {
-      setActiveSection('general');
-    } else if (activeSection === 'video360') {
-      setActiveSection('sheets');
-    } else if (activeSection === 'schedule') {
-      setActiveSection('video360');
-    } else if (activeSection === 'bim') {
-      setActiveSection('schedule');
-    } else {
-      onBack();
-    }
+    onBack();
   };
 
   // Обработка изображения превью
@@ -292,7 +285,7 @@ function ProjectEditor({ project, onBack, onSave }) {
             onBlur={handleBlur}
           />
         );
-      case 'sheets':
+      case 'schemes':
         return (
           <SheetsSection
             floors={floorManagement.floors}
@@ -302,12 +295,22 @@ function ProjectEditor({ project, onBack, onSave }) {
             onDeleteFloor={floorManagement.handleDeleteFloor}
           />
         );
+      case 'zones':
+        return (
+          <ZonesSection
+            floors={floorManagement.floors}
+            onFloorsUpdate={floorManagement.updateFloors}
+          />
+        );
+      case 'field-notes':
+        return <FieldNotesSection />;
       case 'video360':
         return (
           <Video360Section
             videos={video360Management.videos}
             dragActive={video360Management.dragActive}
             uploadProgress={video360Management.uploadProgress}
+            analysisProgress={video360Management.analysisProgress}
             onDragIn={video360Management.handleDragIn}
             onDragOut={video360Management.handleDragOut}
             onDrag={video360Management.handleDrag}
@@ -315,6 +318,8 @@ function ProjectEditor({ project, onBack, onSave }) {
             onFileInput={video360Management.handleFileInput}
             onRemoveVideo={video360Management.removeVideo}
             onUpdateVideoName={video360Management.updateVideoName}
+            onUpdateVideoShootingDate={video360Management.updateVideoShootingDate}
+            onAnalyzeVideo={video360Management.analyzeVideo}
             formatFileSize={video360Management.formatFileSize}
           />
         );
@@ -365,21 +370,32 @@ function ProjectEditor({ project, onBack, onSave }) {
     }
   };
 
-  const formIsValid = isFormValid(formData);
-  const formCompletelyValid = isFormCompletelyValid(formData);
+
 
   return (
-    <div className="project-editor">
-      <header className="editor-header">
-        <h1>Редактирование проекта</h1>
-        <NavigationTabs
-          sections={sections}
-          activeSection={activeSection}
-          onSectionClick={handleSectionClick}
-        />
-      </header>
+    <div className={`project-editor ${isSettingsMode ? 'settings-mode' : ''}`}>
+      {!isSettingsMode && (
+        <header className="editor-header">
+          <h1>Редактирование проекта</h1>
+          <NavigationTabs
+            sections={sections}
+            activeSection={activeSection}
+            onSectionClick={handleSectionClick}
+          />
+        </header>
+      )}
 
-      <div className="editor-content">
+      {isSettingsMode && (
+        <header className="editor-header settings-header">
+          <NavigationTabs
+            sections={sections}
+            activeSection={activeSection}
+            onSectionClick={handleSectionClick}
+          />
+        </header>
+      )}
+
+      <div className={`editor-content ${activeSection === 'zones' ? 'zones-active' : ''}`}>
         <div className="editor-form">
           {renderActiveSection()}
         </div>
@@ -421,7 +437,7 @@ function ProjectEditor({ project, onBack, onSave }) {
           </div>
         )}
 
-        {activeSection === 'sheets' && <HelpfulTips />}
+        {activeSection === 'schemes' && <HelpfulTips />}
       </div>
 
       <div className="editor-actions">
@@ -430,25 +446,17 @@ function ProjectEditor({ project, onBack, onSave }) {
           onClick={handleBack}
         >
           <i className="fas fa-arrow-left"></i>
-          {activeSection === 'general' ? 'НАЗАД К ПРОЕКТАМ' : 
-           activeSection === 'sheets' ? 'НАЗАД К ОБЩЕЙ ИНФОРМАЦИИ' : 
-           activeSection === 'video360' ? 'НАЗАД К СПИСКУ ЭТАЖЕЙ' :
-           activeSection === 'schedule' ? 'НАЗАД К ВИДЕО 360°' :
-           'НАЗАД К ПЛАНУ-ГРАФИКУ'}
+          НАЗАД К ПРОЕКТАМ
         </button>
         <button 
           className={`btn btn-primary ${
-            (activeSection === 'general' && !formIsValid) || 
-            (activeSection === 'bim' && !formCompletelyValid) ? 'disabled' : ''
+            !isFormCompletelyValid(formData) ? 'disabled' : ''
           }`}
           onClick={handleNext}
-          disabled={
-            (activeSection === 'general' && !formIsValid) || 
-            (activeSection === 'bim' && !formCompletelyValid)
-          }
+          disabled={!isFormCompletelyValid(formData)}
         >
-          {activeSection === 'bim' ? 'СОХРАНИТЬ' : 'ДАЛЕЕ'}
-          <i className={`fas ${activeSection === 'bim' ? 'fa-save' : 'fa-arrow-right'}`}></i>
+          СОХРАНИТЬ
+          <i className="fas fa-save"></i>
         </button>
       </div>
 
@@ -530,6 +538,7 @@ ProjectEditor.propTypes = {
   }),
   onBack: PropTypes.func.isRequired,
   onSave: PropTypes.func,
+  isSettingsMode: PropTypes.bool,
 };
 
 export default ProjectEditor; 

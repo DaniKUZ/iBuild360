@@ -184,6 +184,10 @@ function useFloorManagement(initialFloors = []) {
     setFloorErrors({});
   }, []);
 
+  const updateFloors = useCallback((updatedFloors) => {
+    setFloors(updatedFloors);
+  }, []);
+
   return {
     floors,
     floorFormData,
@@ -201,7 +205,8 @@ function useFloorManagement(initialFloors = []) {
     handleFloorImageChange,
     handleSaveFloor,
     handleSaveNewFloor,
-    handleCancelFloorEdit
+    handleCancelFloorEdit,
+    updateFloors
   };
 }
 

@@ -4,7 +4,8 @@ import PropTypes from 'prop-types';
 function Video360Section({ 
   videos,
   dragActive, 
-  uploadProgress, 
+  uploadProgress,
+  analysisProgress,
   onDragIn, 
   onDragOut, 
   onDrag, 
@@ -12,10 +13,14 @@ function Video360Section({
   onFileInput, 
   onRemoveVideo,
   onUpdateVideoName,
+  onUpdateVideoShootingDate,
+  onAnalyzeVideo,
   formatFileSize 
 }) {
   const [editingVideoId, setEditingVideoId] = useState(null);
   const [editingName, setEditingName] = useState('');
+  const [editingDateId, setEditingDateId] = useState(null);
+  const [editingDate, setEditingDate] = useState('');
 
   const handleEditName = (video) => {
     setEditingVideoId(video.id);
@@ -35,11 +40,32 @@ function Video360Section({
     setEditingName('');
   };
 
+  const handleEditDate = (video) => {
+    setEditingDateId(video.id);
+    setEditingDate(video.shootingDate || '');
+  };
+
+  const handleSaveDate = () => {
+    onUpdateVideoShootingDate(editingDateId, editingDate);
+    setEditingDateId(null);
+    setEditingDate('');
+  };
+
+  const handleCancelDateEdit = () => {
+    setEditingDateId(null);
+    setEditingDate('');
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      handleSaveName();
+      if (editingVideoId) {
+        handleSaveName();
+      } else if (editingDateId) {
+        handleSaveDate();
+      }
     } else if (e.key === 'Escape') {
       handleCancelEdit();
+      handleCancelDateEdit();
     }
   };
 
@@ -69,6 +95,46 @@ function Video360Section({
     }
   };
 
+  const getAnalysisStatusIcon = (analysisStatus) => {
+    switch (analysisStatus) {
+      case 'not_analyzed':
+        return 'fas fa-clock';
+      case 'analyzing':
+        return 'fas fa-spinner fa-spin';
+      case 'analyzed':
+        return 'fas fa-check-circle';
+      case 'error':
+        return 'fas fa-exclamation-triangle';
+      default:
+        return 'fas fa-clock';
+    }
+  };
+
+  const getAnalysisStatusText = (analysisStatus) => {
+    switch (analysisStatus) {
+      case 'not_analyzed':
+        return 'Не проанализировано';
+      case 'analyzing':
+        return 'Анализ...';
+      case 'analyzed':
+        return 'Проанализировано';
+      case 'error':
+        return 'Ошибка анализа';
+      default:
+        return 'Неизвестно';
+    }
+  };
+
+  const getAnalysisButtonText = (video) => {
+    if (video.analysisStatus === 'analyzing') return 'Анализируется...';
+    if (video.analysisStatus === 'analyzed') return 'Повторить анализ';
+    return 'Анализировать';
+  };
+
+  const canAnalyze = (video) => {
+    return video.status === 'ready' && video.analysisStatus !== 'analyzing';
+  };
+
   return (
     <div className="video360-section">
       <div className="video360-header">
@@ -77,7 +143,7 @@ function Video360Section({
           Загрузка видео 360°
         </h3>
         <p className="video360-description">
-          Загрузите видео 360° для вашего проекта. Поддерживаются форматы: .MP4, .MOV, .AVI
+          Загрузите видео 360° для вашего проекта. После загрузки укажите дату съемки и запустите анализ для создания интерактивного маршрута.
         </p>
       </div>
 
@@ -166,9 +232,84 @@ function Video360Section({
                         {formatFileSize(video.size)} • {video.uploadDate} • {getStatusText(video.status)}
                       </p>
                       <p className="video-filename">{video.fileName}</p>
+                      
+                      {/* Дата съемки */}
+                      <div className="video-shooting-date">
+                        <label className="shooting-date-label">
+                          <i className="fas fa-calendar"></i>
+                          Дата съемки:
+                        </label>
+                        {editingDateId === video.id ? (
+                          <div className="date-edit-form">
+                            <input
+                              type="date"
+                              value={editingDate}
+                              onChange={(e) => setEditingDate(e.target.value)}
+                              onKeyDown={handleKeyPress}
+                              onBlur={handleSaveDate}
+                              className="date-edit-input"
+                              autoFocus
+                            />
+                            <div className="date-edit-actions">
+                              <button 
+                                className="btn-save"
+                                onClick={handleSaveDate}
+                                title="Сохранить"
+                              >
+                                <i className="fas fa-check"></i>
+                              </button>
+                              <button 
+                                className="btn-cancel"
+                                onClick={handleCancelDateEdit}
+                                title="Отмена"
+                              >
+                                <i className="fas fa-times"></i>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <span 
+                            className="shooting-date-value editable-date"
+                            onClick={() => handleEditDate(video)}
+                            title="Нажмите для редактирования"
+                          >
+                            {video.shootingDate || 'Не указана'}
+                            <i className="fas fa-edit edit-icon"></i>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Статус анализа */}
+                      <div className="video-analysis-status">
+                        <span className="analysis-status-label">
+                          <i className={getAnalysisStatusIcon(video.analysisStatus)}></i>
+                          {getAnalysisStatusText(video.analysisStatus)}
+                        </span>
+                        {video.analysisStatus === 'analyzed' && video.extractedFrames && (
+                          <span className="frames-count">
+                            ({video.extractedFrames.length} кадров)
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+                  {/* Кнопка анализа */}
+                  {video.status === 'ready' && (
+                    <div className="video-analysis-section">
+                      <button 
+                        className={`analyze-video-btn ${video.analysisStatus === 'analyzed' ? 'btn-secondary' : 'btn-primary'}`}
+                        onClick={() => onAnalyzeVideo(video.id)}
+                        disabled={!canAnalyze(video)}
+                        title="Извлечь кадры для создания маршрута"
+                      >
+                        <i className={video.analysisStatus === 'analyzing' ? 'fas fa-spinner fa-spin' : 'fas fa-microscope'}></i>
+                        {getAnalysisButtonText(video)}
+                      </button>
+                    </div>
+                  )}
                   
+                  {/* Прогресс загрузки */}
                   {uploadProgress[video.id] !== undefined && uploadProgress[video.id] < 100 && (
                     <div className="upload-progress">
                       <div className="progress-bar">
@@ -178,6 +319,20 @@ function Video360Section({
                         ></div>
                       </div>
                       <span>{Math.round(uploadProgress[video.id])}%</span>
+                    </div>
+                  )}
+
+                  {/* Прогресс анализа */}
+                  {analysisProgress[video.id] !== undefined && analysisProgress[video.id] < 100 && (
+                    <div className="analysis-progress">
+                      <div className="progress-label">Анализ видео:</div>
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill analysis-progress-fill"
+                          style={{ width: `${Math.round(analysisProgress[video.id])}%` }}
+                        ></div>
+                      </div>
+                      <span>{Math.round(analysisProgress[video.id])}%</span>
                     </div>
                   )}
                   
@@ -195,14 +350,19 @@ function Video360Section({
         )}
 
         <div className="video360-instructions">
-          <h4>Рекомендации по видео 360°:</h4>
+          <h4>Инструкция по работе с видео 360°:</h4>
           <ul>
-            <li>Поддерживаемые форматы: .MP4, .MOV, .AVI</li>
-            <li>Рекомендуемое разрешение: 4K (3840×1920) или выше</li>
-            <li>Максимальный размер файла: 2 GB</li>
-            <li>Для каждого видео укажите понятное название</li>
-            <li>Видео должно быть записано в формате 360° (эквирекциональная проекция)</li>
-            <li>Рекомендуемая частота кадров: 30 fps</li>
+            <li><strong>Загрузка:</strong> Поддерживаемые форматы: .MP4, .MOV, .AVI</li>
+            <li><strong>Качество:</strong> Рекомендуемое разрешение: 4K (3840×1920) или выше</li>
+            <li><strong>Размер:</strong> Максимальный размер файла: 2 GB</li>
+            <li><strong>Формат:</strong> Видео должно быть записано в формате 360° (эквирекциональная проекция)</li>
+            <li><strong>Частота кадров:</strong> Рекомендуемая частота: 30 fps</li>
+            <li><strong>Название:</strong> Дайте видео понятное название (кликните по имени для редактирования)</li>
+            <li><strong>Дата съемки:</strong> Укажите дату, когда было снято видео (поможет в навигации)</li>
+            <li><strong>Анализ:</strong> После загрузки нажмите "Анализировать" для извлечения кадров каждую секунду</li>
+            <li><strong>Время анализа:</strong> Процесс зависит от длительности видео (примерно 1-2 минуты на каждые 10 минут видео)</li>
+            <li><strong>Просмотр:</strong> Проанализированное видео появится во вкладке "Видео 360°" в режиме просмотра</li>
+            <li><strong>Навигация:</strong> В режиме просмотра можно "гулять" по видео, переключаясь между кадрами</li>
           </ul>
         </div>
       </div>
@@ -214,6 +374,7 @@ Video360Section.propTypes = {
   videos: PropTypes.array.isRequired,
   dragActive: PropTypes.bool.isRequired,
   uploadProgress: PropTypes.object.isRequired,
+  analysisProgress: PropTypes.object.isRequired,
   onDragIn: PropTypes.func.isRequired,
   onDragOut: PropTypes.func.isRequired,
   onDrag: PropTypes.func.isRequired,
@@ -221,6 +382,8 @@ Video360Section.propTypes = {
   onFileInput: PropTypes.func.isRequired,
   onRemoveVideo: PropTypes.func.isRequired,
   onUpdateVideoName: PropTypes.func.isRequired,
+  onUpdateVideoShootingDate: PropTypes.func.isRequired,
+  onAnalyzeVideo: PropTypes.func.isRequired,
   formatFileSize: PropTypes.func.isRequired
 };
 

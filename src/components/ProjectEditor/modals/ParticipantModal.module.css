@@ -1,0 +1,486 @@
+/* Participant Modal Styles */
+.participantModal {
+  max-width: 600px;
+  max-height: 90vh !important; /* Используем максимальную доступную высоту */
+  overflow: hidden !important; /* Контролируем overflow сами */
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Контейнер для заголовка - фиксированная высота */
+.participantModalHeader {
+  flex-shrink: 0; /* Не сжимается */
+  padding: 1.5rem 1.5rem 0 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 0;
+}
+
+.participantModalHeader h3 {
+  margin: 0;
+  padding-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Прокручиваемый контейнер для содержимого */
+.participantModalBody {
+  flex: 1; /* Занимает оставшееся место */
+  overflow-y: auto;
+  padding: 1.5rem;
+  min-height: 0; /* Важно для работы flex с overflow */
+}
+
+/* Стили для скроллбара */
+.participantModalBody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.participantModalBody::-webkit-scrollbar-track {
+  background: var(--background-secondary);
+  border-radius: 3px;
+}
+
+.participantModalBody::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.participantModalBody::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Информация о текущем пользователе */
+.currentUserInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  margin-bottom: 0.5rem;
+}
+
+.userName {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.participantsCount {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Разделитель */
+.modalDivider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 1.5rem 0;
+  opacity: 0.7;
+}
+
+/* Секция добавления участника */
+.addParticipantSection h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.addParticipantForm {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.participantEmailInput {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+
+.participantEmailInput:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Кастомный селект ролей */
+.customRoleSelect {
+  position: relative;
+  min-width: 160px;
+}
+
+.customRoleSelect.inline {
+  min-width: 120px;
+}
+
+.roleSelectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.roleSelectTrigger:hover {
+  border-color: var(--primary-color);
+}
+
+.roleDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roleDisplay span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.roleHelpContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.helpIconMain {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.2s ease;
+}
+
+.helpIconMain:hover {
+  color: var(--primary-color);
+}
+
+.chevronIcon {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.roleDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 200px;
+}
+
+.roleOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--border-color);
+  min-height: 50px;
+}
+
+.roleOption:last-child {
+  border-bottom: none;
+}
+
+.roleOption:hover {
+  background: var(--background-secondary);
+}
+
+.roleOption.selected {
+  background: var(--primary-color);
+  color: white;
+}
+
+.roleOption.selected .roleContent span {
+  color: white !important;
+}
+
+.roleContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.roleContent span {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.roleHelp {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.helpIcon {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  transition: color 0.2s ease;
+}
+
+.helpIcon:hover {
+  color: var(--primary-color);
+}
+
+.roleOption.selected .helpIcon {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.roleOption.selected .helpIcon:hover {
+  color: white !important;
+}
+
+/* Тултип для ролей */
+.roleTooltip {
+  position: absolute;
+  background: var(--text-primary);
+  color: white;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  min-width: 200px;
+  max-width: 300px;
+  z-index: 1001;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  white-space: normal;
+  word-wrap: break-word;
+  bottom: calc(100% + 8px);
+  right: -10px;
+}
+
+.mainTooltip {
+  bottom: calc(100% + 8px);
+  left: 30%;
+  transform: translateX(-50%);
+  right: auto;
+}
+
+.roleTooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 1rem;
+  border: 6px solid transparent;
+  border-top-color: var(--text-primary);
+}
+
+.mainTooltip::after {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
+/* Стили для списка в тултипе */
+.tooltipList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tooltipList li {
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.tooltipList li:last-child {
+  margin-bottom: 0;
+}
+
+.tooltipList li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: white;
+  font-weight: bold;
+}
+
+.inviteBtn {
+  padding: 0.75rem 1.5rem;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+/* Секция списка участников */
+.participantsListSection h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.participantsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.participantItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.participantItem:hover {
+  border-color: var(--primary-color);
+  background: var(--background-hover);
+}
+
+.participantInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.participantEmail {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.currentUserBadge {
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  font-weight: 500;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.participantRole {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.participantRoleDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--background-primary);
+  border-radius: var(--radius-md);
+  position: relative;
+}
+
+.participantAdminRole {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.participantRoleText {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.deleteParticipantBtn {
+  background: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.deleteParticipantBtn:hover {
+  background: var(--error-hover);
+  transform: scale(1.05);
+}
+
+.deleteParticipantBtn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive styles for participant modal */
+@media (max-width: 640px) {
+  .participantModal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .addParticipantForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .participantEmailInput {
+    min-width: unset;
+  }
+  
+  .customRoleSelect {
+    min-width: unset;
+  }
+  
+  .participantItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .participantInfo {
+    justify-content: center;
+  }
+  
+  .participantRole {
+    justify-content: center;
+  }
+  
+  .currentUserInfo {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .roleTooltip {
+    right: 0;
+    left: auto;
+    min-width: 180px;
+    max-width: calc(100vw - 20px);
+  }
+  
+  .mainTooltip {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: calc(100vw - 20px);
+  }
+} 

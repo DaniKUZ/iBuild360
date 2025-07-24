@@ -15,7 +15,7 @@
 .projectPreview {
   position: relative;
   cursor: pointer;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .projectPreview img {
@@ -34,13 +34,84 @@
   bottom: var(--spacing-md);
   right: var(--spacing-md);
   display: flex;
-  gap: var(--spacing-sm);
-  opacity: 0;
+  gap: var(--spacing-xs);
+  opacity: 1;
   transition: opacity var(--transition-normal);
+  overflow: visible;
 }
 
-.projectPreview:hover .previewActions {
+/* Убираем hover эффект, так как кнопки теперь всегда видны */
+/* .projectPreview:hover .previewActions {
   opacity: 1;
+} */
+
+/* Tooltip styles */
+.tooltipBtn {
+  position: relative;
+}
+
+.tooltipBtn::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-primary);
+  color: var(--white);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast), transform var(--transition-fast);
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: var(--shadow-md);
+}
+
+.tooltipBtn::after {
+  content: '';
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--text-primary);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Специальное позиционирование для крайней правой кнопки (последняя) */
+.tooltipBtn:last-child::before {
+  left: auto;
+  right: 0;
+  transform: translateX(0);
+}
+
+.tooltipBtn:last-child::after {
+  left: auto;
+  right: 15px;
+  transform: translateX(0);
+}
+
+.tooltipBtn:hover::before,
+.tooltipBtn:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tooltipBtn:hover::before {
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* Корректируем анимацию для крайней правой кнопки */
+.tooltipBtn:last-child:hover::before {
+  transform: translateX(0) translateY(-2px);
 }
 
 .projectInfo {
@@ -54,23 +125,49 @@
   color: var(--text-secondary);
 }
 
-.projectDetails {
+.projectMeta {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
 }
 
-.detailItem {
+.metaItem {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-xs);
   color: var(--text-muted);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
 }
 
-.detailItem i {
+.metaLabel {
+  color: var(--text-muted);
+}
+
+.metaValue {
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.projectStats {
+  display: flex;
+  gap: var(--spacing-lg);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-light);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.statItem i {
   width: 16px;
   text-align: center;
+  color: var(--primary-color);
 }
 
 .status {
@@ -104,19 +201,33 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-  /* Показываем кнопки действий на планшетах */
+  /* Кнопки действий уже показаны всегда */
   .previewActions {
     opacity: 1;
+    /* Уменьшаем размер для компактности на планшетах */
+    gap: 2px;
   }
   
   /* Увеличиваем размер кнопок для удобства на планшетах */
   .previewActions button {
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
   }
   
   .previewActions button i {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Адаптируем tooltip для планшетов */
+  .tooltipBtn::before {
+    bottom: 140%;
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .tooltipBtn::after {
+    bottom: 130%;
+    border-width: 4px;
   }
 }
 
@@ -125,18 +236,36 @@
     margin: 0 var(--spacing-sm);
   }
   
-  /* Показываем кнопки действий на телефонах */
+  /* Кнопки действий уже показаны всегда */
   .previewActions {
     opacity: 1;
+    /* Размещаем кнопки в 2 ряда для телефонов */
+    flex-wrap: wrap;
+    width: 80px;
+    gap: 2px;
   }
   
-  /* Увеличиваем размер кнопок для удобства на телефонах */
+  /* Уменьшаем размер кнопок для телефонов */
   .previewActions button {
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
   }
   
   .previewActions button i {
-    font-size: 1.1rem;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Скрываем tooltip на телефонах, так как hover не работает хорошо */
+  .tooltipBtn::before,
+  .tooltipBtn::after {
+    display: none;
+  }
+
+  /* Можно оставить только для focus состояния */
+  .tooltipBtn:focus::before,
+  .tooltipBtn:focus::after {
+    display: block;
+    opacity: 1;
+    visibility: visible;
   }
 } 

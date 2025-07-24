@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useCallback, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { projectStatuses } from '../../data/mockData';
 import Sidebar from '../Sidebar';
+import TopNavbar from '../TopNavbar';
 import ErrorBoundary from '../ErrorBoundary';
+import { ParticipantModal } from '../ProjectEditor/modals';
+import { getUserData } from '../../utils/userManager';
 
 // Ленивая загрузка компонентов
 const ProjectGrid = lazy(() => import('../ProjectGrid'));
@@ -11,39 +13,28 @@ const ProjectGrid = lazy(() => import('../ProjectGrid'));
 const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateSort, setDateSort] = useState('newest'); // 'newest' или 'oldest'
-  const [activeMenuItem, setActiveMenuItem] = useState('home');
+  const [activeMenuItem, setActiveMenuItem] = useState('projects');
+  const [activeSubItem, setActiveSubItem] = useState('active-projects');
+  const [activeTab, setActiveTab] = useState('projects');
+  const [participantModalOpen, setParticipantModalOpen] = useState(false);
+  const [selectedProjectForParticipants, setSelectedProjectForParticipants] = useState(null);
 
   const filteredProjects = useMemo(() => {
-    let filtered = projects.filter(project => {
-      const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-
-    // Сортировка по дате (включая время для точной сортировки)
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.lastUpdate);
-      const dateB = new Date(b.lastUpdate);
-      
-      if (dateSort === 'newest') {
-        return dateB - dateA; // Сначала новые
-      } else {
-        return dateA - dateB; // Сначала старые
-      }
-    });
-
-    return filtered;
-  }, [searchTerm, statusFilter, dateSort, projects]);
-
-  // Мемоизируем статусы проектов
-  const memoizedProjectStatuses = useMemo(() => 
-    projectStatuses.map(status => (
-      <option key={status.value} value={status.value}>
-        {status.label}
-      </option>
-    )), []);
+    if (activeSubItem === 'active-projects') {
+      return projects.filter(project => {
+        const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const isActive = project.status !== 'Завершен';
+        return matchesSearch && isActive;
+      });
+    } else if (activeSubItem === 'closed-projects') {
+      return projects.filter(project => {
+        const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const isClosed = project.status === 'Завершен';
+        return matchesSearch && isClosed;
+      });
+    }
+    return [];
+  }, [searchTerm, projects, activeSubItem]);
 
   const handleView360 = useCallback((projectId) => {
     console.log('Открыть режим просмотра 360 для проекта:', projectId);
@@ -55,85 +46,208 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
     navigate(`/editor/${projectId}`);
   }, [navigate]);
 
+  const handleViewFloors = useCallback((projectId) => {
+    console.log('Открыть список этажей для проекта:', projectId);
+    // TODO: добавить логику показа списка этажей
+  }, []);
+
+  const handleAddParticipant = useCallback((projectId) => {
+    console.log('Добавить участника в проект:', projectId);
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      setSelectedProjectForParticipants(project);
+      setParticipantModalOpen(true);
+    }
+  }, [projects]);
+
+  const handleCloseParticipantModal = useCallback(() => {
+    setParticipantModalOpen(false);
+    setSelectedProjectForParticipants(null);
+  }, []);
+
+  const handleAddParticipantToProject = useCallback((projectId, newParticipant) => {
+    console.log('Добавить участника в проект:', projectId, newParticipant);
+    // Обновляем проект с новым участником
+    const updatedProject = {
+      ...selectedProjectForParticipants,
+      participants: [
+        ...(selectedProjectForParticipants.participants || []),
+        newParticipant
+      ]
+    };
+    
+    if (onSaveProject) {
+      onSaveProject(updatedProject);
+    }
+    
+    // Обновляем выбранный проект для отображения в модальном окне
+    setSelectedProjectForParticipants(updatedProject);
+  }, [selectedProjectForParticipants, onSaveProject]);
+
+  const handleProjectSettings = useCallback((projectId) => {
+    console.log('Открыть настройки проекта:', projectId);
+    // Переходим в редактор проекта с параметром настроек
+    navigate(`/editor/${projectId}?mode=settings`);
+  }, [navigate]);
+
   const handleAddProject = useCallback(() => {
     console.log('Открыть форму добавления проекта');
     navigate('/add-project');
   }, [navigate]);
 
-  // Функции сохранения теперь передаются как пропсы
-
   const handleMenuItemClick = useCallback((itemId) => {
     console.log('Выбран пункт меню:', itemId);
+    setActiveMenuItem(itemId);
     
-    if (itemId === 'settings') {
-      navigate('/settings');
-    } else {
-      setActiveMenuItem(itemId);
-      // Здесь будет логика переключения между разделами
+    // Устанавливаем подпункт по умолчанию для каждого раздела
+    if (itemId === 'projects') {
+      setActiveSubItem('active-projects');
+    } else if (itemId === 'shared') {
+      setActiveSubItem(null);
+    } else if (itemId === 'admin') {
+      setActiveSubItem('team-management');
     }
-  }, [navigate]);
+  }, []);
 
-  return (
-    <div className="app">
-      <Sidebar 
-        activeItem={activeMenuItem} 
-        onItemClick={handleMenuItemClick}
-      />
-      <div className="app-content">
-        <header className="app-header">
-          <h1>Центр управления качеством и рисками города Москва</h1>
-          <div className="controls" role="search" aria-label="Поиск и фильтрация проектов">
-            <div className="search-container">
-              <i className="fas fa-search" aria-hidden="true"></i>
-              <input
-                type="text"
-                placeholder="Поиск по названию проекта..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-                aria-label="Поиск по названию проекта"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="status-filter"
-              aria-label="Фильтр по статусу проекта"
-            >
-              {memoizedProjectStatuses}
-            </select>
-            <select
-              value={dateSort}
-              onChange={(e) => setDateSort(e.target.value)}
-              className="date-sort-filter"
-              aria-label="Сортировка по дате"
-            >
-              <option value="newest">Сначала новые</option>
-              <option value="oldest">Сначала старые</option>
-            </select>
-            <button
-              className="btn btn-primary add-project-btn"
-              onClick={handleAddProject}
-              aria-label="Добавить новый проект"
-            >
-              <i className="fas fa-plus"></i>
-              Добавить проект
-            </button>
+  const handleSubItemClick = useCallback((subItemId) => {
+    console.log('Выбран подпункт меню:', subItemId);
+    setActiveSubItem(subItemId);
+  }, []);
+
+  const handleTabClick = useCallback((tabId) => {
+    console.log('Выбрана вкладка:', tabId);
+    setActiveTab(tabId);
+    // На странице проектов доступна только вкладка "Проекты"
+    if (tabId === 'projects') {
+      setActiveTab('projects');
+    }
+  }, []);
+
+  const handleHelpClick = useCallback(() => {
+    console.log('Открыть помощь');
+  }, []);
+
+  const handleUserClick = useCallback(() => {
+    console.log('Открыть профиль пользователя');
+  }, []);
+
+  const renderMainContent = () => {
+    if (activeMenuItem === 'shared') {
+      return (
+        <div className="empty-state">
+          <div className="empty-state-content">
+            <i className="fas fa-folder-open empty-state-icon" aria-hidden="true"></i>
+            <h3>Папки не добавлены</h3>
+            <p>Похоже, вам пока не предоставлен доступ к папкам.</p>
           </div>
-        </header>
-        
-        <main className="app-main" role="main">
+        </div>
+      );
+    }
+
+    if (activeMenuItem === 'admin') {
+      if (activeSubItem === 'team-management') {
+        return (
+          <div className="admin-content">
+            <h2>Управление командой</h2>
+            <p>Здесь будет интерфейс управления командой</p>
+          </div>
+        );
+      } else if (activeSubItem === 'reports') {
+        return (
+          <div className="admin-content">
+            <h2>Отчеты</h2>
+            <p>Здесь будут отчеты</p>
+          </div>
+        );
+      }
+    }
+
+    if (activeMenuItem === 'projects') {
+      const sectionTitle = activeSubItem === 'active-projects' ? 'Активные проекты' : 'Закрытые проекты';
+      return (
+        <>
+          <section className="projects-section">
+            <div className="projects-header-row">
+              <div className="projects-info">
+                <h2>{sectionTitle}</h2>
+                <span className="projects-count">{filteredProjects.length} проекта</span>
+              </div>
+              <div className="projects-controls">
+                <div className="search-container">
+                  <i className="fas fa-search" aria-hidden="true"></i>
+                  <input
+                    type="text"
+                    placeholder="Поиск проектов по названию"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="projects-search-input"
+                    aria-label="Поиск проектов по названию"
+                  />
+                </div>
+                {activeSubItem === 'active-projects' && (
+                  <button
+                    className="btn btn-primary add-project-btn"
+                    onClick={handleAddProject}
+                    aria-label="Добавить новый проект"
+                  >
+                    <i className="fas fa-plus"></i>
+                    Новый проект
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+          
           <ErrorBoundary>
             <Suspense fallback={<div className="loading" role="status" aria-live="polite">Загрузка...</div>}>
               <ProjectGrid
                 projects={filteredProjects}
                 onView360={handleView360}
                 onEditProject={handleEditProject}
+                onViewFloors={handleViewFloors}
+                onAddParticipant={handleAddParticipant}
+                onProjectSettings={handleProjectSettings}
               />
             </Suspense>
           </ErrorBoundary>
+        </>
+      );
+    }
+
+    return null;
+  };
+
+  return (
+    <div className="app">
+      <Sidebar 
+        activeItem={activeMenuItem} 
+        activeSubItem={activeSubItem}
+        onItemClick={handleMenuItemClick}
+        onSubItemClick={handleSubItemClick}
+      />
+      <div className="app-content">
+        <TopNavbar
+          activeTab={activeTab}
+          onTabClick={handleTabClick}
+          onHelpClick={handleHelpClick}
+          onUserClick={handleUserClick}
+          showProjectSettings={false}
+          showProjectAdd={false}
+        />
+        
+        <main className="app-main" role="main">
+          {renderMainContent()}
         </main>
       </div>
+      
+      {/* Модальное окно для управления участниками */}
+      <ParticipantModal
+        isOpen={participantModalOpen}
+        onClose={handleCloseParticipantModal}
+        project={selectedProjectForParticipants}
+        currentUser={getUserData()}
+        onAddParticipant={handleAddParticipantToProject}
+      />
     </div>
   );
 };

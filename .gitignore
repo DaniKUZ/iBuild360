@@ -27,4 +27,11 @@ yarn-error.log*
 .env.local
 .env.development.local
 .env.test.local
-.env.production.local 
+.env.production.local
+
+# Deployment files
+deploy-update.sh
+deploy-rollback.sh
+DEPLOYMENT_GUIDE.md
+deployment-instructions.md
+iBuild360-production.tar.gz 

@@ -1,0 +1,341 @@
+/* Top Navbar Module */
+.topNavbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-xl);
+  background: var(--background-card);
+  border-bottom: 1px solid var(--border-color);
+  height: 60px;
+}
+
+.tabsContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.tab {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.tab:hover {
+  color: var(--text-secondary);
+  background: var(--background-hover);
+}
+
+.tab.active {
+  color: var(--primary-color);
+  font-weight: var(--font-weight-semibold);
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--primary-color);
+}
+
+.actionsContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.helpContainer {
+  position: relative;
+}
+
+.userContainer {
+  position: relative;
+}
+
+.iconButton {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.iconButton:hover {
+  background: var(--background-hover);
+  color: var(--text-secondary);
+  border-color: var(--border-color-hover);
+}
+
+.iconButton:active {
+  transform: scale(0.95);
+}
+
+.iconButton.active {
+  background: var(--background-hover);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Help Menu Styles */
+.helpMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+.helpMenuHeader {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+  background: var(--background-light);
+}
+
+.helpMenuHeader h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+.helpMenuItems {
+  padding: var(--spacing-xs) 0;
+}
+
+.helpMenuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-md);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  text-align: left;
+}
+
+.helpMenuItem:hover {
+  background: var(--background-hover);
+}
+
+.helpMenuItem i {
+  color: var(--primary-color);
+  font-size: var(--font-size-md);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.helpMenuItem span {
+  flex: 1;
+  font-weight: var(--font-weight-medium);
+}
+
+/* User Menu Styles */
+.userMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 300px;
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.2s ease-out;
+}
+
+.userMenuHeader {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-light);
+  background: var(--background-light);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.userAvatar {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-color);
+  color: var(--white);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+.userInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.userName {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.userEmail {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.userMenuItems {
+  padding: var(--spacing-xs) 0;
+}
+
+.userMenuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: var(--font-size-md);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  text-align: left;
+}
+
+.userMenuItem:hover {
+  background: var(--background-hover);
+}
+
+.userMenuItem i {
+  color: var(--primary-color);
+  font-size: var(--font-size-md);
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.userMenuItem span {
+  flex: 1;
+  font-weight: var(--font-weight-medium);
+}
+
+.userMenuItem.logoutItem i {
+  color: var(--error-color);
+}
+
+.userMenuItem.logoutItem:hover {
+  background: var(--error-bg);
+  color: var(--error-color);
+}
+
+/* Animation for menu appearance */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .topNavbar {
+    padding: 0 var(--spacing-md);
+    height: 50px;
+  }
+  
+  .tab {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-md);
+  }
+  
+  .iconButton {
+    width: 36px;
+    height: 36px;
+    font-size: var(--font-size-md);
+  }
+
+  .helpMenu {
+    width: 260px;
+    right: -10px;
+  }
+
+  .helpMenuItem {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .helpMenuItem i {
+    font-size: var(--font-size-sm);
+    width: 18px;
+  }
+
+  .userMenu {
+    width: 280px;
+    right: -10px;
+  }
+
+  .userMenuHeader {
+    padding: var(--spacing-md);
+  }
+
+  .userAvatar {
+    width: 40px;
+    height: 40px;
+    font-size: var(--font-size-lg);
+  }
+
+  .userName {
+    font-size: var(--font-size-md);
+  }
+
+  .userEmail {
+    font-size: var(--font-size-xs);
+  }
+
+  .userMenuItem {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  .userMenuItem i {
+    font-size: var(--font-size-sm);
+    width: 18px;
+  }
+} 

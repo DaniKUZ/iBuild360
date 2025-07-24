@@ -4,7 +4,14 @@ import styles from './ProjectCard.module.css';
 
 // Компонент ProjectCard экспортируется по умолчанию для tree-shaking
 
-const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
+const ProjectCard = React.memo(({ 
+  project, 
+  onView360, 
+  onEditProject, 
+  onViewFloors, 
+  onAddParticipant, 
+  onProjectSettings 
+}) => {
   const getStatusClass = (status) => {
     switch (status) {
       case 'Черновик':
@@ -27,14 +34,25 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
     });
   }, []);
 
-  const handleView360Click = useCallback(() => {
+  const handleView360Click = useCallback((e) => {
+    e.stopPropagation();
     onView360(project.id);
   }, [onView360, project.id]);
 
-  const handleEditClick = useCallback((e) => {
+  const handleViewFloorsClick = useCallback((e) => {
     e.stopPropagation();
-    onEditProject(project.id);
-  }, [onEditProject, project.id]);
+    onViewFloors(project.id);
+  }, [onViewFloors, project.id]);
+
+  const handleAddParticipantClick = useCallback((e) => {
+    e.stopPropagation();
+    onAddParticipant(project.id);
+  }, [onAddParticipant, project.id]);
+
+  const handleProjectSettingsClick = useCallback((e) => {
+    e.stopPropagation();
+    onProjectSettings(project.id);
+  }, [onProjectSettings, project.id]);
 
   return (
     <article className={styles.projectCard} role="gridcell">
@@ -59,43 +77,59 @@ const ProjectCard = React.memo(({ project, onView360, onEditProject }) => {
         />
         <div className={styles.previewActions} role="group" aria-label="Действия с проектом">
           <button 
-            className="action-btn"
+            className={`action-btn ${styles.tooltipBtn}`}
             onClick={handleView360Click}
-            title="Просмотр 360"
-            aria-label="Просмотр 360"
+            data-tooltip="Изображение 360"
+            aria-label="Изображение 360"
           >
             <i className="fas fa-eye" aria-hidden="true"></i>
           </button>
           <button 
-            className="action-btn"
-            onClick={handleEditClick}
-            title="Редактировать проект"
-            aria-label="Редактировать проект"
+            className={`action-btn ${styles.tooltipBtn}`}
+            onClick={handleViewFloorsClick}
+            data-tooltip="Список этажей"
+            aria-label="Список этажей"
           >
-            <i className="fas fa-edit" aria-hidden="true"></i>
+            <i className="fas fa-layer-group" aria-hidden="true"></i>
+          </button>
+          <button 
+            className={`action-btn ${styles.tooltipBtn}`}
+            onClick={handleAddParticipantClick}
+            data-tooltip="Добавить участника"
+            aria-label="Добавить участника"
+          >
+            <i className="fas fa-user-plus" aria-hidden="true"></i>
+          </button>
+          <button 
+            className={`action-btn ${styles.tooltipBtn}`}
+            onClick={handleProjectSettingsClick}
+            data-tooltip="Настройки проекта"
+            aria-label="Настройки проекта"
+          >
+            <i className="fas fa-cog" aria-hidden="true"></i>
           </button>
         </div>
       </div>
       
       <div className={styles.projectInfo}>
         <h3 className={styles.projectName}>{project.name}</h3>
-        <div className={styles.projectDetails}>
-          <div className={styles.detailItem}>
-            <i className="fas fa-map-marker-alt"></i>
-            <span>{project.address}</span>
+        <div className={styles.projectMeta}>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Последний раз запись:</span>
+            <span className={styles.metaValue}>{formatDate(project.lastUpdate)}</span>
           </div>
-          <div className={styles.detailItem}>
-            <i className="fas fa-calendar"></i>
-            <span>{formatDate(project.lastUpdate)}</span>
+          <div className={styles.metaItem}>
+            <span className={styles.metaValue}>{project.user}</span>
           </div>
-          <div className={styles.detailItem}>
-            <i className="fas fa-user"></i>
-            <span>{project.user}</span>
+        </div>
+        <div className={styles.projectStats}>
+          <div className={styles.statItem}>
+            <i className="fas fa-camera" aria-hidden="true"></i>
+            <span>{project.captures} захвата</span>
           </div>
-          <div className={styles.detailItem}>
-            <span className={`${styles.status} ${getStatusClass(project.status)}`}>
-              {project.status}
-            </span>
+          <div className={styles.statItem}>
+            <i className="fas fa-sticky-note" aria-hidden="true"></i>
+            <span>{project.fieldNotes} полевых заметок</span>
           </div>
         </div>
       </div>
@@ -114,9 +148,14 @@ ProjectCard.propTypes = {
     address: PropTypes.string.isRequired,
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
+    captures: PropTypes.number.isRequired,
+    fieldNotes: PropTypes.number.isRequired,
   }).isRequired,
   onView360: PropTypes.func.isRequired,
   onEditProject: PropTypes.func.isRequired,
+  onViewFloors: PropTypes.func.isRequired,
+  onAddParticipant: PropTypes.func.isRequired,
+  onProjectSettings: PropTypes.func.isRequired,
 };
 
 export default ProjectCard; 

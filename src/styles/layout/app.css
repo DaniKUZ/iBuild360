@@ -14,6 +14,10 @@
   margin-left: 0;
 }
 
+.app-content.settings-fullwidth {
+  margin-left: 0;
+}
+
 .app-header {
   background: var(--primary-color);
   color: var(--white);
@@ -74,6 +78,140 @@
   padding: var(--spacing-xl) var(--spacing-md);
 }
 
+/* Projects Section */
+.projects-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.projects-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-xl);
+}
+
+.projects-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.projects-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.projects-info h2 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.projects-count {
+  color: var(--text-muted);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+}
+
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  min-width: 280px;
+}
+
+.search-container i {
+  position: absolute;
+  left: 29px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  z-index: 1;
+  font-size: var(--font-size-sm);
+}
+
+.projects-search-input {
+  width: 100%;
+  padding: 12px 16px 12px 38px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-md);
+  background: var(--background-card);
+  transition: all var(--transition-fast);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.projects-search-input:hover {
+  border-color: var(--border-color-hover);
+}
+
+.projects-search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.projects-search-input::placeholder {
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+/* Empty State Styles */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: var(--spacing-xl);
+}
+
+.empty-state-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.6;
+}
+
+.empty-state h3 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-md);
+}
+
+.empty-state p {
+  font-size: var(--font-size-md);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Admin Content Styles */
+.admin-content {
+  padding: var(--spacing-xl);
+}
+
+.admin-content h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.admin-content p {
+  font-size: var(--font-size-md);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .app-header h1 {
@@ -89,12 +227,62 @@
     padding: var(--spacing-lg) var(--spacing-md);
   }
   
+  .projects-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
+  }
+  
+  .projects-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  
+  .search-container {
+    max-width: none;
+  }
+  
+  .projects-search-input {
+    padding: 10px 14px 10px 36px;
+  }
+  
+  .search-container i {
+    left: 12px;
+  }
+  
+  .add-project-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .app-content {
     margin-left: var(--sidebar-width-mobile);
   }
   
   .app-content.editor-fullscreen {
     margin-left: 0;
+  }
+
+  .empty-state {
+    min-height: 300px;
+    padding: var(--spacing-lg);
+  }
+
+  .empty-state-icon {
+    font-size: 3rem;
+  }
+
+  .empty-state h3 {
+    font-size: var(--font-size-lg);
+  }
+
+  .admin-content {
+    padding: var(--spacing-lg);
+  }
+
+  .admin-content h2 {
+    font-size: var(--font-size-xl);
   }
 }
 

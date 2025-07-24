@@ -67,6 +67,8 @@
   background: var(--background-primary);
   padding: 10px;
   border-bottom: 1px solid var(--border-color);
+  position: relative;
+  z-index: var(--z-index-dropdown);
 }
 
 .zoomable-preview-image {
@@ -83,6 +85,7 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  z-index: 1;
 }
 
 .zoomable-preview-image img {
@@ -151,6 +154,8 @@
   justify-content: center;
   padding: var(--spacing-xl);
   min-height: 400px;
+  position: relative;
+  overflow: hidden;
 }
 
 .modal-image img {
@@ -246,6 +251,8 @@
   padding: 5px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
+  position: relative;
+  z-index: var(--z-index-dropdown);
 }
 
 .zoom-btn {
@@ -298,6 +305,7 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  z-index: 1;
 }
 
 .zoomable-image img {
@@ -464,4 +472,6 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-} 
+}
+
+ 

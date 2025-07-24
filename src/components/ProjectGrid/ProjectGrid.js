@@ -3,7 +3,14 @@ import PropTypes from 'prop-types';
 import ProjectCard from '../ProjectCard';
 import styles from './ProjectGrid.module.css';
 
-const ProjectGrid = React.memo(({ projects, onView360, onEditProject }) => {
+const ProjectGrid = React.memo(({ 
+  projects, 
+  onView360, 
+  onEditProject, 
+  onViewFloors, 
+  onAddParticipant, 
+  onProjectSettings 
+}) => {
   if (projects.length === 0) {
     return (
       <div className={styles.noProjects} role="status" aria-live="polite">
@@ -21,6 +28,9 @@ const ProjectGrid = React.memo(({ projects, onView360, onEditProject }) => {
           project={project}
           onView360={onView360}
           onEditProject={onEditProject}
+          onViewFloors={onViewFloors}
+          onAddParticipant={onAddParticipant}
+          onProjectSettings={onProjectSettings}
         />
       ))}
     </div>
@@ -40,6 +50,9 @@ ProjectGrid.propTypes = {
   ).isRequired,
   onView360: PropTypes.func.isRequired,
   onEditProject: PropTypes.func.isRequired,
+  onViewFloors: PropTypes.func.isRequired,
+  onAddParticipant: PropTypes.func.isRequired,
+  onProjectSettings: PropTypes.func.isRequired,
 };
 
 export default ProjectGrid; 
