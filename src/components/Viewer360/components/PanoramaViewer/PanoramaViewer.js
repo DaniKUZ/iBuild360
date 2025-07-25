@@ -23,6 +23,13 @@ const PanoramaViewer = forwardRef(({
   const mouseRef = useRef({ x: 0, y: 0 });
   const rotationRef = useRef({ x: 0, y: 0 });
   const isProgrammaticUpdateRef = useRef(false);
+  
+  // Состояния для инерции и плавности
+  const velocityRef = useRef({ x: 0, y: 0 });
+  const lastMoveTimeRef = useRef(0);
+  const momentumAnimationRef = useRef(null);
+  const zoomAnimationRef = useRef(null);
+  const targetFovRef = useRef(75);
 
   // Предоставляем API для родительского компонента
   useImperativeHandle(ref, () => ({
@@ -38,8 +45,9 @@ const PanoramaViewer = forwardRef(({
         rotationRef.current.x = pitchRad;
         rotationRef.current.y = yawRad;
         
-        if (cameraRef.current.fov !== fov) {
+        if (fov && cameraRef.current.fov !== fov) {
           cameraRef.current.fov = fov;
+          targetFovRef.current = fov;
           cameraRef.current.updateProjectionMatrix();
         }
         
@@ -80,7 +88,9 @@ const PanoramaViewer = forwardRef(({
         
         if (fov && cameraRef.current) {
           const startFov = cameraRef.current.fov;
-          cameraRef.current.fov = startFov + (fov - startFov) * easeProgress;
+          const newFov = startFov + (fov - startFov) * easeProgress;
+          cameraRef.current.fov = newFov;
+          targetFovRef.current = newFov;
           cameraRef.current.updateProjectionMatrix();
         }
         
@@ -120,26 +130,131 @@ const PanoramaViewer = forwardRef(({
     }
   };
 
+  // Анимация инерции (скольжения)
+  const startMomentumAnimation = () => {
+    if (momentumAnimationRef.current) {
+      cancelAnimationFrame(momentumAnimationRef.current);
+    }
+
+    const friction = 0.97; // Увеличен коэффициент трения для более плавного затухания
+    const minVelocity = 0.0005; // Уменьшена минимальная скорость для более долгого скольжения
+
+    const animate = () => {
+      // Применяем скорость к вращению
+      rotationRef.current.y += velocityRef.current.x;
+      rotationRef.current.x += velocityRef.current.y;
+
+      // Ограничиваем поворот по вертикали
+      rotationRef.current.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, rotationRef.current.x));
+
+      // Применяем трение
+      velocityRef.current.x *= friction;
+      velocityRef.current.y *= friction;
+
+      updateCameraPosition();
+
+      // Продолжаем анимацию если скорость достаточная
+      if (Math.abs(velocityRef.current.x) > minVelocity || Math.abs(velocityRef.current.y) > minVelocity) {
+        momentumAnimationRef.current = requestAnimationFrame(animate);
+      } else {
+        momentumAnimationRef.current = null;
+      }
+    };
+
+    momentumAnimationRef.current = requestAnimationFrame(animate);
+  };
+
+  // Плавное изменение зума
+  const animateZoom = (targetFov) => {
+    if (zoomAnimationRef.current) {
+      cancelAnimationFrame(zoomAnimationRef.current);
+    }
+
+    const startFov = cameraRef.current.fov;
+    const startTime = Date.now();
+    const duration = 300; // Увеличена длительность анимации для более плавного зума
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing функция (ease-out)
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      
+      const currentFov = startFov + (targetFov - startFov) * easeProgress;
+      cameraRef.current.fov = currentFov;
+      cameraRef.current.updateProjectionMatrix();
+      
+      // Уведомляем о изменении зума
+      if (onCameraChange && !isProgrammaticUpdateRef.current) {
+        const yaw = THREE.MathUtils.radToDeg(rotationRef.current.y);
+        const pitch = THREE.MathUtils.radToDeg(rotationRef.current.x);
+        onCameraChange({
+          yaw: ((yaw % 360) + 360) % 360,
+          pitch: pitch,
+          fov: currentFov
+        });
+      }
+      
+      if (progress < 1) {
+        zoomAnimationRef.current = requestAnimationFrame(animate);
+      } else {
+        zoomAnimationRef.current = null;
+      }
+    };
+
+    zoomAnimationRef.current = requestAnimationFrame(animate);
+  };
+
   // Обработчики мыши
   const handleMouseDown = (event) => {
+    // Останавливаем текущие анимации
+    if (momentumAnimationRef.current) {
+      cancelAnimationFrame(momentumAnimationRef.current);
+      momentumAnimationRef.current = null;
+    }
+
     isDraggingRef.current = true;
     mouseRef.current = {
       x: event.clientX,
       y: event.clientY
     };
+    
+    // Сбрасываем скорость
+    velocityRef.current = { x: 0, y: 0 };
+    lastMoveTimeRef.current = Date.now();
   };
 
   const handleMouseMove = (event) => {
     if (!isDraggingRef.current) return;
 
+    const currentTime = Date.now();
+    const deltaTime = currentTime - lastMoveTimeRef.current;
+    
     const deltaX = event.clientX - mouseRef.current.x;
     const deltaY = event.clientY - mouseRef.current.y;
 
-    rotationRef.current.y += deltaX * 0.01;
-    rotationRef.current.x -= deltaY * 0.01;
+    // Применяем сглаживание для более плавного движения
+    const sensitivity = 0.004; // Еще больше уменьшена чувствительность для очень плавного движения
+    const rotationDeltaX = deltaX * sensitivity;
+    const rotationDeltaY = deltaY * sensitivity;
+
+    rotationRef.current.y += rotationDeltaX;
+    rotationRef.current.x -= rotationDeltaY;
 
     // Ограничиваем поворот по вертикали
     rotationRef.current.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, rotationRef.current.x));
+
+    // Вычисляем скорость для инерции (если прошло достаточно времени)
+    if (deltaTime > 0) {
+      const velocityX = rotationDeltaX / deltaTime * 12; // Уменьшено для более плавной инерции
+      const velocityY = -rotationDeltaY / deltaTime * 12;
+      
+      // Применяем более сильное сглаживание к скорости
+      const smoothing = 0.5;
+      velocityRef.current.x = velocityRef.current.x * (1 - smoothing) + velocityX * smoothing;
+      velocityRef.current.y = velocityRef.current.y * (1 - smoothing) + velocityY * smoothing;
+    }
 
     updateCameraPosition();
 
@@ -147,28 +262,37 @@ const PanoramaViewer = forwardRef(({
       x: event.clientX,
       y: event.clientY
     };
+    lastMoveTimeRef.current = currentTime;
   };
 
   const handleMouseUp = () => {
-    isDraggingRef.current = false;
+    if (isDraggingRef.current) {
+      isDraggingRef.current = false;
+      
+      // Запускаем инерцию только если скорость достаточная
+      const minStartVelocity = 0.001; // Уменьшен порог для более чувствительной инерции
+      if (Math.abs(velocityRef.current.x) > minStartVelocity || Math.abs(velocityRef.current.y) > minStartVelocity) {
+        startMomentumAnimation();
+      }
+    }
   };
 
   const handleWheel = (event) => {
     event.preventDefault();
     if (cameraRef.current) {
-      const delta = event.deltaY > 0 ? 5 : -5;
-      cameraRef.current.fov = Math.max(30, Math.min(130, cameraRef.current.fov + delta));
-      cameraRef.current.updateProjectionMatrix();
+      // Плавное изменение зума
+      const zoomSpeed = 2; // Еще больше уменьшена скорость зума для очень плавного зума
+      const delta = event.deltaY > 0 ? zoomSpeed : -zoomSpeed;
       
-      if (onCameraChange) {
-        const yaw = THREE.MathUtils.radToDeg(rotationRef.current.y);
-        const pitch = THREE.MathUtils.radToDeg(rotationRef.current.x);
-        onCameraChange({
-          yaw: ((yaw % 360) + 360) % 360,
-          pitch: pitch,
-          fov: cameraRef.current.fov
-        });
-      }
+      // Вычисляем новое значение FOV
+      const currentFov = targetFovRef.current || cameraRef.current.fov;
+      const newFov = Math.max(30, Math.min(130, currentFov + delta));
+      
+      // Сохраняем целевое значение
+      targetFovRef.current = newFov;
+      
+      // Запускаем плавную анимацию зума
+      animateZoom(newFov);
     }
   };
 
@@ -188,6 +312,7 @@ const PanoramaViewer = forwardRef(({
       1000
     );
     cameraRef.current = camera;
+    targetFovRef.current = 75; // Инициализируем целевой FOV
 
     // Создаем рендерер
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -268,8 +393,15 @@ const PanoramaViewer = forwardRef(({
       document.removeEventListener('mouseup', globalMouseUp);
       window.removeEventListener('resize', handleResize);
       
+      // Останавливаем все анимации
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
+      }
+      if (momentumAnimationRef.current) {
+        cancelAnimationFrame(momentumAnimationRef.current);
+      }
+      if (zoomAnimationRef.current) {
+        cancelAnimationFrame(zoomAnimationRef.current);
       }
       
       if (mountRef.current && renderer) {

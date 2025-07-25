@@ -1,6 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import PanoramaViewer from './components/PanoramaViewer/PanoramaViewer';
+import SchemesView from './components/SchemesView';
+import DateSelector from './components/DateSelector/DateSelector';
+import VideoControls from './components/VideoControls/VideoControls';
+import FilterControls from './components/FilterControls/FilterControls';
+import TopToolbar from './components/TopToolbar';
+import ViewerControlsSidebar from './components/ViewerControlsSidebar';
 import usePanoramaSync from './components/PanoramaViewer/hooks/usePanoramaSync';
 import { 
   mockPhotoArchive, 
@@ -8,11 +14,12 @@ import {
   getRoomByPhotoId, 
   getComparisonPhotos 
 } from '../../data/photoArchive';
+import img360 from '../../data/img/img360.jpg';
 import styles from './Viewer360Container.module.css';
 
 const Viewer360Container = ({ project, onBack }) => {
-  // Режимы просмотра: 'initial', 'archive', 'roomGroup', 'viewer', 'video360List', 'videoWalkthrough'
-  const [viewMode, setViewMode] = useState('initial');
+  // Режимы просмотра: 'initial', 'archive', 'roomGroup', 'viewer', 'video360List', 'videoWalkthrough', 'generic360'
+  const [viewMode, setViewMode] = useState('generic360');
   const [selectedRoomKey, setSelectedRoomKey] = useState(null);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -22,10 +29,32 @@ const Viewer360Container = ({ project, onBack }) => {
   const [showComparisonSelector, setShowComparisonSelector] = useState(false);
   const [hoveredSidebarItem, setHoveredSidebarItem] = useState(null);
   const [currentCamera, setCurrentCamera] = useState({ yaw: 0, pitch: 0, fov: 75 });
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [currentSidebarSection, setCurrentSidebarSection] = useState('images'); // Текущий активный раздел
+  const [selectedScheme, setSelectedScheme] = useState(null);
+  const [schemeSearchQuery, setSchemeSearchQuery] = useState('');
+  const [isMinimapVisible, setIsMinimapVisible] = useState(true);
+  const [isSchemeSearchVisible, setIsSchemeSearchVisible] = useState(false);
+  const [isSchemeDropdownOpen, setIsSchemeDropdownOpen] = useState(false);
+  const [isMinimapExpanded, setIsMinimapExpanded] = useState(false);
+  const [minimapZoom, setMinimapZoom] = useState(1);
+  const [minimapPosition, setMinimapPosition] = useState({ x: 0, y: 0 });
+  const [isMinimapDragging, setIsMinimapDragging] = useState(false);
+  
+  // Состояния для новых компонентов нижнего сайдбара
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [shootingTime, setShootingTime] = useState('14:30'); // Время съемки
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   // Refs для вьюверов
   const mainViewerRef = useRef(null);
   const comparisonViewerRef = useRef(null);
+  // Ref на корневой контейнер миникарты (включает кнопку выбора схемы и выпадающий список)
+  const schemesMinimapRef = useRef(null);
+  const minimapRef = useRef(null);
+  const isDraggingMinimap = useRef(false);
+  const lastMousePosition = useRef({ x: 0, y: 0 });
 
   // Хук для синхронизации камер
   const sync = usePanoramaSync(mainViewerRef, comparisonViewerRef, isComparisonMode);
@@ -38,18 +67,47 @@ const Viewer360Container = ({ project, onBack }) => {
     isComparisonModeRef.current = isComparisonMode;
   }, [isComparisonMode]);
 
+  // Устанавливаем первую схему по умолчанию
+  React.useEffect(() => {
+    if (project?.floors && project.floors.length > 0 && !selectedScheme) {
+      setSelectedScheme(project.floors[0]);
+    }
+  }, [project, selectedScheme]);
+
+  // Закрытие dropdown при клике вне его области
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (schemesMinimapRef.current && !schemesMinimapRef.current.contains(event.target)) {
+        setIsSchemeDropdownOpen(false);
+        setIsSchemeSearchVisible(false);
+        setSchemeSearchQuery('');
+      }
+    };
+
+    if (isSchemeDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isSchemeDropdownOpen]);
+
   // Пункты сайдбара
   const sidebarItems = [
-    { id: 'home', icon: 'fas fa-home', label: 'Главная', action: onBack },
-    { id: 'archive', icon: 'fas fa-archive', label: 'Архив фото' },
-    { id: 'layers', icon: 'fas fa-layer-group', label: 'Слои' },
-    { id: 'video360', icon: 'fas fa-video', label: 'Видео 360°' },
-    { id: 'schedule', icon: 'fas fa-calendar-alt', label: 'План-график' },
-    { id: 'measure', icon: 'fas fa-ruler', label: 'Измерения' },
-    { id: 'comments', icon: 'fas fa-comments', label: 'Комментарии' },
-    { id: 'settings', icon: 'fas fa-cog', label: 'Настройки' },
-    { id: 'fullscreen', icon: 'fas fa-expand', label: 'Полный экран' },
-    { id: 'help', icon: 'fas fa-question-circle', label: 'Помощь' },
+    { id: 'home', icon: 'fas fa-home', label: 'Дом', action: onBack },
+    { id: 'images', icon: 'fas fa-image', label: 'Изображение', isActive: true },
+    { id: 'schemes', icon: 'fas fa-layer-group', label: 'Схемы' },
+    { id: 'field-notes', icon: 'fas fa-sticky-note', label: 'Полевые заметки' },
+    { id: 'timelapses', icon: 'fas fa-clock', label: 'Таймлапсы' },
+    { id: 'drone-shots', icon: 'fas fa-helicopter', label: 'Съемка с дронов' },
+    { id: 'separator-1', type: 'separator' },
+    { id: 'capture', icon: 'fas fa-camera-retro', label: 'Захват' },
+    { id: 'shared-folders', icon: 'fas fa-folder-open', label: 'Общие папки' },
+    { id: 'field-notes-2', icon: 'fas fa-clipboard', label: 'Полевые заметки' },
+    { id: 'separator-2', type: 'separator' },
+    { id: 'participants', icon: 'fas fa-users', label: 'Участники' },
+    { id: 'project-settings', icon: 'fas fa-cog', label: 'Настройки проекта' },
   ];
 
   // Навигационные точки для нижнего сайдбара
@@ -171,16 +229,21 @@ const Viewer360Container = ({ project, onBack }) => {
   const handleSidebarClick = (item) => {
     if (item.action) {
       item.action();
-    } else if (item.id === 'archive') {
-      handleOpenArchive();
-    } else if (item.id === 'video360') {
-      handleOpenVideo360List();
-    } else if (item.id === 'fullscreen') {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        document.documentElement.requestFullscreen();
-      }
+    } else if (item.id === 'images') {
+      // Пункт "Изображение" - показываем 360° изображение
+      setCurrentSidebarSection('images');
+      setViewMode('generic360');
+    } else if (item.id === 'schemes') {
+      // Пункт "Схемы" - показываем панель просмотра схем
+      setCurrentSidebarSection('schemes');
+      setViewMode('schemes');
+    } else if (item.type === 'separator') {
+      // Разделители не кликабельны
+      return;
+    } else {
+      // Все остальные пункты - показываем 360° изображение (заглушки)
+      setCurrentSidebarSection(item.id);
+      setViewMode('generic360');
     }
   };
 
@@ -192,6 +255,225 @@ const Viewer360Container = ({ project, onBack }) => {
       mainViewerRef.current.lookAt(point.yaw, point.pitch, null, 1000);
     }
   };
+
+  // Обработчики для новых компонентов нижнего сайдбара
+  const handleDateChange = (newDate) => {
+    setSelectedDate(newDate);
+    console.log('Date changed:', newDate);
+  };
+
+  const handleVideoPlay = () => {
+    setIsVideoPlaying(true);
+    console.log('Video play');
+  };
+
+  const handleVideoPause = () => {
+    setIsVideoPlaying(false);
+    console.log('Video pause');
+  };
+
+  const handleVideoFirstFrame = () => {
+    console.log('Video first frame');
+    // Логика для перехода к первому кадру
+  };
+
+  const handleVideoPreviousFrame = () => {
+    console.log('Video previous frame');
+    // Логика для перехода к предыдущему кадру
+  };
+
+  const handleVideoNextFrame = () => {
+    console.log('Video next frame'); 
+    // Логика для перехода к следующему кадру
+  };
+
+  const handleVideoLastFrame = () => {
+    console.log('Video last frame');
+    // Логика для перехода к последнему кадру
+  };
+
+  const handleFiltersClick = () => {
+    console.log('Filters clicked');
+    // Заглушка - переключаем состояние для демонстрации
+    setHasActiveFilters(prev => !prev);
+  };
+
+  // Обработчики для верхнего тулбара
+  const handleCreateFieldNote = () => {
+    console.log('Создать полевую заметку - заглушка');
+    // Здесь будет логика создания полевой заметки
+  };
+
+  const handleCreateVideo = () => {
+    console.log('Создать покадровое видео - заглушка');
+    // Здесь будет логика создания покадрового видео
+  };
+
+  const handleShare = () => {
+    console.log('Поделиться - заглушка');
+    // Здесь будет логика поделиться
+  };
+
+  const handleDownloadScreen = () => {
+    console.log('Загрузить текущий экран - заглушка');
+    // Здесь будет логика скачивания текущего экрана
+  };
+
+  const handleDownloadImage360 = () => {
+    console.log('Загрузить изображение 360° - заглушка');
+    // Здесь будет логика скачивания полного изображения 360°
+  };
+
+  // Обработчики для ViewerControlsSidebar
+  const handleImageSettings = () => {
+    console.log('Настроить изображение - заглушка');
+    // Здесь будет логика настройки изображения
+  };
+
+  const handleSplitScreen = () => {
+    console.log('Разделить экран - заглушка');
+    // Здесь будет логика разделения экрана
+  };
+
+  const handleZoomIn = () => {
+    if (mainViewerRef.current) {
+      const currentFov = currentCamera.fov;
+      const newFov = Math.max(30, currentFov - 5);
+      const cameraData = { ...currentCamera, fov: newFov };
+      setCurrentCamera(cameraData);
+      
+      // Применяем зум к основному вьюверу
+      if (mainViewerRef.current.setCamera) {
+        mainViewerRef.current.setCamera(currentCamera.yaw, currentCamera.pitch, newFov);
+      }
+      
+      // Если включен режим сравнения, синхронизируем зум
+      if (isComparisonMode && comparisonViewerRef.current) {
+        if (comparisonViewerRef.current.setCamera) {
+          comparisonViewerRef.current.setCamera(currentCamera.yaw, currentCamera.pitch, newFov);
+        }
+      }
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (mainViewerRef.current) {
+      const currentFov = currentCamera.fov;
+      const newFov = Math.min(130, currentFov + 5);
+      const cameraData = { ...currentCamera, fov: newFov };
+      setCurrentCamera(cameraData);
+      
+      // Применяем зум к основному вьюверу
+      if (mainViewerRef.current.setCamera) {
+        mainViewerRef.current.setCamera(currentCamera.yaw, currentCamera.pitch, newFov);
+      }
+      
+      // Если включен режим сравнения, синхронизируем зум
+      if (isComparisonMode && comparisonViewerRef.current) {
+        if (comparisonViewerRef.current.setCamera) {
+          comparisonViewerRef.current.setCamera(currentCamera.yaw, currentCamera.pitch, newFov);
+        }
+      }
+    }
+  };
+
+  // Обработчики для миникарты
+  const handleMinimapToggle = () => {
+    setIsMinimapExpanded(!isMinimapExpanded);
+    // Всегда сбрасываем зум и позицию при переключении
+    setMinimapZoom(1);
+    setMinimapPosition({ x: 0, y: 0 });
+    // Сбрасываем состояние перетаскивания
+    isDraggingMinimap.current = false;
+    setIsMinimapDragging(false);
+  };
+
+
+
+  const handleMinimapMouseDown = (event) => {
+    if (event.button === 0 && isMinimapExpanded) { // Левая кнопка мыши и развернутый режим
+      isDraggingMinimap.current = true;
+      setIsMinimapDragging(true);
+      lastMousePosition.current = { x: event.clientX, y: event.clientY };
+      event.preventDefault();
+    }
+  };
+
+  const handleMinimapMouseMove = (event) => {
+    if (isDraggingMinimap.current && isMinimapExpanded) {
+      const deltaX = event.clientX - lastMousePosition.current.x;
+      const deltaY = event.clientY - lastMousePosition.current.y;
+      
+      setMinimapPosition(prev => {
+        // Более строгие ограничения для предотвращения выхода изображения за границы
+        const container = minimapRef.current;
+        if (!container) return prev;
+        
+        const containerWidth = container.offsetWidth;
+        const containerHeight = container.offsetHeight;
+        
+        // Вычисляем максимальные смещения на основе зума и размеров контейнера
+        const maxOffsetX = Math.max(0, (containerWidth * (minimapZoom - 1)) / 2);
+        const maxOffsetY = Math.max(0, (containerHeight * (minimapZoom - 1)) / 2);
+        
+        const newX = Math.max(-maxOffsetX, Math.min(maxOffsetX, prev.x + deltaX));
+        const newY = Math.max(-maxOffsetY, Math.min(maxOffsetY, prev.y + deltaY));
+        
+        return {
+          x: newX,
+          y: newY
+        };
+      });
+      
+      lastMousePosition.current = { x: event.clientX, y: event.clientY };
+      event.preventDefault();
+    }
+  };
+
+  const handleMinimapMouseUp = () => {
+    isDraggingMinimap.current = false;
+    setIsMinimapDragging(false);
+  };
+
+  // useEffect для обработки глобальных событий мыши для миникарты
+  useEffect(() => {
+    const handleGlobalMouseMove = (event) => handleMinimapMouseMove(event);
+    const handleGlobalMouseUp = () => handleMinimapMouseUp();
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && isMinimapExpanded) {
+        handleMinimapToggle();
+      }
+    };
+
+    document.addEventListener('mousemove', handleGlobalMouseMove);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMinimapExpanded, minimapZoom]);
+
+  // useEffect для обработки wheel события на миникарте с { passive: false }
+  useEffect(() => {
+    const container = minimapRef.current;
+    if (!container || !isMinimapExpanded) return;
+
+    const handleWheelEvent = (event) => {
+      event.preventDefault();
+      const delta = event.deltaY > 0 ? -0.05 : 0.05;
+      const newZoom = Math.max(0.5, Math.min(3, minimapZoom + delta));
+      setMinimapZoom(newZoom);
+    };
+
+    container.addEventListener('wheel', handleWheelEvent, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheelEvent);
+    };
+  }, [isMinimapExpanded, minimapZoom]);
 
   // Обработчики изменения камеры
   const handleMainCameraChange = React.useCallback((cameraData) => {
@@ -212,37 +494,9 @@ const Viewer360Container = ({ project, onBack }) => {
 
   // Определение активной кнопки сайдбара
   const isItemActive = (itemId) => {
-    switch (itemId) {
-      case 'home':
-        return viewMode === 'initial';
-      case 'archive':
-        return viewMode === 'archive' || viewMode === 'roomGroup' || viewMode === 'viewer';
-      case 'video360':
-        return viewMode === 'video360List' || viewMode === 'videoWalkthrough';
-      default:
-        return false;
-    }
+    // Активной является кнопка текущего раздела
+    return itemId === currentSidebarSection;
   };
-
-  // Рендер начального экрана
-  const renderInitialScreen = () => (
-    <div className={styles.initialScreen}>
-      <div className={styles.initialContent}>
-        <div className={styles.initialIcon}>
-          <i className="fas fa-cube"></i>
-        </div>
-        <h2>Режим просмотра 360°</h2>
-        <p>Для начала работы откройте архив фотографий через боковую панель</p>
-        <button 
-          className={styles.openArchiveBtn}
-          onClick={handleOpenArchive}
-        >
-          <i className="fas fa-archive"></i>
-          Открыть архив фото
-        </button>
-      </div>
-    </div>
-  );
 
   // Рендер архива фото (теперь по комнатам)
   const renderPhotoArchive = () => {
@@ -410,6 +664,15 @@ const Viewer360Container = ({ project, onBack }) => {
     
     return (
       <div className={`${styles.panoramaSection} ${isComparisonMode ? styles.comparisonMode : ''}`}>
+        {/* Верхний тулбар */}
+        <TopToolbar
+          onCreateFieldNote={handleCreateFieldNote}
+          onCreateVideo={handleCreateVideo}
+          onShare={handleShare}
+          onDownloadScreen={handleDownloadScreen}
+          onDownloadImage360={handleDownloadImage360}
+        />
+
         {/* Основной просмотрщик */}
         <div className={styles.panoramaWrapper}>
           <PanoramaViewer
@@ -435,36 +698,44 @@ const Viewer360Container = ({ project, onBack }) => {
             <i className="fas fa-times"></i>
           </button>
           
-          {/* Нижний сайдбар */}
+          {/* Новый нижний сайдбар с тремя мини-сайдбарами */}
           <div className={styles.bottomSidebar}>
-            <div className={styles.sidebarLeft}>
-              <div className={styles.rotationIndicator}>
-                <span>{Math.round(((currentCamera.yaw % 360) + 360) % 360)}°</span>
-              </div>
-              <div className={styles.navigationPoints}>
-                {navigationPoints.map((point) => (
-                  <button
-                    key={point.id}
-                    className={styles.navPoint}
-                    onClick={() => handleNavigationClick(point)}
-                    title={point.label}
-                  >
-                    <span>{point.id}</span>
-                  </button>
-                ))}
-              </div>
+            <div className={styles.miniSidebar}>
+              <DateSelector
+                selectedDate={selectedDate}
+                onDateChange={handleDateChange}
+              />
             </div>
-            {!isComparisonMode && getComparisonPhotos(selectedPhoto.id).length > 0 && (
-              <button 
-                className={styles.comparisonBtn}
-                onClick={handleComparisonToggle}
-                title="Сравнить с этой же комнатой в другое время"
-              >
-                <i className="fas fa-columns"></i>
-                Сравнить время
-              </button>
-            )}
+            
+            <div className={styles.miniSidebar}>
+              <VideoControls
+                isPlaying={isVideoPlaying}
+                shootingTime={shootingTime}
+                onPlay={handleVideoPlay}
+                onPause={handleVideoPause}
+                onFirstFrame={handleVideoFirstFrame}
+                onPreviousFrame={handleVideoPreviousFrame}
+                onNextFrame={handleVideoNextFrame}
+                onLastFrame={handleVideoLastFrame}
+              />
+            </div>
+            
+            <div className={styles.miniSidebar}>
+              <FilterControls
+                onFiltersClick={handleFiltersClick}
+                hasActiveFilters={hasActiveFilters}
+              />
+            </div>
           </div>
+
+          {/* Правый вертикальный сайдбар с кнопками управления */}
+          <ViewerControlsSidebar
+            onImageSettings={handleImageSettings}
+            onSplitScreen={handleSplitScreen}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            currentZoom={currentCamera.fov}
+          />
         </div>
 
         {/* Сравнительный просмотрщик */}
@@ -496,291 +767,356 @@ const Viewer360Container = ({ project, onBack }) => {
             
             {/* Сайдбар для сравнительного изображения */}
             <div className={`${styles.bottomSidebar} ${styles.comparisonSidebar}`}>
-              <div className={styles.sidebarLeft}>
-                <div className={styles.rotationIndicator}>
-                  <span>{Math.round(((currentCamera.yaw % 360) + 360) % 360)}°</span>
-                </div>
-                <div className={styles.navigationPoints}>
-                  {navigationPoints.map((point) => (
-                    <button
-                      key={`comp-${point.id}`}
-                      className={styles.navPoint}
-                      onClick={() => handleNavigationClick(point)}
-                      title={point.label}
-                    >
-                      <span>{point.id}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className={styles.miniSidebar}>
+                <DateSelector
+                  selectedDate={selectedDate}
+                  onDateChange={handleDateChange}
+                />
+              </div>
+              
+              <div className={styles.miniSidebar}>
+                <VideoControls
+                  isPlaying={isVideoPlaying}
+                  shootingTime={shootingTime}
+                  onPlay={handleVideoPlay}
+                  onPause={handleVideoPause}
+                  onFirstFrame={handleVideoFirstFrame}
+                  onPreviousFrame={handleVideoPreviousFrame}
+                  onNextFrame={handleVideoNextFrame}
+                  onLastFrame={handleVideoLastFrame}
+                />
+              </div>
+              
+              <div className={styles.miniSidebar}>
+                <FilterControls
+                  onFiltersClick={handleFiltersClick}
+                  hasActiveFilters={hasActiveFilters}
+                />
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    );
-  };
 
-  // Рендер списка видео 360°
-  const renderVideo360List = () => {
-    const analyzedVideos = getAnalyzedVideos();
-    
-    return (
-      <div className={styles.video360List}>
-        <div className={styles.video360Header}>
-          <h2>Видео 360° маршруты</h2>
-          <p>Выберите проанализированное видео для навигации по маршруту</p>
-        </div>
-        
-        {analyzedVideos.length === 0 ? (
-          <div className={styles.emptyVideoState}>
-            <div className={styles.emptyIcon}>
-              <i className="fas fa-video"></i>
-            </div>
-            <h3>Нет проанализированных видео</h3>
-            <p>Загрузите и проанализируйте видео 360° в редакторе проекта, чтобы создать интерактивные маршруты</p>
-            <button 
-              className={styles.goToEditorBtn}
-              onClick={onBack}
-            >
-              <i className="fas fa-arrow-left"></i>
-              Перейти к редактору
-            </button>
-          </div>
-        ) : (
-          <div className={styles.videosGrid}>
-            {analyzedVideos.map((video) => (
-              <div 
-                key={video.id} 
-                className={styles.videoCard}
-                onClick={() => handleSelectVideo(video)}
-              >
-                <div className={styles.videoCardThumbnail}>
-                  {video.thumbnail ? (
-                    <img src={video.thumbnail} alt={video.name} />
-                  ) : (
-                    <div className={styles.videoPlaceholder}>
-                      <i className="fas fa-video"></i>
-                    </div>
-                  )}
-                  <div className={styles.videoCardOverlay}>
-                    <i className="fas fa-play-circle"></i>
-                  </div>
-                </div>
-                <div className={styles.videoCardInfo}>
-                  <h3>{video.name}</h3>
-                  <div className={styles.videoCardMeta}>
-                    <p className={styles.videoDate}>
-                      <i className="fas fa-calendar"></i>
-                      {video.shootingDate || 'Дата не указана'}
-                    </p>
-                    <p className={styles.videoFrames}>
-                      <i className="fas fa-images"></i>
-                      {video.extractedFrames?.length || 0} кадров
-                    </p>
-                  </div>
-                  <div className={styles.videoRouteType}>
-                    <i className={`fas ${video.walkthrough?.hasGPS ? 'fa-map-marker-alt' : 'fa-clock'}`}></i>
-                    {video.walkthrough?.hasGPS ? 'GPS маршрут' : 'Временной маршрут'}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Рендер прохождения по видео маршруту
-  const renderVideoWalkthrough = () => {
-    if (!selectedVideo || !selectedVideo.extractedFrames.length) {
-      return (
-        <div className={styles.errorState}>
-          <h3>Ошибка загрузки видео</h3>
-          <button onClick={handleBackToVideo360List}>Вернуться к списку</button>
-        </div>
-      );
-    }
-
-    const currentFrame = selectedVideo.extractedFrames[currentFrameIndex];
-    const totalFrames = selectedVideo.extractedFrames.length;
-    const progress = ((currentFrameIndex + 1) / totalFrames) * 100;
-
-    return (
-      <div className={styles.videoWalkthrough}>
-        {/* Кнопка возврата */}
-        <button 
-          className={styles.backToListBtn}
-          onClick={handleBackToVideo360List}
-          title="Вернуться к списку видео"
-        >
-          <i className="fas fa-arrow-left"></i>
-        </button>
-
-        {/* Информация о видео */}
-        <div className={styles.videoWalkthroughInfo}>
-          <div className={styles.videoTitle}>{selectedVideo.name}</div>
-          <div className={styles.videoSubtitle}>
-            {selectedVideo.shootingDate && `Съемка: ${selectedVideo.shootingDate} • `}
-            Кадр {currentFrameIndex + 1} из {totalFrames}
-          </div>
-        </div>
-
-        {/* Просмотрщик текущего кадра */}
-        <div className={styles.frameViewer}>
-          {currentFrame.imageUrl ? (
-            <PanoramaViewer
-              ref={mainViewerRef}
-              imageUrl={currentFrame.imageUrl}
-              onCameraChange={handleMainCameraChange}
-              className={styles.walkthroughViewer}
+            {/* Правый вертикальный сайдбар с кнопками управления для сравнительного изображения */}
+            <ViewerControlsSidebar
+              onImageSettings={handleImageSettings}
+              onSplitScreen={handleSplitScreen}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              currentZoom={currentCamera.fov}
             />
-          ) : (
-            <div className={styles.framePlaceholder}>
-              <i className="fas fa-image"></i>
-              <p>Кадр не загружен</p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
-        {/* Временная навигация */}
-        <div className={styles.timelineNavigation}>
-          <div className={styles.timelineHeader}>
-            <span className={styles.timelineTitle}>Навигация по маршруту</span>
-            <span className={styles.timelineProgress}>{Math.round(progress)}%</span>
+  // Рендер миникарты со схемами
+  const renderSchemesMinimap = () => {
+    if (!project?.floors) return null;
+
+    const filteredSchemes = project.floors.filter(floor => 
+      floor.name.toLowerCase().includes(schemeSearchQuery.toLowerCase()) ||
+      floor.description.toLowerCase().includes(schemeSearchQuery.toLowerCase())
+    );
+
+    const handleSchemeSelect = (scheme) => {
+      setSelectedScheme(scheme);
+      setIsSchemeDropdownOpen(false);
+      setIsSchemeSearchVisible(false);
+      setSchemeSearchQuery('');
+      // Сбрасываем зум и позицию при смене схемы
+      setMinimapZoom(1);
+      setMinimapPosition({ x: 0, y: 0 });
+    };
+
+    const handleDropdownToggle = () => {
+      setIsSchemeDropdownOpen(!isSchemeDropdownOpen);
+      if (!isSchemeDropdownOpen) {
+        setIsSchemeSearchVisible(true);
+      } else {
+        setIsSchemeSearchVisible(false);
+        setSchemeSearchQuery('');
+      }
+    };
+
+    return (
+      <div
+        ref={schemesMinimapRef}
+        className={`${styles.schemesMinimap} ${isMinimapExpanded ? styles.expanded : ''}`}
+      >
+        {/* Заголовок с кнопками */}
+        <div className={styles.minimapHeader}>
+          <div className={styles.customSelect}>
+            <button 
+              className={`${styles.selectButton} ${isSchemeDropdownOpen ? styles.open : ''}`}
+              onClick={handleDropdownToggle}
+            >
+              <span>{selectedScheme ? selectedScheme.name : 'Выберите схему'}</span>
+              <i className={`fas fa-chevron-down ${isSchemeDropdownOpen ? styles.rotated : ''}`}></i>
+            </button>
           </div>
           
-          <div className={styles.timelineControls}>
-            <button 
-              className={styles.timelineBtn}
-              onClick={() => handleFrameNavigation(0)}
-              disabled={currentFrameIndex === 0}
-              title="К началу"
-            >
-              <i className="fas fa-fast-backward"></i>
-            </button>
-            <button 
-              className={styles.timelineBtn}
-              onClick={() => handleFrameNavigation(currentFrameIndex - 1)}
-              disabled={currentFrameIndex === 0}
-              title="Предыдущий кадр"
-            >
-              <i className="fas fa-step-backward"></i>
-            </button>
-            <button 
-              className={styles.timelineBtn}
-              onClick={() => handleFrameNavigation(currentFrameIndex + 1)}
-              disabled={currentFrameIndex === totalFrames - 1}
-              title="Следующий кадр"
-            >
-              <i className="fas fa-step-forward"></i>
-            </button>
-            <button 
-              className={styles.timelineBtn}
-              onClick={() => handleFrameNavigation(totalFrames - 1)}
-              disabled={currentFrameIndex === totalFrames - 1}
-              title="К концу"
-            >
-              <i className="fas fa-fast-forward"></i>
-            </button>
-          </div>
-
-          <div className={styles.timelineSlider}>
-            <input
-              type="range"
-              min="0"
-              max={totalFrames - 1}
-              value={currentFrameIndex}
-              onChange={(e) => handleFrameNavigation(parseInt(e.target.value))}
-              className={styles.timelineSliderInput}
-            />
-            <div className={styles.timelineTrack}>
-              <div 
-                className={styles.timelineProgress}
-                style={{ width: `${progress}%` }}
-              />
-              {selectedVideo.extractedFrames.map((_, index) => (
-                <button
-                  key={index}
-                  className={`${styles.timelinePoint} ${index === currentFrameIndex ? styles.active : ''}`}
-                  onClick={() => handleFrameNavigation(index)}
-                  style={{ left: `${(index / (totalFrames - 1)) * 100}%` }}
-                  title={`Кадр ${index + 1} (${Math.round(index * 2)}с)`}
-                />
-              ))}
-            </div>
-          </div>
+          {/* Кнопка увеличения */}
+          <button
+            className={`${styles.minimapExpandButton} ${isMinimapExpanded ? styles.expanded : ''}`}
+            onClick={handleMinimapToggle}
+            title={isMinimapExpanded ? 'Свернуть карту' : 'Развернуть карту'}
+          >
+            <i className={`fas ${isMinimapExpanded ? 'fa-compress' : 'fa-expand'}`}></i>
+          </button>
         </div>
+        
+        {/* Dropdown */}
+        {isSchemeDropdownOpen && (
+            <div className={styles.dropdown}>
+              {/* Поиск внутри dropdown */}
+              {isSchemeSearchVisible && (
+                <div className={styles.dropdownSearch}>
+                  <div className={styles.searchInputWrapper}>
+                    <i className="fas fa-search"></i>
+                    <input
+                      type="text"
+                      placeholder="Поиск схемы..."
+                      value={schemeSearchQuery}
+                      onChange={(e) => setSchemeSearchQuery(e.target.value)}
+                      className={styles.searchInput}
+                      autoFocus
+                    />
+                    {schemeSearchQuery && (
+                      <button 
+                        className={styles.clearSearchBtn}
+                        onClick={() => setSchemeSearchQuery('')}
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
-        {/* Мини-карта */}
-        <div className={styles.miniMap}>
-          <div className={styles.miniMapHeader}>
-            <span className={styles.miniMapTitle}>Маршрут</span>
-            <span className={styles.miniMapType}>
-              {selectedVideo.walkthrough?.hasGPS ? 'GPS' : 'Временной'}
-            </span>
-          </div>
-          <div className={styles.miniMapContent}>
-            {selectedVideo.walkthrough?.hasGPS ? (
-              <div className={styles.gpsMap}>
-                {/* TODO: Интеграция с картами */}
-                <p>GPS карта будет здесь</p>
+              {/* Список схем */}
+              <div className={styles.dropdownList}>
+                {filteredSchemes.length === 0 ? (
+                  <div className={styles.noResults}>Схемы не найдены</div>
+                ) : (
+                  filteredSchemes.map((scheme) => (
+                    <button
+                      key={scheme.id}
+                      className={`${styles.dropdownItem} ${selectedScheme?.id === scheme.id ? styles.selected : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSchemeSelect(scheme);
+                      }}
+                    >
+                      <div className={styles.schemePreview}>
+                        <img src={scheme.thumbnail} alt={scheme.name} />
+                      </div>
+                      <div className={styles.schemeDetails}>
+                        <div className={styles.schemeName}>{scheme.name}</div>
+                        <div className={styles.schemeDesc}>{scheme.description}</div>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
-            ) : (
-              <div className={styles.linearMap}>
-                <div className={styles.linearMapTrack}>
-                  <div 
-                    className={styles.linearMapProgress}
-                    style={{ width: `${progress}%` }}
-                  />
-                  <div 
-                    className={styles.linearMapMarker}
-                    style={{ left: `${progress}%` }}
-                  />
-                </div>
-                <div className={styles.linearMapLabels}>
-                  <span>Начало</span>
-                  <span>Конец</span>
-                </div>
+            </div>
+        )}
+        
+        {/* Сама миникарта */}
+        {selectedScheme && (
+          <div className={`${styles.minimapImage} ${isMinimapExpanded ? styles.expanded : ''}`}>
+            {/* Панель управления зумом (только в развернутом состоянии - сверху) */}
+            {isMinimapExpanded && (
+              <div className={styles.minimapControls}>
+                <button
+                  className={styles.minimapControlButton}
+                  onClick={() => setMinimapZoom(prev => Math.min(3, prev + 0.1))}
+                  title="Увеличить"
+                >
+                  <i className="fas fa-plus"></i>
+                </button>
+                <span className={styles.zoomLevel}>
+                  {Math.round(minimapZoom * 100)}%
+                </span>
+                <button
+                  className={styles.minimapControlButton}
+                  onClick={() => setMinimapZoom(prev => Math.max(0.5, prev - 0.1))}
+                  title="Уменьшить"
+                >
+                  <i className="fas fa-minus"></i>
+                </button>
+                <button
+                  className={styles.minimapControlButton}
+                  onClick={() => {
+                    setMinimapZoom(1);
+                    setMinimapPosition({ x: 0, y: 0 });
+                  }}
+                  title="Сбросить"
+                >
+                  <i className="fas fa-expand-arrows-alt"></i>
+                </button>
               </div>
             )}
+            
+            <div 
+              className={styles.minimapZoomContainer}
+              onMouseDown={isMinimapExpanded ? handleMinimapMouseDown : undefined}
+              ref={minimapRef}
+            >
+              <img 
+                key={selectedScheme.id}
+                src={selectedScheme.fullImage || selectedScheme.thumbnail} 
+                alt={selectedScheme.name}
+                className={styles.schemeMap}
+                style={isMinimapExpanded ? {
+                  transform: `translate(${minimapPosition.x}px, ${minimapPosition.y}px) scale(${minimapZoom})`,
+                  cursor: isMinimapDragging ? 'grabbing' : 'grab',
+                  transformOrigin: 'center center',
+                  maxWidth: '100%',
+                  maxHeight: '100%'
+                } : {}}
+                draggable={false}
+              />
+            </div>
           </div>
+        )}
+      </div>
+    );
+  };
+
+
+
+  // Рендер 360° изображения для остальных разделов
+  const renderGeneric360 = () => {
+    return (
+      <div className={styles.panoramaSection}>
+        {/* Верхний тулбар */}
+        <TopToolbar
+          onCreateFieldNote={handleCreateFieldNote}
+          onCreateVideo={handleCreateVideo}
+          onShare={handleShare}
+          onDownloadScreen={handleDownloadScreen}
+          onDownloadImage360={handleDownloadImage360}
+        />
+
+        <div className={styles.panoramaWrapper}>
+          <PanoramaViewer
+            ref={mainViewerRef}
+            imageUrl={img360}
+            onCameraChange={handleMainCameraChange}
+            className={styles.mainViewer}
+          />
+          
+          {/* Новый нижний сайдбар с тремя мини-сайдбарами */}
+          <div className={styles.bottomSidebar}>
+            <div className={styles.miniSidebar}>
+              <DateSelector
+                selectedDate={selectedDate}
+                onDateChange={handleDateChange}
+              />
+            </div>
+            
+            <div className={styles.miniSidebar}>
+              <VideoControls
+                isPlaying={isVideoPlaying}
+                shootingTime={shootingTime}
+                onPlay={handleVideoPlay}
+                onPause={handleVideoPause}
+                onFirstFrame={handleVideoFirstFrame}
+                onPreviousFrame={handleVideoPreviousFrame}
+                onNextFrame={handleVideoNextFrame}
+                onLastFrame={handleVideoLastFrame}
+              />
+            </div>
+            
+            <div className={styles.miniSidebar}>
+              <FilterControls
+                onFiltersClick={handleFiltersClick}
+                hasActiveFilters={hasActiveFilters}
+              />
+            </div>
+          </div>
+
+          {/* Правый вертикальный сайдбар с кнопками управления */}
+          <ViewerControlsSidebar
+            onImageSettings={handleImageSettings}
+            onSplitScreen={handleSplitScreen}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            currentZoom={currentCamera.fov}
+          />
         </div>
       </div>
+    );
+  };
+
+  // Рендер панели схем
+  const renderSchemes = () => {
+    return (
+      <SchemesView 
+        project={project}
+      />
     );
   };
 
   return (
     <div className={styles.viewer360}>
       {/* Левый сайдбар */}
-      <div className={styles.viewerSidebar}>
-        {sidebarItems.map((item) => (
-          <button
-            key={item.id}
-            className={`${styles.sidebarItem} ${isItemActive(item.id) ? styles.active : ''}`}
-            onClick={() => handleSidebarClick(item)}
-            onMouseEnter={() => setHoveredSidebarItem(item.id)}
-            onMouseLeave={() => setHoveredSidebarItem(null)}
-            aria-label={item.label}
-          >
-            <i className={item.icon} aria-hidden="true"></i>
-            {hoveredSidebarItem === item.id && (
-              <div className={styles.tooltip} role="tooltip">
-                {item.label}
-              </div>
-            )}
-          </button>
-        ))}
+      <div 
+        className={`${styles.viewerSidebar} ${isExpanded ? styles.expanded : ''}`}
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => setIsExpanded(false)}
+      >
+        {sidebarItems.map((item) => {
+          // Рендер разделителя
+          if (item.type === 'separator') {
+            return (
+              <div 
+                key={item.id} 
+                className={styles.divider}
+              />
+            );
+          }
+          
+          // Рендер обычного элемента
+          return (
+            <button
+              key={item.id}
+              className={`${styles.sidebarItem} ${isItemActive(item.id) ? styles.active : ''}`}
+              onClick={() => handleSidebarClick(item)}
+              onMouseEnter={() => setHoveredSidebarItem(item.id)}
+              onMouseLeave={() => setHoveredSidebarItem(null)}
+              aria-label={item.label}
+            >
+              <i className={item.icon} aria-hidden="true"></i>
+              {isExpanded && (
+                <span className={styles.itemLabel}>{item.label}</span>
+              )}
+              {!isExpanded && hoveredSidebarItem === item.id && (
+                <div className={styles.tooltip} role="tooltip">
+                  {item.label}
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Основная область */}
       <div className={styles.viewerMain}>
-        {viewMode === 'initial' && renderInitialScreen()}
-        {viewMode === 'archive' && renderPhotoArchive()}
-        {viewMode === 'roomGroup' && renderRoomGroupPhotos()}
         {viewMode === 'viewer' && renderViewer()}
-        {viewMode === 'video360List' && renderVideo360List()}
-        {viewMode === 'videoWalkthrough' && renderVideoWalkthrough()}
+        {viewMode === 'generic360' && renderGeneric360()}
+        {viewMode === 'schemes' && renderSchemes()}
+
+        {/* Фон-оверлей для развернутой миникарты */}
+        {isMinimapExpanded && (
+          <div 
+            className={styles.minimapOverlay}
+            onClick={handleMinimapToggle}
+          />
+        )}
+
+        {/* Миникарта со схемами */}
+        {isMinimapVisible && viewMode !== 'schemes' && renderSchemesMinimap()}
 
         {/* Модальные окна */}
         {showComparisonSelector && renderComparisonSelector()}
@@ -798,4 +1134,4 @@ Viewer360Container.propTypes = {
   onBack: PropTypes.func.isRequired,
 };
 
-export default Viewer360Container; 
+export default Viewer360Container;

@@ -1,0 +1,128 @@
+/* Video Controls Component */
+.videoControls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  height: 40px;
+}
+
+.videoControls.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.controlsGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.controlButton {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+}
+
+.controlButton:hover:not(:disabled) {
+  background: var(--background-hover);
+  border-color: var(--border-color-hover);
+  color: var(--text-secondary);
+}
+
+.controlButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.controlButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Специальная стилизация для кнопки play/pause */
+.playButton {
+  width: 36px;
+  height: 36px;
+  background: var(--primary-alpha-10);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.playButton:hover:not(:disabled) {
+  background: var(--primary-color);
+  color: var(--white);
+  transform: scale(1.05);
+}
+
+.playButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Стилизация для кнопок первый/последний кадр */
+.firstButton,
+.lastButton {
+  font-size: var(--font-size-xs);
+}
+
+/* Время съемки */
+.timeDisplay {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-family: 'Courier New', monospace;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  background: var(--background-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  min-width: 80px;
+  justify-content: center;
+}
+
+.shootingTime {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .videoControls {
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    height: 36px;
+  }
+  
+  .controlsGroup {
+    gap: 2px;
+  }
+  
+  .controlButton {
+    width: 28px;
+    height: 28px;
+    font-size: var(--font-size-xs);
+  }
+  
+  .playButton {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .timeDisplay {
+    font-size: var(--font-size-xs);
+    padding: 2px var(--spacing-xs);
+    min-width: 70px;
+  }
+} 

@@ -1,0 +1,298 @@
+/* Date Selector Component */
+.dateSelector {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dateButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 120px;
+  height: 40px;
+}
+
+.dateButton:hover {
+  background: var(--background-hover);
+  border-color: var(--border-color-hover);
+  color: var(--text-secondary);
+}
+
+.dateButton:active {
+  transform: scale(0.98);
+}
+
+.dateButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dateButton.disabled:hover {
+  background: var(--background-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  transform: none;
+}
+
+.dateArrow {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-fast);
+}
+
+.arrowButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  transition: all var(--transition-fast);
+}
+
+.arrowButton:hover:not(.disabled) {
+  background: var(--background-hover);
+  color: var(--primary-color);
+}
+
+.arrowButton:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+.arrowButton.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dateButton:hover .dateArrow {
+  color: var(--primary-color);
+}
+
+.dateDisplay {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+  justify-content: center;
+}
+
+.dateDay {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  min-width: 20px;
+  text-align: center;
+}
+
+.dateMonthYear {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.dateMonth {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.dateYear {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+/* Calendar Dropdown */
+.calendarDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-index-dropdown);
+  min-width: 280px;
+  animation: slideDown 0.2s ease-out;
+}
+
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-secondary);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
+.navButton {
+  width: 32px;
+  height: 32px;
+  background: var(--background-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.navButton:hover {
+  background: var(--background-hover);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.monthTitle {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.calendarGrid {
+  padding: var(--spacing-md);
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.weekday {
+  padding: var(--spacing-sm);
+  text-align: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.day {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day:hover:not(:disabled) {
+  background: var(--background-hover);
+  color: var(--primary-color);
+}
+
+.day.selectedDay {
+  background: var(--primary-color);
+  color: var(--white);
+  font-weight: var(--font-weight-semibold);
+}
+
+.day.emptyDay {
+  cursor: default;
+  color: transparent;
+}
+
+.day:disabled {
+  cursor: default;
+  color: var(--text-muted);
+  opacity: 0.3;
+}
+
+.day.unavailableDay {
+  color: var(--text-muted);
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--background-disabled, #f3f4f6);
+}
+
+.day.unavailableDay:hover {
+  background: var(--background-disabled, #f3f4f6);
+  color: var(--text-muted);
+  transform: none;
+}
+
+/* Тултип для дат */
+.dayTooltip {
+  background: var(--text-primary);
+  color: var(--white);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+}
+
+/* Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dateButton {
+    min-width: 100px;
+    height: 36px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .dateDay {
+    font-size: var(--font-size-md);
+  }
+  
+  .calendarDropdown {
+    min-width: 260px;
+  }
+  
+  .day {
+    width: 28px;
+    height: 28px;
+    font-size: var(--font-size-xs);
+  }
+} 

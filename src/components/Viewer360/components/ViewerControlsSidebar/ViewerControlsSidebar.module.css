@@ -1,0 +1,185 @@
+/* =============================================================================
+   VIEWER CONTROLS SIDEBAR - СТИЛИ
+   ============================================================================= */
+
+.viewerControlsSidebar {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  z-index: 1000;
+}
+
+.controlsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
+}
+
+.controlButton {
+  width: 44px;
+  height: 44px;
+  background: var(--background-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  position: relative;
+}
+
+.controlButton:hover:not(:disabled) {
+  background: var(--background-hover);
+  border-color: var(--border-color-hover);
+  color: var(--text-secondary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.controlButton:active:not(:disabled) {
+  transform: translateY(0);
+  background: var(--background-hover);
+}
+
+.controlButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.controlButton:disabled:hover {
+  background: var(--background-input);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+  transform: none;
+  box-shadow: none;
+}
+
+/* Индикация заглушек */
+.stubButton {
+  position: relative;
+}
+
+.stubButton::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: #ff6b6b;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Тултипы */
+.controlButton {
+  position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--text-primary);
+  color: var(--white);
+  padding: var(--spacing-sm) 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  z-index: var(--z-index-tooltip);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  pointer-events: none;
+}
+
+.controlButton:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: var(--text-primary);
+}
+
+/* Индикатор зума */
+.zoomIndicator {
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
+  min-width: 60px;
+}
+
+.zoomValue {
+  display: block;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+}
+
+.zoomLabel {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .viewerControlsSidebar {
+    bottom: 80px; /* Оставляем место для мобильных элементов управления */
+    right: 12px;
+  }
+  
+  .controlButton {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  .controlsContainer {
+    padding: var(--spacing-xs);
+  }
+  
+  .zoomIndicator {
+    padding: var(--spacing-xs);
+    min-width: 55px;
+  }
+  
+  .zoomValue {
+    font-size: 12px;
+  }
+  
+  .zoomLabel {
+    font-size: 9px;
+  }
+} 

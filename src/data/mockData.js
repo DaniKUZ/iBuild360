@@ -35,14 +35,6 @@ export const mockProjects = [
         thumbnail: schemeFloor2,
         fullImage: schemeFloor2,
         zones: []
-      },
-      {
-        id: 3,
-        name: "Общий план",
-        description: "Общий план территории",
-        thumbnail: scheme,
-        fullImage: scheme,
-        zones: []
       }
     ],
     participants: [
@@ -101,6 +93,24 @@ export const mockProjects = [
     longitude: 37.4858,
     captures: 73,
     fieldNotes: 19,
+    floors: [
+      {
+        id: 4,
+        name: "1-й этаж ТЦ",
+        description: "Первый этаж торгового центра",
+        thumbnail: scheme,
+        fullImage: scheme,
+        zones: []
+      },
+      {
+        id: 5,
+        name: "2-й этаж ТЦ",
+        description: "Второй этаж торгового центра",
+        thumbnail: schemeFloor1,
+        fullImage: schemeFloor1,
+        zones: []
+      }
+    ],
     participants: [
       {
         id: 'current-user',
@@ -157,6 +167,24 @@ export const mockProjects = [
     longitude: 30.2627,
     captures: 45,
     fieldNotes: 12,
+    floors: [
+      {
+        id: 6,
+        name: "1-й этаж",
+        description: "Первый этаж офисного здания",
+        thumbnail: schemeFloor2,
+        fullImage: schemeFloor2,
+        zones: []
+      },
+      {
+        id: 7,
+        name: "2-й этаж",
+        description: "Второй этаж офисного здания",
+        thumbnail: scheme,
+        fullImage: scheme,
+        zones: []
+      }
+    ],
     participants: [
       {
         id: 'current-user',

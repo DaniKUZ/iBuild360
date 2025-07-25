@@ -4,7 +4,15 @@ import PropTypes from 'prop-types';
 import { getUserData, getUserAvatar, clearUserData } from '../../utils/userManager';
 import styles from './TopNavbar.module.css';
 
-const TopNavbar = ({ activeTab, onTabClick, onHelpClick, onUserClick, showProjectSettings = false, showProjectAdd = false }) => {
+const TopNavbar = ({ 
+  activeTab, 
+  onTabClick, 
+  onHelpClick, 
+  onUserClick, 
+  showProjectSettings = false, 
+  showProjectAdd = false,
+  showWorkerStats = false 
+}) => {
   const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const helpMenuRef = useRef(null);
@@ -15,6 +23,8 @@ const TopNavbar = ({ activeTab, onTabClick, onHelpClick, onUserClick, showProjec
 
   const tabs = [
     { id: 'projects', label: 'Проекты', active: true },
+    // Показываем вкладку статистики работников только когда это необходимо
+    ...(showWorkerStats ? [{ id: 'worker-stats', label: 'Статистика работников', active: false }] : []),
     // Показываем вкладку настроек проекта только когда это необходимо
     ...(showProjectSettings ? [{ id: 'project-settings', label: 'Настройки проекта', active: false }] : []),
     // Показываем вкладку добавления проекта только когда это необходимо
@@ -49,176 +59,150 @@ const TopNavbar = ({ activeTab, onTabClick, onHelpClick, onUserClick, showProjec
         console.log('Что нового?');
         setIsHelpMenuOpen(false);
       }
+    },
+    {
+      id: 'bug-report',
+      icon: 'fas fa-bug',
+      label: 'Сообщить об ошибке',
+      onClick: () => {
+        console.log('Сообщить об ошибке');
+        setIsHelpMenuOpen(false);
+      }
     }
   ];
 
-  const userData = getUserData();
-  const userInfo = {
-    name: userData.name,
-    email: userData.email,
-    avatar: getUserAvatar(userData)
-  };
-
-  // Закрытие меню при клике вне его
+  // Закрытие меню при клике вне его области
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Закрытие меню помощи
-      if (
-        helpMenuRef.current && 
-        !helpMenuRef.current.contains(event.target) &&
-        helpButtonRef.current &&
-        !helpButtonRef.current.contains(event.target)
-      ) {
+      if (helpMenuRef.current && !helpMenuRef.current.contains(event.target) && 
+          helpButtonRef.current && !helpButtonRef.current.contains(event.target)) {
         setIsHelpMenuOpen(false);
       }
-
-      // Закрытие меню пользователя
-      if (
-        userMenuRef.current && 
-        !userMenuRef.current.contains(event.target) &&
-        userButtonRef.current &&
-        !userButtonRef.current.contains(event.target)
-      ) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target) && 
+          userButtonRef.current && !userButtonRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
       }
     };
 
-    if (isHelpMenuOpen || isUserMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isHelpMenuOpen, isUserMenuOpen]);
+  }, []);
 
-  const handleHelpClick = () => {
+  const handleHelpButtonClick = () => {
     setIsHelpMenuOpen(!isHelpMenuOpen);
-    setIsUserMenuOpen(false); // Закрываем другое меню
+    if (isUserMenuOpen) setIsUserMenuOpen(false);
   };
 
-  const handleUserClick = () => {
+  const handleUserButtonClick = () => {
     setIsUserMenuOpen(!isUserMenuOpen);
-    setIsHelpMenuOpen(false); // Закрываем другое меню
-  };
-
-  const handleViewProfile = () => {
-    console.log('Посмотреть профиль');
-    setIsUserMenuOpen(false);
+    if (isHelpMenuOpen) setIsHelpMenuOpen(false);
   };
 
   const handleLogout = () => {
-    console.log('Выход из системы');
-    clearUserData(); // Очищаем данные пользователя
-    setIsUserMenuOpen(false);
-    navigate('/'); // Переход на лендинговую страницу
+    clearUserData();
+    navigate('/login');
   };
 
+  const userData = getUserData();
+
   return (
-    <div className={styles.topNavbar}>
-      <div className={styles.tabsContainer}>
+    <header className={styles.topNavbar}>
+      {/* Навигационные вкладки */}
+      <nav className={styles.tabsNavigation}>
         {tabs.map(tab => (
           <button
             key={tab.id}
-            className={`${styles.tab} ${activeTab === tab.id ? styles.active : ''}`}
-            onClick={() => onTabClick(tab.id)}
+            className={`${styles.tabButton} ${activeTab === tab.id ? styles.active : ''}`}
+            onClick={() => onTabClick && onTabClick(tab.id)}
           >
             {tab.label}
           </button>
         ))}
-      </div>
-      
-      <div className={styles.actionsContainer}>
+      </nav>
+
+      {/* Правая секция с действиями */}
+      <div className={styles.actions}>
+        {/* Кнопка помощи */}
         <div className={styles.helpContainer}>
           <button
             ref={helpButtonRef}
-            className={`${styles.iconButton} ${isHelpMenuOpen ? styles.active : ''}`}
-            onClick={handleHelpClick}
-            title="Помощь"
+            className={`${styles.actionButton} ${isHelpMenuOpen ? styles.active : ''}`}
+            onClick={handleHelpButtonClick}
             aria-label="Помощь"
-            aria-expanded={isHelpMenuOpen}
           >
-            <i className="fas fa-question"></i>
+            <i className="fas fa-question-circle"></i>
           </button>
-          
           {isHelpMenuOpen && (
-            <div ref={helpMenuRef} className={styles.helpMenu} role="menu">
-              <div className={styles.helpMenuHeader}>
-                <h3>Помощь</h3>
-              </div>
-              <div className={styles.helpMenuItems}>
-                {helpMenuItems.map(item => (
-                  <button
-                    key={item.id}
-                    className={styles.helpMenuItem}
-                    onClick={item.onClick}
-                    role="menuitem"
-                  >
-                    <i className={item.icon} aria-hidden="true"></i>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
+            <div ref={helpMenuRef} className={styles.helpMenu}>
+              {helpMenuItems.map(item => (
+                <button
+                  key={item.id}
+                  className={styles.helpMenuItem}
+                  onClick={item.onClick}
+                >
+                  <i className={item.icon}></i>
+                  <span>{item.label}</span>
+                </button>
+              ))}
             </div>
           )}
         </div>
-        
+
+        {/* Кнопка пользователя */}
         <div className={styles.userContainer}>
           <button
             ref={userButtonRef}
-            className={`${styles.iconButton} ${isUserMenuOpen ? styles.active : ''}`}
-            onClick={handleUserClick}
-            title="Профиль пользователя"
+            className={`${styles.actionButton} ${isUserMenuOpen ? styles.active : ''}`}
+            onClick={handleUserButtonClick}
             aria-label="Профиль пользователя"
-            aria-expanded={isUserMenuOpen}
           >
-            {userInfo.avatar}
+            <i className="fas fa-user"></i>
           </button>
-
           {isUserMenuOpen && (
-            <div ref={userMenuRef} className={styles.userMenu} role="menu">
+            <div ref={userMenuRef} className={styles.userMenu}>
               <div className={styles.userMenuHeader}>
-                <div className={styles.userAvatar}>
-                  {userInfo.avatar}
-                </div>
-                <div className={styles.userInfo}>
-                  <div className={styles.userName}>{userInfo.name}</div>
-                  <div className={styles.userEmail}>{userInfo.email}</div>
+                <img
+                  src={getUserAvatar()}
+                  alt="Аватар пользователя"
+                  className={styles.userMenuAvatar}
+                />
+                <div className={styles.userMenuInfo}>
+                  <div className={styles.userMenuName}>{userData?.name || 'Пользователь'}</div>
+                  <div className={styles.userMenuEmail}>{userData?.email || 'user@example.com'}</div>
                 </div>
               </div>
-              <div className={styles.userMenuItems}>
-                <button
-                  className={styles.userMenuItem}
-                  onClick={handleViewProfile}
-                  role="menuitem"
-                >
-                  <i className="fas fa-user" aria-hidden="true"></i>
-                  <span>Посмотреть профиль</span>
-                </button>
-                <button
-                  className={`${styles.userMenuItem} ${styles.logoutItem}`}
-                  onClick={handleLogout}
-                  role="menuitem"
-                >
-                  <i className="fas fa-sign-out-alt" aria-hidden="true"></i>
-                  <span>Выйти</span>
-                </button>
-              </div>
+              <div className={styles.userMenuDivider}></div>
+              <button className={styles.userMenuItem} onClick={() => onUserClick && onUserClick()}>
+                <i className="fas fa-user"></i>
+                <span>Мой профиль</span>
+              </button>
+              <button className={styles.userMenuItem}>
+                <i className="fas fa-cog"></i>
+                <span>Настройки</span>
+              </button>
+              <div className={styles.userMenuDivider}></div>
+              <button className={styles.userMenuItem} onClick={handleLogout}>
+                <i className="fas fa-sign-out-alt"></i>
+                <span>Выйти</span>
+              </button>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
 TopNavbar.propTypes = {
-  activeTab: PropTypes.string.isRequired,
-  onTabClick: PropTypes.func.isRequired,
-  onHelpClick: PropTypes.func.isRequired,
-  onUserClick: PropTypes.func.isRequired,
+  activeTab: PropTypes.string,
+  onTabClick: PropTypes.func,
+  onHelpClick: PropTypes.func,
+  onUserClick: PropTypes.func,
   showProjectSettings: PropTypes.bool,
   showProjectAdd: PropTypes.bool,
+  showWorkerStats: PropTypes.bool,
 };
 
 export default TopNavbar; 

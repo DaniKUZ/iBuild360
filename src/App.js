@@ -7,6 +7,7 @@ import ProjectsPage from './components/ProjectsPage';
 import ProjectEditorPage from './components/ProjectEditorPage';
 import ProjectAddPage from './components/ProjectAddPage';
 import Viewer360Page from './components/Viewer360Page';
+import WorkerStatsPage from './components/WorkerStatsPage';
 import SettingsPage from './components/SettingsPage';
 import { mockProjects } from './data/mockData';
 import './styles/main.css';
@@ -86,6 +87,12 @@ function App() {
                 getProjectById={getProjectById}
               />
             } 
+          />
+          
+          {/* Статистика работников */}
+          <Route 
+            path="/worker-stats/:projectId" 
+            element={<WorkerStatsPage />} 
           />
           
           {/* Перенаправление неизвестных маршрутов на главную */}

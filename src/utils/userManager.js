@@ -1,4 +1,5 @@
 // Утилиты для управления данными пользователя
+import plugImg from '../data/img/plug_img.jpeg';
 
 // Данные пользователя по умолчанию (для демо-режима)
 const DEFAULT_USER_DATA = {
@@ -59,10 +60,9 @@ export const clearUserData = () => {
   }
 };
 
-// Получение аватара пользователя (первая буква имени)
+// Получение аватара пользователя (изображение plug_img.jpeg)
 export const getUserAvatar = (userData = null) => {
-  const user = userData || getUserData();
-  return user.firstName ? user.firstName.charAt(0).toUpperCase() : 'У';
+  return plugImg;
 };
 
 // Получение полного имени пользователя

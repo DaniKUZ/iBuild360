@@ -132,7 +132,8 @@ function useFloorManagement(initialFloors = []) {
           name: floorFormData.name,
           description: floorFormData.description,
           thumbnail: floorFormData.image || floor.thumbnail,
-          fullImage: floorFormData.image || floor.fullImage
+          fullImage: floorFormData.image || floor.fullImage,
+          zones: floor.zones || []
         };
       }
       return floor;
@@ -160,7 +161,8 @@ function useFloorManagement(initialFloors = []) {
       name: floorFormData.name,
       thumbnail: floorFormData.image || require('../../../data/img/plug_img.jpeg'),
       fullImage: floorFormData.image || require('../../../data/img/plug_img.jpeg'),
-      description: floorFormData.description
+      description: floorFormData.description,
+      zones: []
     };
 
     setFloors(prev => [...prev, newFloor]);

@@ -66,7 +66,7 @@ const ZonesSection = ({ floors = [], onFloorsUpdate }) => {
         if (floor.id === selectedFloorId) {
           return {
             ...floor,
-            zones: floor.zones.map(zone => 
+            zones: (floor.zones || []).map(zone => 
               zone.id === editingZone.id 
                 ? { ...zone, name: newZoneName.trim() }
                 : zone
@@ -93,7 +93,7 @@ const ZonesSection = ({ floors = [], onFloorsUpdate }) => {
         if (floor.id === selectedFloorId) {
           return {
             ...floor,
-            zones: [...floor.zones, newZone]
+            zones: [...(floor.zones || []), newZone]
           };
         }
         return floor;
@@ -120,7 +120,7 @@ const ZonesSection = ({ floors = [], onFloorsUpdate }) => {
       if (floor.id === selectedFloorId) {
         return {
           ...floor,
-          zones: floor.zones.filter(zone => zone.id !== zoneId)
+          zones: (floor.zones || []).filter(zone => zone.id !== zoneId)
         };
       }
       return floor;
@@ -253,7 +253,7 @@ const ZonesSection = ({ floors = [], onFloorsUpdate }) => {
         <div className="scheme-viewer-container">
           {selectedFloor && (
             <SchemeViewer
-              floor={selectedFloor}
+              floor={{ ...selectedFloor, zones: selectedFloor.zones || [] }}
               creatingZone={creatingZone}
               onZoneCreated={handleZoneAreaSelected}
               onCancelZone={handleCancelZone}

@@ -46,10 +46,10 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
     navigate(`/editor/${projectId}`);
   }, [navigate]);
 
-  const handleViewFloors = useCallback((projectId) => {
-    console.log('Открыть список этажей для проекта:', projectId);
-    // TODO: добавить логику показа списка этажей
-  }, []);
+  const handleViewWorkerStats = useCallback((projectId) => {
+    console.log('Открыть статистику работников для проекта:', projectId);
+    navigate(`/worker-stats/${projectId}`);
+  }, [navigate]);
 
   const handleAddParticipant = useCallback((projectId) => {
     console.log('Добавить участника в проект:', projectId);
@@ -204,7 +204,7 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
                 projects={filteredProjects}
                 onView360={handleView360}
                 onEditProject={handleEditProject}
-                onViewFloors={handleViewFloors}
+                onViewFloors={handleViewWorkerStats}
                 onAddParticipant={handleAddParticipant}
                 onProjectSettings={handleProjectSettings}
               />

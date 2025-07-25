@@ -9,13 +9,13 @@
   height: 60px;
 }
 
-.tabsContainer {
+.tabsNavigation {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
 }
 
-.tab {
+.tabButton {
   padding: var(--spacing-md) var(--spacing-lg);
   background: transparent;
   border: none;
@@ -28,17 +28,17 @@
   position: relative;
 }
 
-.tab:hover {
+.tabButton:hover {
   color: var(--text-secondary);
   background: var(--background-hover);
 }
 
-.tab.active {
+.tabButton.active {
   color: var(--primary-color);
   font-weight: var(--font-weight-semibold);
 }
 
-.tab.active::after {
+.tabButton.active::after {
   content: '';
   position: absolute;
   bottom: -1px;
@@ -48,208 +48,179 @@
   background: var(--primary-color);
 }
 
-.actionsContainer {
+/* Правая секция с действиями */
+.actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
 }
 
+/* Кнопка действия (помощь) */
+.actionButton {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+}
+
+.actionButton:hover {
+  background: var(--background-hover);
+  color: var(--text-secondary);
+}
+
+.actionButton.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Контейнер помощи */
 .helpContainer {
   position: relative;
 }
 
-.userContainer {
-  position: relative;
-}
-
-.iconButton {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  color: var(--text-muted);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.iconButton:hover {
-  background: var(--background-hover);
-  color: var(--text-secondary);
-  border-color: var(--border-color-hover);
-}
-
-.iconButton:active {
-  transform: scale(0.95);
-}
-
-.iconButton.active {
-  background: var(--background-hover);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-/* Help Menu Styles */
 .helpMenu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + var(--spacing-sm));
   right: 0;
-  width: 280px;
   background: var(--background-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  padding: var(--spacing-sm);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
-  overflow: hidden;
-  animation: slideDown 0.2s ease-out;
-}
-
-.helpMenuHeader {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-bottom: 1px solid var(--border-light);
-  background: var(--background-light);
-}
-
-.helpMenuHeader h3 {
-  margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-}
-
-.helpMenuItems {
-  padding: var(--spacing-xs) 0;
+  min-width: 220px;
 }
 
 .helpMenuItem {
-  width: 100%;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: transparent;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
   border: none;
-  color: var(--text-secondary);
-  font-size: var(--font-size-md);
-  font-family: inherit;
+  background: transparent;
+  color: var(--text-primary);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
-  text-align: left;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
 }
 
 .helpMenuItem:hover {
   background: var(--background-hover);
+  color: var(--primary-color);
 }
 
 .helpMenuItem i {
-  color: var(--primary-color);
-  font-size: var(--font-size-md);
-  width: 20px;
+  width: 16px;
   text-align: center;
-  flex-shrink: 0;
+  color: var(--text-muted);
 }
 
-.helpMenuItem span {
-  flex: 1;
-  font-weight: var(--font-weight-medium);
+.helpMenuItem:hover i {
+  color: var(--primary-color);
 }
 
-/* User Menu Styles */
+/* Контейнер пользователя */
+.userContainer {
+  position: relative;
+}
+
+/* Меню пользователя */
 .userMenu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + var(--spacing-sm));
   right: 0;
-  width: 300px;
   background: var(--background-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xl);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
-  overflow: hidden;
-  animation: slideDown 0.2s ease-out;
+  min-width: 240px;
 }
 
 .userMenuHeader {
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--border-light);
-  background: var(--background-light);
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
 }
 
-.userAvatar {
+.userMenuAvatar {
   width: 48px;
   height: 48px;
-  background: var(--primary-color);
-  color: var(--white);
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-.userInfo {
+.userMenuInfo {
   flex: 1;
-  min-width: 0;
+  min-width: 0; /* Позволяет flex-item сжиматься */
 }
 
-.userName {
-  font-size: var(--font-size-lg);
+.userMenuName {
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-xs);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.userEmail {
+.userMenuEmail {
   font-size: var(--font-size-sm);
   color: var(--text-muted);
-  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%; /* Используем доступную ширину родителя */
+  width: 100%; /* Полная ширина для правильной работы ellipsis */
 }
 
-.userMenuItems {
-  padding: var(--spacing-xs) 0;
+.userMenuDivider {
+  height: 1px;
+  background: var(--border-color);
+  margin: var(--spacing-md) 0;
 }
 
 .userMenuItem {
-  width: 100%;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: transparent;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
   border: none;
-  color: var(--text-secondary);
-  font-size: var(--font-size-md);
-  font-family: inherit;
+  background: transparent;
+  color: var(--text-primary);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
-  text-align: left;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
 }
 
 .userMenuItem:hover {
   background: var(--background-hover);
+  color: var(--primary-color);
 }
 
 .userMenuItem i {
-  color: var(--primary-color);
-  font-size: var(--font-size-md);
-  width: 20px;
+  width: 16px;
   text-align: center;
-  flex-shrink: 0;
+  color: var(--text-muted);
 }
 
-.userMenuItem span {
-  flex: 1;
-  font-weight: var(--font-weight-medium);
+.userMenuItem:hover i {
+  color: var(--primary-color);
 }
 
 .userMenuItem.logoutItem i {
@@ -280,12 +251,12 @@
     height: 50px;
   }
   
-  .tab {
+  .tabButton {
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-md);
   }
   
-  .iconButton {
+  .actionButton {
     width: 36px;
     height: 36px;
     font-size: var(--font-size-md);
@@ -315,17 +286,17 @@
     padding: var(--spacing-md);
   }
 
-  .userAvatar {
+  .userMenuAvatar {
     width: 40px;
     height: 40px;
     font-size: var(--font-size-lg);
   }
 
-  .userName {
+  .userMenuName {
     font-size: var(--font-size-md);
   }
 
-  .userEmail {
+  .userMenuEmail {
     font-size: var(--font-size-xs);
   }
 

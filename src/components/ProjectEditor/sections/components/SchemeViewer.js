@@ -111,7 +111,7 @@ const SchemeViewer = ({
   const getZoneAtPos = useCallback((x, y) => {
     const canvas = canvasRef.current;
     const image = imageRef.current;
-    if (!canvas || !image) return null;
+    if (!canvas || !image || !floor.zones) return null;
 
     // Преобразуем экранные координаты в координаты canvas с учетом зума и пана
     const canvasX = (x - pan.x) / zoom;

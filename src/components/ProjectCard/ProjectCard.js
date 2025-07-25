@@ -87,10 +87,10 @@ const ProjectCard = React.memo(({
           <button 
             className={`action-btn ${styles.tooltipBtn}`}
             onClick={handleViewFloorsClick}
-            data-tooltip="Список этажей"
-            aria-label="Список этажей"
+            data-tooltip="Статистика работников"
+            aria-label="Статистика работников"
           >
-            <i className="fas fa-layer-group" aria-hidden="true"></i>
+            <i className="fas fa-users" aria-hidden="true"></i>
           </button>
           <button 
             className={`action-btn ${styles.tooltipBtn}`}
