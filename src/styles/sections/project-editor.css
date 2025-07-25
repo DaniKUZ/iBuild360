@@ -1589,3 +1589,21 @@
     min-height: 500px;
   }
 }
+
+/* Отключаем грид для секции полевых отметок */
+.editor-content.field-notes-active {
+  display: block;
+  grid-template-columns: none;
+}
+
+/* Отключаем грид для секции видео 360 */
+.editor-content.video360-active {
+  display: block !important;
+  grid-template-columns: none !important;
+}
+
+/* Отключаем грид для секции благоустройства */
+.editor-content.landscaping-active {
+  display: block !important;
+  grid-template-columns: none !important;
+}

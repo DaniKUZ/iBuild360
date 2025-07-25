@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useEffect, forwardRef, useImperativeHandle, useState } from 'react';
 import * as THREE from 'three';
 import PropTypes from 'prop-types';
 import styles from './PanoramaViewer.module.css';
@@ -7,9 +7,13 @@ const PanoramaViewer = forwardRef(({
   imageUrl, 
   isComparison = false, 
   onCameraChange,
+  onPanoramaClick,
   className,
+  initialCamera = { yaw: 0, pitch: 0, fov: 75 },
+  isFieldNoteMode = false,
   ...props 
 }, ref) => {
+
   const mountRef = useRef(null);
   const sceneRef = useRef(null);
   const rendererRef = useRef(null);
@@ -21,7 +25,8 @@ const PanoramaViewer = forwardRef(({
   // Состояние для отслеживания взаимодействия
   const isDraggingRef = useRef(false);
   const mouseRef = useRef({ x: 0, y: 0 });
-  const rotationRef = useRef({ x: 0, y: 0 });
+  const mouseDownPositionRef = useRef({ x: 0, y: 0 }); // Позиция начала клика
+  const rotationRef = useRef({ x: 0, y: 0 }); // Начальная позиция камеры
   const isProgrammaticUpdateRef = useRef(false);
   
   // Состояния для инерции и плавности
@@ -31,10 +36,28 @@ const PanoramaViewer = forwardRef(({
   const zoomAnimationRef = useRef(null);
   const targetFovRef = useRef(75);
 
+  // Добавляем состояния загрузки
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  // Refs to keep latest values inside event handlers
+  const isFieldNoteModeRef = useRef(isFieldNoteMode);
+  const onPanoramaClickRef = useRef(onPanoramaClick);
+
+  // Update refs whenever props change
+  useEffect(() => {
+    isFieldNoteModeRef.current = isFieldNoteMode;
+  }, [isFieldNoteMode]);
+
+  useEffect(() => {
+    onPanoramaClickRef.current = onPanoramaClick;
+  }, [onPanoramaClick]);
+
   // Предоставляем API для родительского компонента
   useImperativeHandle(ref, () => ({
     setCamera: (yaw, pitch, fov) => {
       if (cameraRef.current) {
+        
         // Устанавливаем флаг программного обновления
         isProgrammaticUpdateRef.current = true;
         
@@ -54,7 +77,9 @@ const PanoramaViewer = forwardRef(({
         updateCameraPosition();
         
         // Сбрасываем флаг после обновления
-        isProgrammaticUpdateRef.current = false;
+        setTimeout(() => {
+          isProgrammaticUpdateRef.current = false;
+        }, 0);
       }
     },
     getCamera: () => {
@@ -102,6 +127,10 @@ const PanoramaViewer = forwardRef(({
       };
       
       animate();
+    },
+    getCanvas: () => {
+      // Возвращаем canvas из Three.js рендерера
+      return rendererRef.current?.domElement || null;
     }
   }));
 
@@ -109,12 +138,25 @@ const PanoramaViewer = forwardRef(({
   const updateCameraPosition = () => {
     if (cameraRef.current) {
       const distance = 1;
-      cameraRef.current.position.set(
-        distance * Math.sin(rotationRef.current.y) * Math.cos(rotationRef.current.x),
-        distance * Math.sin(rotationRef.current.x),
-        distance * Math.cos(rotationRef.current.y) * Math.cos(rotationRef.current.x)
-      );
+      const newPosition = {
+        x: distance * Math.sin(rotationRef.current.y) * Math.cos(rotationRef.current.x),
+        y: distance * Math.sin(rotationRef.current.x),
+        z: distance * Math.cos(rotationRef.current.y) * Math.cos(rotationRef.current.x)
+      };
+      
+      cameraRef.current.position.set(newPosition.x, newPosition.y, newPosition.z);
       cameraRef.current.lookAt(0, 0, 0);
+      
+      // Логируем только при программном обновлении для отладки
+      if (isProgrammaticUpdateRef.current) {
+        console.log('PanoramaViewer: Camera position updated programmatically:', {
+          rotation: {
+            x: THREE.MathUtils.radToDeg(rotationRef.current.x),
+            y: THREE.MathUtils.radToDeg(rotationRef.current.y)
+          },
+          fov: cameraRef.current.fov
+        });
+      }
       
       // Уведомляем родительский компонент об изменении камеры
       // Уведомляем только при пользовательском взаимодействии, не при программной синхронизации
@@ -220,13 +262,21 @@ const PanoramaViewer = forwardRef(({
       y: event.clientY
     };
     
+    // Сохраняем начальную позицию для определения клика
+    mouseDownPositionRef.current = {
+      x: event.clientX,
+      y: event.clientY
+    };
+    
     // Сбрасываем скорость
     velocityRef.current = { x: 0, y: 0 };
     lastMoveTimeRef.current = Date.now();
   };
 
   const handleMouseMove = (event) => {
-    if (!isDraggingRef.current) return;
+    if (!isDraggingRef.current || isFieldNoteModeRef.current) {
+      return;
+    }
 
     const currentTime = Date.now();
     const deltaTime = currentTime - lastMoveTimeRef.current;
@@ -265,20 +315,33 @@ const PanoramaViewer = forwardRef(({
     lastMoveTimeRef.current = currentTime;
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (event) => {
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
       
-      // Запускаем инерцию только если скорость достаточная
-      const minStartVelocity = 0.001; // Уменьшен порог для более чувствительной инерции
-      if (Math.abs(velocityRef.current.x) > minStartVelocity || Math.abs(velocityRef.current.y) > minStartVelocity) {
-        startMomentumAnimation();
+      // Проверяем, был ли это клик (мышь не двигалась значительно)
+      const dragThreshold = 5; // Пиксели
+      const deltaX = Math.abs(event.clientX - mouseDownPositionRef.current.x);
+      const deltaY = Math.abs(event.clientY - mouseDownPositionRef.current.y);
+      const isClick = deltaX < dragThreshold && deltaY < dragThreshold;
+      
+      if (isClick && onPanoramaClickRef.current) {
+        // Вызываем обработчик клика, передавая event
+        onPanoramaClickRef.current(event);
+      } else if (!isClick && !isFieldNoteModeRef.current) {
+        // Запускаем инерцию только если было движение мыши, скорость достаточная, и НЕ в режиме заметок
+        const minStartVelocity = 0.001;
+        if (Math.abs(velocityRef.current.x) > minStartVelocity || Math.abs(velocityRef.current.y) > minStartVelocity) {
+          startMomentumAnimation();
+        }
       }
     }
   };
 
   const handleWheel = (event) => {
     event.preventDefault();
+    // В режиме заметок блокируем зум
+    if (isFieldNoteModeRef.current) return;
     if (cameraRef.current) {
       // Плавное изменение зума
       const zoomSpeed = 2; // Еще больше уменьшена скорость зума для очень плавного зума
@@ -298,36 +361,95 @@ const PanoramaViewer = forwardRef(({
 
   // Инициализация Three.js сцены
   useEffect(() => {
-    if (!mountRef.current || !imageUrl) return;
+    if (!mountRef.current || !imageUrl) {
+      console.warn('PanoramaViewer: mount ref or imageUrl missing', { 
+        mountRef: !!mountRef.current, 
+        imageUrl: !!imageUrl
+      });
+      return;
+    }
 
-    // Создаем сцену
-    const scene = new THREE.Scene();
-    sceneRef.current = scene;
-
-    // Создаем камеру
-    const camera = new THREE.PerspectiveCamera(
-      75, 
-      mountRef.current.clientWidth / mountRef.current.clientHeight, 
-      0.1, 
-      1000
-    );
-    cameraRef.current = camera;
-    targetFovRef.current = 75; // Инициализируем целевой FOV
-
-    // Создаем рендерер
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    rendererRef.current = renderer;
+    console.log('PanoramaViewer: Initializing with imageUrl:', imageUrl);
+    setIsLoading(true);
+    setLoadError(null);
     
-    // Добавляем канвас в DOM
-    mountRef.current.appendChild(renderer.domElement);
+    // Объявляем переменные в области видимости всего useEffect
+    let scene, camera, renderer, tempSphere, tempGeometry, tempMaterial;
+
+    try {
+      // Создаем сцену
+      scene = new THREE.Scene();
+      sceneRef.current = scene;
+
+      // Создаем камеру
+      const containerWidth = mountRef.current.clientWidth;
+      const containerHeight = mountRef.current.clientHeight;
+
+      camera = new THREE.PerspectiveCamera(
+        initialCamera.fov || 75, 
+        containerWidth / containerHeight, 
+        0.1, 
+        1000
+      );
+      cameraRef.current = camera;
+      targetFovRef.current = initialCamera.fov || 75; // Инициализируем целевой FOV
+
+      // Создаем рендерер
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(containerWidth, containerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      rendererRef.current = renderer;
+      
+      // Добавляем канвас в DOM
+      mountRef.current.appendChild(renderer.domElement);
+
+      // Создаем временную черную сферу, которая будет показываться пока загружается изображение
+      tempGeometry = new THREE.SphereGeometry(500, 60, 40);
+      tempGeometry.scale(-1, 1, 1);
+      tempMaterial = new THREE.MeshBasicMaterial({ color: 0x111111 });
+      tempSphere = new THREE.Mesh(tempGeometry, tempMaterial);
+      scene.add(tempSphere);
+
+      // Устанавливаем начальную позицию камеры из пропсов
+      rotationRef.current = { 
+        x: THREE.MathUtils.degToRad(initialCamera.pitch || 0), 
+        y: THREE.MathUtils.degToRad(initialCamera.yaw || 0)
+      };
+      console.log('PanoramaViewer: Setting initial camera position:', initialCamera);
+      updateCameraPosition();
+      
+      // Запускаем рендер-лууп
+      const animate = () => {
+        animationRef.current = requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      };
+      animate();
+    } catch (error) {
+      console.error('PanoramaViewer: Error during Three.js initialization:', error);
+      setLoadError(`Ошибка инициализации 3D движка: ${error.message}`);
+      setIsLoading(false);
+      return;
+    }
 
     // Загружаем текстуру
     const loader = new THREE.TextureLoader();
+    
     loader.load(
       imageUrl,
       (texture) => {
+        console.log('PanoramaViewer: Texture loaded successfully');
+        
+        // Проверяем что все объекты еще существуют
+        if (!scene || !tempSphere) {
+          console.warn('PanoramaViewer: Scene or tempSphere missing during texture load');
+          return;
+        }
+        
+        // Удаляем временную сферу
+        scene.remove(tempSphere);
+        tempGeometry.dispose();
+        tempMaterial.dispose();
+        
         // Правильно настраиваем текстуру для 360° панорамы
         texture.wrapS = THREE.RepeatWrapping;
         texture.repeat.x = -1; // Исправляем зеркальность
@@ -345,19 +467,33 @@ const PanoramaViewer = forwardRef(({
         sphereRef.current = sphere;
         scene.add(sphere);
         
-        // Устанавливаем начальную позицию камеры
+        // Восстанавливаем позицию камеры (она уже установлена выше)
         updateCameraPosition();
         
-        // Запускаем рендер-лууп
-        const animate = () => {
-          animationRef.current = requestAnimationFrame(animate);
-          renderer.render(scene, camera);
-        };
-        animate();
+        setIsLoading(false);
+        setLoadError(null);
       },
       undefined,
       (error) => {
-        console.error('Ошибка загрузки панорамного изображения:', error);
+        console.error('PanoramaViewer: Ошибка загрузки панорамного изображения:', error, 'URL:', imageUrl);
+        setIsLoading(false);
+        setLoadError(`Не удалось загрузить изображение: ${error.message || 'Неизвестная ошибка'}`);
+        
+        // Проверяем что все объекты еще существуют
+        if (scene && tempSphere) {
+          // Удаляем временную сферу и показываем ошибку
+          scene.remove(tempSphere);
+          tempGeometry.dispose();
+          tempMaterial.dispose();
+          
+          // Создаем красную сферу как индикатор ошибки
+          const errorGeometry = new THREE.SphereGeometry(500, 60, 40);
+          errorGeometry.scale(-1, 1, 1);
+          const errorMaterial = new THREE.MeshBasicMaterial({ color: 0x660000 });
+          const errorSphere = new THREE.Mesh(errorGeometry, errorMaterial);
+          sphereRef.current = errorSphere;
+          scene.add(errorSphere);
+        }
       }
     );
 
@@ -368,7 +504,7 @@ const PanoramaViewer = forwardRef(({
 
     // Глобальные обработчики для корректной работы драга
     const globalMouseMove = (event) => handleMouseMove(event);
-    const globalMouseUp = () => handleMouseUp();
+    const globalMouseUp = (event) => handleMouseUp(event);
     
     document.addEventListener('mousemove', globalMouseMove);
     document.addEventListener('mouseup', globalMouseUp);
@@ -404,29 +540,69 @@ const PanoramaViewer = forwardRef(({
         cancelAnimationFrame(zoomAnimationRef.current);
       }
       
-      if (mountRef.current && renderer) {
-        mountRef.current.removeChild(renderer.domElement);
+      if (mountRef.current && rendererRef.current) {
+        try {
+          mountRef.current.removeChild(rendererRef.current.domElement);
+        } catch (e) {
+          console.warn('PanoramaViewer: Could not remove canvas from DOM:', e);
+        }
       }
       
-      if (renderer) {
-        renderer.dispose();
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
       }
       
-      if (sphereRef.current) {
-        scene.remove(sphereRef.current);
+      if (sphereRef.current && sceneRef.current) {
+        sceneRef.current.remove(sphereRef.current);
         sphereRef.current.geometry.dispose();
         sphereRef.current.material.dispose();
       }
     };
+    // ВАЖНО: isFieldNoteMode и onPanoramaClick НЕ включены в зависимости,
+    // чтобы избежать пересоздания всей Three.js сцены при переключении режима заметок.
+    // Режим заметок обрабатывается через ref в обработчиках событий.
   }, [imageUrl, isComparison]);
+
+  // Дополнительный эффект для сброса состояний при смене URL
+  useEffect(() => {
+    if (imageUrl) {
+      setIsLoading(true);
+      setLoadError(null);
+    }
+  }, [imageUrl]);
 
   return (
     <div 
-      ref={mountRef} 
       className={`${styles.panoramaViewer} ${className || ''}`}
-      style={{ width: '100%', height: '100%', cursor: isDraggingRef.current ? 'grabbing' : 'grab' }}
+      style={{ width: '100%', height: '100%', position: 'relative' }}
       {...props}
-    />
+    >
+      <div 
+        ref={mountRef} 
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          cursor: isFieldNoteMode ? 'crosshair' : (isDraggingRef.current ? 'grabbing' : 'grab') 
+        }}
+      />
+      
+      {/* Индикатор загрузки */}
+      {isLoading && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingSpinner}></div>
+          <div className={styles.loadingText}>Загрузка изображения...</div>
+        </div>
+      )}
+      
+      {/* Индикатор ошибки */}
+      {loadError && (
+        <div className={styles.errorOverlay}>
+          <div className={styles.errorIcon}>⚠️</div>
+          <div className={styles.errorText}>{loadError}</div>
+          <div className={styles.errorHint}>Проверьте соединение с интернетом или обратитесь к администратору</div>
+        </div>
+      )}
+    </div>
   );
 });
 
@@ -436,7 +612,14 @@ PanoramaViewer.propTypes = {
   imageUrl: PropTypes.string.isRequired,
   isComparison: PropTypes.bool,
   onCameraChange: PropTypes.func,
+  onPanoramaClick: PropTypes.func,
   className: PropTypes.string,
+  initialCamera: PropTypes.shape({
+    yaw: PropTypes.number,
+    pitch: PropTypes.number,
+    fov: PropTypes.number
+  }),
+  isFieldNoteMode: PropTypes.bool,
 };
 
 export default PanoramaViewer; 

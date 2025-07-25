@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PhoneInput from './PhoneInput';
 import styles from './RequestModal.module.css';
 
-const RequestModal = ({ isOpen, onClose, onSubmit }) => {
+const RequestModal = ({ isOpen, onClose, onSubmit, requestType = 'demo' }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -14,6 +14,25 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Определяем заголовок и описание в зависимости от типа запроса
+  const getModalContent = () => {
+    switch (requestType) {
+      case 'expert':
+        return {
+          title: 'Поговорить с экспертом',
+          description: 'Получите персональную консультацию от нашего эксперта по внедрению Napoleon Build в ваш строительный процесс.'
+        };
+      case 'demo':
+      default:
+        return {
+          title: 'Получить демо',
+          description: 'Запросите демонстрацию платформы Napoleon Build и убедитесь в эффективности нашего решения.'
+        };
+    }
+  };
+
+  const { title, description } = getModalContent();
 
   const handleClose = () => {
     // Сбрасываем ошибки валидации при закрытии
@@ -133,7 +152,8 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
       // Вызываем callback с данными формы
       onSubmit({
         ...formData,
-        fullPhone: `${formData.countryCode} ${formData.phone}`
+        fullPhone: `${formData.countryCode} ${formData.phone}`,
+        requestType
       });
 
       // Сброс формы
@@ -152,8 +172,12 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
       // Закрываем модальное окно
       onClose();
 
-      // Показываем уведомление об успехе
-      alert('Заявка успешно отправлена! Мы свяжемся с вами в ближайшее время.');
+      // Показываем уведомление об успехе в зависимости от типа запроса
+      const successMessage = requestType === 'expert' 
+        ? 'Запрос на консультацию успешно отправлен! Наш эксперт свяжется с вами в ближайшее время.'
+        : 'Запрос на демо успешно отправлен! Мы свяжемся с вами для организации демонстрации.';
+      
+      alert(successMessage);
 
     } catch (error) {
       console.error('Ошибка отправки заявки:', error);
@@ -175,7 +199,7 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
     <div className={styles.requestModalOverlay} onClick={handleOverlayClick}>
       <div className={styles.requestModal}>
         <div className={styles.requestModalHeader}>
-          <h2>Оставить заявку</h2>
+          <h2>{title}</h2>
           <button 
             className={styles.requestModalClose}
             onClick={handleClose}
@@ -187,7 +211,7 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
 
         <div className={styles.requestModalBody}>
           <p className={styles.requestModalDescription}>
-            Заполните форму ниже, и наш менеджер свяжется с вами для обсуждения деталей сотрудничества.
+            {description}
           </p>
 
           <form onSubmit={handleSubmit} className={styles.requestForm}>
@@ -296,7 +320,7 @@ const RequestModal = ({ isOpen, onClose, onSubmit }) => {
                     Отправка...
                   </>
                 ) : (
-                  'Отправить заявку'
+                  requestType === 'expert' ? 'Запросить консультацию' : 'Запросить демо'
                 )}
               </button>
             </div>

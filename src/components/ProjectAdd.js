@@ -6,7 +6,6 @@ import useImageZoom from './ProjectEditor/hooks/useImageZoom';
 import useFileUpload from './ProjectEditor/hooks/useFileUpload';
 import useFloorManagement from './ProjectEditor/hooks/useFloorManagement';
 import useVideo360Management from './ProjectEditor/hooks/useVideo360Management';
-import useScheduleManagement from './ProjectEditor/hooks/useScheduleManagement';
 
 // Components
 import GeneralAddSection from './ProjectAdd/sections/GeneralAddSection';
@@ -14,7 +13,7 @@ import SheetsSection from './ProjectEditor/sections/SheetsSection';
 import ZonesSection from './ProjectEditor/sections/ZonesSection';
 import FieldNotesSection from './ProjectEditor/sections/FieldNotesSection';
 import Video360Section from './ProjectEditor/sections/Video360Section';
-import ScheduleSection from './ProjectEditor/sections/ScheduleSection';
+import LandscapingSection from './ProjectEditor/sections/LandscapingSection';
 import BIMSection from './ProjectEditor/sections/BIMSection';
 import FloorModal from './ProjectEditor/modals/FloorModal';
 import FloorEditModal from './ProjectEditor/modals/FloorEditModal';
@@ -28,8 +27,6 @@ import { validateAddForm, isAddFormValid, isAddFormCompletelyValid, validateSing
 function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
   // Основные состояния
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     propertyName: '',
     address: '',
     latitude: '',
@@ -41,12 +38,39 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
   const [activeSection, setActiveSection] = useState('general');
   const [previewImage, setPreviewImage] = useState(null);
   
+  // Состояние для полевых заметок
+  const [fieldNotesTags, setFieldNotesTags] = useState([
+    'Архитектурный',
+    'BIM-сравнение',
+    'Гражданский',
+    'Конкретный',
+    'Снос',
+    'Документ',
+    'Гипсокартон',
+    'Электрические',
+    'Лифт',
+    'Относящийся к окружающей среде',
+    'Оборудование',
+    'Пожарная сигнализация',
+    'Противопожарная защита',
+    'Служба общественного питания',
+    'Обрамление',
+    'Общий'
+  ]);
+  const [fieldNotesStatuses, setFieldNotesStatuses] = useState([
+    { id: 1, name: 'Приоритет1', color: '#e53e3e' },
+    { id: 2, name: 'Приоритет2', color: '#f56500' },
+    { id: 3, name: 'Приоритет3', color: '#d69e2e' },
+    { id: 4, name: 'Закрыто', color: '#38a169' },
+    { id: 5, name: 'Проверено', color: '#3182ce' },
+    { id: 6, name: 'В ходе выполнения', color: '#805ad5' }
+  ]);
+  
   // Hooks для управления состоянием
   const imageZoom = useImageZoom();
   const previewZoom = useImageZoom();
   const fileUpload = useFileUpload();
   const video360Management = useVideo360Management([]);
-  const scheduleManagement = useScheduleManagement([]);
   const floorManagement = useFloorManagement([]); // Пустой массив для новых проектов
   
   // Refs
@@ -85,9 +109,9 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
       active: true
     },
     {
-      id: 'schedule',
-      title: 'План-график',
-      icon: 'fas fa-calendar-alt',
+      id: 'landscaping',
+      title: 'Благоустройство',
+      icon: 'fas fa-seedling',
       active: true
     },
     {
@@ -100,7 +124,7 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
 
   // Блокировка прокрутки body при открытии модального окна
   useEffect(() => {
-    const hasModal = floorManagement.selectedFloor || floorManagement.editingFloor || floorManagement.addingFloor || scheduleManagement.editingTask || scheduleManagement.addingTask;
+    const hasModal = floorManagement.selectedFloor || floorManagement.editingFloor || floorManagement.addingFloor;
     if (hasModal) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -110,7 +134,7 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [floorManagement.selectedFloor, floorManagement.editingFloor, floorManagement.addingFloor, scheduleManagement.editingTask, scheduleManagement.addingTask]);
+  }, [floorManagement.selectedFloor, floorManagement.editingFloor, floorManagement.addingFloor]);
 
   // Обработчики форм
   const handleInputChange = (e) => {
@@ -168,19 +192,24 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
       id: Date.now(), // Временный ID
       name: formData.propertyName,
       lastUpdate: new Date().toISOString(), // Включаем часы и минуты для точной сортировки
-      user: `${formData.firstName} ${formData.lastName}`,
       address: formData.address,
       latitude: parseFloat(formData.latitude) || 0,
       longitude: parseFloat(formData.longitude) || 0,
       constructionStartDate: formData.constructionStartDate,
       constructionEndDate: formData.constructionEndDate,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
       startDate: new Date().toISOString().split('T')[0], // Сегодняшняя дата
       preview: previewImage || require('../data/img/plug_img.jpeg'),
       floors: floorManagement.floors,
       videos360: video360Management.videos,
-      schedule: scheduleManagement.tasks,
+      fieldNotes: {
+        tags: fieldNotesTags,
+        statuses: fieldNotesStatuses
+      },
+      landscaping: {
+        plan: null,
+        photos: [],
+        analysisResult: null
+      },
       bimFiles: fileUpload.uploadedFiles
     };
     
@@ -222,6 +251,15 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
 
   const handleImageClick = () => {
     imageInputRef.current?.click();
+  };
+
+  // Обработчики для полевых заметок
+  const handleFieldNotesTagsUpdate = (newTags) => {
+    setFieldNotesTags(newTags);
+  };
+
+  const handleFieldNotesStatusesUpdate = (newStatuses) => {
+    setFieldNotesStatuses(newStatuses);
   };
 
   // Закрытие модального окна превью
@@ -271,13 +309,26 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
           />
         );
       case 'zones':
-        return <ZonesSection />;
+        return (
+          <ZonesSection
+            floors={floorManagement.floors}
+            onFloorsUpdate={floorManagement.updateFloors}
+          />
+        );
       case 'field-notes':
-        return <FieldNotesSection />;
+        return (
+          <FieldNotesSection
+            tags={fieldNotesTags}
+            statuses={fieldNotesStatuses}
+            onTagsUpdate={handleFieldNotesTagsUpdate}
+            onStatusesUpdate={handleFieldNotesStatusesUpdate}
+          />
+        );
       case 'video360':
         return (
           <Video360Section
             videos={video360Management.videos}
+            floors={floorManagement.floors}
             dragActive={video360Management.dragActive}
             uploadProgress={video360Management.uploadProgress}
             onDragIn={video360Management.handleDragIn}
@@ -287,34 +338,18 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
             onFileInput={video360Management.handleFileInput}
             onRemoveVideo={video360Management.removeVideo}
             onUpdateVideoName={video360Management.updateVideoName}
+            onUpdateVideoShootingDate={video360Management.updateVideoShootingDate}
+            onUpdateVideoServerStatus={video360Management.updateVideoServerStatus}
+            onUpdateVideoAssignedFloor={video360Management.updateVideoAssignedFloor}
+            onUpdateVideoTags={video360Management.updateVideoTags}
             formatFileSize={video360Management.formatFileSize}
           />
         );
-      case 'schedule':
+      case 'landscaping':
         return (
-          <ScheduleSection
-            tasks={scheduleManagement.tasks}
-            editingTask={scheduleManagement.editingTask}
-            addingTask={scheduleManagement.addingTask}
-            showImportModal={scheduleManagement.showImportModal}
-            taskFormData={scheduleManagement.taskFormData}
-            onAddTask={scheduleManagement.addTask}
-            onUpdateTask={scheduleManagement.updateTask}
-            onRemoveTask={scheduleManagement.removeTask}
-            onStartEditTask={scheduleManagement.startEditTask}
-            onCancelEdit={scheduleManagement.cancelEdit}
-            onSaveTask={scheduleManagement.saveTask}
-            onSaveNewTask={scheduleManagement.saveNewTask}
-            onUpdateTaskForm={scheduleManagement.updateTaskForm}
-            getAvailableDependencies={scheduleManagement.getAvailableDependencies}
-            getProjectStats={scheduleManagement.getProjectStats}
-            onOpenImportModal={scheduleManagement.openImportModal}
-            onCloseImportModal={scheduleManagement.closeImportModal}
-            onImportTasks={scheduleManagement.importTasks}
-            onExportCSV={scheduleManagement.exportToCSV}
-            onExportGanttCSV={scheduleManagement.exportToGanttCSV}
-            onExportExcel={scheduleManagement.exportToExcel}
-            onExportGanttExcel={scheduleManagement.exportToGanttExcel}
+          <LandscapingSection
+            onPlanUpload={(file) => console.log('Plan uploaded:', file)}
+            onPhotosUpload={(files) => console.log('Photos uploaded:', files)}
           />
         );
       case 'bim':
@@ -362,7 +397,7 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
         </header>
       )}
 
-      <div className="editor-content">
+      <div className={`editor-content ${activeSection === 'zones' ? 'zones-active' : activeSection === 'field-notes' ? 'field-notes-active' : activeSection === 'video360' ? 'video360-active' : activeSection === 'landscaping' ? 'landscaping-active' : ''}`}>
         <div className="editor-form">
           {renderActiveSection()}
         </div>
@@ -392,11 +427,6 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
               <div className="preview-info">
                 <h4>{formData.propertyName || 'Название объекта'}</h4>
                 <p>{formData.address || 'Адрес будет отображен здесь'}</p>
-                {(formData.firstName || formData.lastName) && (
-                  <p className="author">
-                    Автор: {formData.firstName} {formData.lastName}
-                  </p>
-                )}
                 <p className="start-date">
                   Дата создания: {new Date().toLocaleDateString('ru-RU')}
                 </p>

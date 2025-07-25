@@ -40,29 +40,76 @@ function FieldNotesSection({
   const [newTag, setNewTag] = useState('');
   const [newStatus, setNewStatus] = useState({ name: '', color: '#667eea' });
   const [editingTag, setEditingTag] = useState(null);
+  const [editingTagValue, setEditingTagValue] = useState('');
   const [editingStatus, setEditingStatus] = useState(null);
+  const [editingStatusData, setEditingStatusData] = useState({ name: '', color: '' });
   const [showAddTag, setShowAddTag] = useState(false);
   const [showAddStatus, setShowAddStatus] = useState(false);
 
   // Функции для работы с тегами
   const handleAddTag = () => {
-    if (newTag.trim() && !localTags.includes(newTag.trim())) {
-      const updatedTags = [...localTags, newTag.trim()];
-      setLocalTags(updatedTags);
+    const trimmedTag = newTag.trim();
+    
+    if (!trimmedTag) {
+      // Если тег пустой, просто закрываем форму
       setNewTag('');
       setShowAddTag(false);
-      onTagsUpdate?.(updatedTags);
+      return;
     }
+    
+    if (localTags.includes(trimmedTag)) {
+      // Если тег уже существует, показываем предупреждение
+      alert('Тег с таким названием уже существует');
+      return;
+    }
+    
+    // Добавляем новый тег
+    const updatedTags = [...localTags, trimmedTag];
+    setLocalTags(updatedTags);
+    setNewTag('');
+    setShowAddTag(false);
+    onTagsUpdate?.(updatedTags);
   };
 
-  const handleEditTag = (index, newValue) => {
-    if (newValue.trim() && !localTags.includes(newValue.trim())) {
-      const updatedTags = [...localTags];
-      updatedTags[index] = newValue.trim();
-      setLocalTags(updatedTags);
-      setEditingTag(null);
-      onTagsUpdate?.(updatedTags);
+  const handleStartEditTag = (index, currentValue) => {
+    setEditingTag(index);
+    setEditingTagValue(currentValue);
+  };
+
+  const handleSaveTagEdit = (index) => {
+    const trimmedTag = editingTagValue.trim();
+    const originalTag = localTags[index];
+    
+    if (!trimmedTag) {
+      // Если тег пустой, отменяем редактирование
+      handleCancelTagEdit();
+      return;
     }
+    
+    if (trimmedTag === originalTag) {
+      // Если ничего не изменилось, просто закрываем редактирование
+      handleCancelTagEdit();
+      return;
+    }
+    
+    if (localTags.includes(trimmedTag)) {
+      // Если тег уже существует, показываем предупреждение
+      alert('Тег с таким названием уже существует');
+      return;
+    }
+    
+    // Сохраняем изменения
+    const updatedTags = [...localTags];
+    updatedTags[index] = trimmedTag;
+    setLocalTags(updatedTags);
+    setEditingTag(null);
+    setEditingTagValue('');
+    onTagsUpdate?.(updatedTags);
+  };
+
+  const handleCancelTagEdit = () => {
+    setEditingTag(null);
+    setEditingTagValue('');
   };
 
   const handleDeleteTag = (index) => {
@@ -73,27 +120,76 @@ function FieldNotesSection({
 
   // Функции для работы со статусами
   const handleAddStatus = () => {
-    if (newStatus.name.trim()) {
-      const newStatusObj = {
-        id: Date.now(),
-        name: newStatus.name.trim(),
-        color: newStatus.color
-      };
-      const updatedStatuses = [...localStatuses, newStatusObj];
-      setLocalStatuses(updatedStatuses);
+    const trimmedName = newStatus.name.trim();
+    
+    if (!trimmedName) {
+      // Если название пустое, просто закрываем форму
       setNewStatus({ name: '', color: '#667eea' });
       setShowAddStatus(false);
-      onStatusesUpdate?.(updatedStatuses);
+      return;
     }
+    
+    if (localStatuses.some(status => status.name === trimmedName)) {
+      // Если статус уже существует, показываем предупреждение
+      alert('Статус с таким названием уже существует');
+      return;
+    }
+    
+    // Добавляем новый статус
+    const newStatusObj = {
+      id: Date.now(),
+      name: trimmedName,
+      color: newStatus.color
+    };
+    const updatedStatuses = [...localStatuses, newStatusObj];
+    setLocalStatuses(updatedStatuses);
+    setNewStatus({ name: '', color: '#667eea' });
+    setShowAddStatus(false);
+    onStatusesUpdate?.(updatedStatuses);
   };
 
-  const handleEditStatus = (id, newData) => {
+  const handleStartEditStatus = (status) => {
+    setEditingStatus(status.id);
+    setEditingStatusData({ name: status.name, color: status.color });
+  };
+
+  const handleSaveStatusEdit = () => {
+    const trimmedName = editingStatusData.name.trim();
+    const currentStatus = localStatuses.find(status => status.id === editingStatus);
+    
+    if (!trimmedName) {
+      // Если название пустое, отменяем редактирование
+      handleCancelStatusEdit();
+      return;
+    }
+    
+    if (trimmedName === currentStatus.name && editingStatusData.color === currentStatus.color) {
+      // Если ничего не изменилось, просто закрываем редактирование
+      handleCancelStatusEdit();
+      return;
+    }
+    
+    if (localStatuses.some(status => status.name === trimmedName && status.id !== editingStatus)) {
+      // Если статус с таким названием уже существует, показываем предупреждение
+      alert('Статус с таким названием уже существует');
+      return;
+    }
+    
+    // Сохраняем изменения
     const updatedStatuses = localStatuses.map(status => 
-      status.id === id ? { ...status, ...newData } : status
+      status.id === editingStatus 
+        ? { ...status, name: trimmedName, color: editingStatusData.color }
+        : status
     );
     setLocalStatuses(updatedStatuses);
     setEditingStatus(null);
+    setEditingStatusData({ name: '', color: '' });
     onStatusesUpdate?.(updatedStatuses);
+  };
+
+  const handleCancelStatusEdit = () => {
+    setEditingStatus(null);
+    setEditingStatusData({ name: '', color: '' });
   };
 
   const handleDeleteStatus = (id) => {
@@ -130,11 +226,32 @@ function FieldNotesSection({
                     <div className="tag-edit">
                       <input
                         type="text"
-                        defaultValue={tag}
-                        onBlur={(e) => handleEditTag(index, e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleEditTag(index, e.target.value)}
+                        value={editingTagValue}
+                        onChange={(e) => setEditingTagValue(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') handleSaveTagEdit(index);
+                          if (e.key === 'Escape') handleCancelTagEdit();
+                        }}
                         autoFocus
                       />
+                      <div className="tag-actions">
+                        <button
+                          type="button"
+                          className="btn-icon save"
+                          onClick={() => handleSaveTagEdit(index)}
+                          title="Сохранить изменения"
+                        >
+                          <i className="fas fa-check"></i>
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-icon cancel"
+                          onClick={handleCancelTagEdit}
+                          title="Отменить изменения"
+                        >
+                          <i className="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <>
@@ -143,7 +260,7 @@ function FieldNotesSection({
                         <button
                           type="button"
                           className="btn-icon edit"
-                          onClick={() => setEditingTag(index)}
+                          onClick={() => handleStartEditTag(index, tag)}
                           title="Редактировать тег"
                         >
                           <i className="fas fa-edit"></i>
@@ -169,8 +286,13 @@ function FieldNotesSection({
                     type="text"
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    onBlur={() => setShowAddTag(false)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') handleAddTag();
+                      if (e.key === 'Escape') {
+                        setNewTag('');
+                        setShowAddTag(false);
+                      }
+                    }}
                     placeholder="Название тега"
                     autoFocus
                   />
@@ -182,6 +304,17 @@ function FieldNotesSection({
                       title="Сохранить тег"
                     >
                       <i className="fas fa-check"></i>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-icon cancel"
+                      onClick={() => {
+                        setNewTag('');
+                        setShowAddTag(false);
+                      }}
+                      title="Отменить"
+                    >
+                      <i className="fas fa-times"></i>
                     </button>
                   </div>
                 </div>
@@ -220,16 +353,35 @@ function FieldNotesSection({
                       <div className="status-edit-controls">
                         <input
                           type="text"
-                          defaultValue={status.name}
-                          onBlur={(e) => handleEditStatus(status.id, { name: e.target.value })}
-                          onKeyPress={(e) => e.key === 'Enter' && handleEditStatus(status.id, { name: e.target.value })}
+                          value={editingStatusData.name}
+                          onChange={(e) => setEditingStatusData(prev => ({ ...prev, name: e.target.value }))}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') handleSaveStatusEdit();
+                            if (e.key === 'Escape') handleCancelStatusEdit();
+                          }}
                           autoFocus
                         />
                         <input
                           type="color"
-                          defaultValue={status.color}
-                          onChange={(e) => handleEditStatus(status.id, { color: e.target.value })}
+                          value={editingStatusData.color}
+                          onChange={(e) => setEditingStatusData(prev => ({ ...prev, color: e.target.value }))}
                         />
+                        <button
+                          type="button"
+                          className="btn-icon save"
+                          onClick={handleSaveStatusEdit}
+                          title="Сохранить изменения"
+                        >
+                          <i className="fas fa-check"></i>
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-icon cancel"
+                          onClick={handleCancelStatusEdit}
+                          title="Отменить изменения"
+                        >
+                          <i className="fas fa-times"></i>
+                        </button>
                       </div>
                     </div>
                   ) : (
@@ -240,7 +392,7 @@ function FieldNotesSection({
                         <button
                           type="button"
                           className="btn-icon edit"
-                          onClick={() => setEditingStatus(status.id)}
+                          onClick={() => handleStartEditStatus(status)}
                           title="Редактировать статус"
                         >
                           <i className="fas fa-edit"></i>

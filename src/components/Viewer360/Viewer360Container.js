@@ -7,7 +7,14 @@ import VideoControls from './components/VideoControls/VideoControls';
 import FilterControls from './components/FilterControls/FilterControls';
 import TopToolbar from './components/TopToolbar';
 import ViewerControlsSidebar from './components/ViewerControlsSidebar';
+import FieldNoteMarkers from './components/FieldNoteMarkers';
+import ViewerSidebar from './components/ViewerSidebar';
+import TimelapsesSection from './components/TimelapsesSection';
+import DroneShotsSection from './components/DroneShotsSection';
+import { FieldNoteModal, ParticipantModal } from '../ProjectEditor/modals';
 import usePanoramaSync from './components/PanoramaViewer/hooks/usePanoramaSync';
+import { useNavigate } from 'react-router-dom';
+import { getUserData } from '../../utils/userManager';
 import { 
   mockPhotoArchive, 
   getAllRooms, 
@@ -15,9 +22,25 @@ import {
   getComparisonPhotos 
 } from '../../data/photoArchive';
 import img360 from '../../data/img/img360.jpg';
+
+// Импорты изображений OP второго этажа
+import opImg1Current from '../../data/img/OPImg360_1_floor2.jpg';
+import opImg2Current from '../../data/img/OPImg360_2_floor2.jpg';
+import opImg3Current from '../../data/img/OPImg360_3_floor2.jpg';
+import opImg4Current from '../../data/img/OPImg360_4_floor2.jpg';
+import opImg5Current from '../../data/img/OPImg360_5_floor2.jpg';
+
+import opImg1Past from '../../data/img/OPImg360_1_past_floor2.jpg';
+import opImg2Past from '../../data/img/OPImg360_2_past_floor2.jpg';
+import opImg3Past from '../../data/img/OPImg360_3_past_floor2.jpg';
+import opImg4Past from '../../data/img/OPImg360_4_past_floor2.jpg';
+import opImg5Past from '../../data/img/OPImg360_5_past_floor2.jpg';
+
 import styles from './Viewer360Container.module.css';
 
 const Viewer360Container = ({ project, onBack }) => {
+  const navigate = useNavigate();
+  const currentUser = getUserData();
   // Режимы просмотра: 'initial', 'archive', 'roomGroup', 'viewer', 'video360List', 'videoWalkthrough', 'generic360'
   const [viewMode, setViewMode] = useState('generic360');
   const [selectedRoomKey, setSelectedRoomKey] = useState(null);
@@ -42,14 +65,50 @@ const Viewer360Container = ({ project, onBack }) => {
   const [isMinimapDragging, setIsMinimapDragging] = useState(false);
   
   // Состояния для новых компонентов нижнего сайдбара
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date(2025, 6, 24)); // 24 июля 2025 по умолчанию
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [shootingTime, setShootingTime] = useState('14:30'); // Время съемки
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  
+  // Состояния для работы с изображениями OP второго этажа
+  const [currentOPImageIndex, setCurrentOPImageIndex] = useState(1); // Индекс от 1 до 5
+
+  // Состояния для полевых заметок
+  const [isFieldNoteMode, setIsFieldNoteMode] = useState(false);
+  const [isFieldNoteModalOpen, setIsFieldNoteModalOpen] = useState(false);
+  const [fieldNotePosition, setFieldNotePosition] = useState(null);
+  const [fieldNoteScreenshot, setFieldNoteScreenshot] = useState(null);
+  const [fieldNotes, setFieldNotes] = useState([]); // Хранилище созданных заметок
+  const [editingFieldNote, setEditingFieldNote] = useState(null); // Редактируемая заметка
+  const [isFieldNotesSidebarVisible, setIsFieldNotesSidebarVisible] = useState(false); // Видимость сайдбара полевых заметок
+  const [isTimelapsesSectionVisible, setIsTimelapsesSectionVisible] = useState(false); // Видимость раздела таймлапсов
+  const [isDroneShotsSectionVisible, setIsDroneShotsSectionVisible] = useState(false); // Видимость раздела съемки с дронов
+  const [isParticipantModalOpen, setIsParticipantModalOpen] = useState(false); // Видимость модального окна участников
+
+  // Состояния для режима разделения экрана
+  const [isSplitScreenMode, setIsSplitScreenMode] = useState(false);
+  const [leftPanelImage, setLeftPanelImage] = useState(null); // Изображение левой панели
+  const [rightPanelImage, setRightPanelImage] = useState(null); // Изображение правой панели
+  const [leftPanelDate, setLeftPanelDate] = useState(new Date(2025, 6, 24)); // Дата для левой панели
+  const [rightPanelDate, setRightPanelDate] = useState(new Date(2025, 6, 12)); // Дата для правой панели
+
+  // Логгирование изменений viewMode для отладки
+  useEffect(() => {
+    console.log('Viewer360Container: ViewMode changed to:', viewMode);
+  }, [viewMode]);
+  
+  // Доступные даты для календаря
+  const availableDates = [
+    new Date(2025, 6, 12), // 12 июля 2025
+    new Date(2025, 6, 24)  // 24 июля 2025
+  ];
 
   // Refs для вьюверов
   const mainViewerRef = useRef(null);
   const comparisonViewerRef = useRef(null);
+  // Refs для режима разделения экрана
+  const leftPanelViewerRef = useRef(null);
+  const rightPanelViewerRef = useRef(null);
   // Ref на корневой контейнер миникарты (включает кнопку выбора схемы и выпадающий список)
   const schemesMinimapRef = useRef(null);
   const minimapRef = useRef(null);
@@ -58,6 +117,7 @@ const Viewer360Container = ({ project, onBack }) => {
 
   // Хук для синхронизации камер
   const sync = usePanoramaSync(mainViewerRef, comparisonViewerRef, isComparisonMode);
+  const splitScreenSync = usePanoramaSync(leftPanelViewerRef, rightPanelViewerRef, isSplitScreenMode);
 
   // Ref для актуального значения isComparisonMode (избегаем проблем с замыканиями)
   const isComparisonModeRef = React.useRef(isComparisonMode);
@@ -101,10 +161,6 @@ const Viewer360Container = ({ project, onBack }) => {
     { id: 'field-notes', icon: 'fas fa-sticky-note', label: 'Полевые заметки' },
     { id: 'timelapses', icon: 'fas fa-clock', label: 'Таймлапсы' },
     { id: 'drone-shots', icon: 'fas fa-helicopter', label: 'Съемка с дронов' },
-    { id: 'separator-1', type: 'separator' },
-    { id: 'capture', icon: 'fas fa-camera-retro', label: 'Захват' },
-    { id: 'shared-folders', icon: 'fas fa-folder-open', label: 'Общие папки' },
-    { id: 'field-notes-2', icon: 'fas fa-clipboard', label: 'Полевые заметки' },
     { id: 'separator-2', type: 'separator' },
     { id: 'participants', icon: 'fas fa-users', label: 'Участники' },
     { id: 'project-settings', icon: 'fas fa-cog', label: 'Настройки проекта' },
@@ -227,6 +283,11 @@ const Viewer360Container = ({ project, onBack }) => {
 
   // Обработчик клика по пункту сайдбара
   const handleSidebarClick = (item) => {
+    // Сначала закрываем все дополнительные панели
+    setIsFieldNotesSidebarVisible(false);
+    setIsTimelapsesSectionVisible(false);
+    setIsDroneShotsSectionVisible(false);
+    
     if (item.action) {
       item.action();
     } else if (item.id === 'images') {
@@ -237,6 +298,29 @@ const Viewer360Container = ({ project, onBack }) => {
       // Пункт "Схемы" - показываем панель просмотра схем
       setCurrentSidebarSection('schemes');
       setViewMode('schemes');
+    } else if (item.id === 'field-notes') {
+      // Пункт "Полевые заметки" - показываем сайдбар полевых заметок
+      setCurrentSidebarSection('field-notes');
+      setViewMode('generic360');
+      setIsFieldNotesSidebarVisible(true);
+    } else if (item.id === 'timelapses') {
+      // Пункт "Таймлапсы" - показываем раздел таймлапсов
+      setCurrentSidebarSection('timelapses');
+      setViewMode('generic360');
+      setIsTimelapsesSectionVisible(true);
+    } else if (item.id === 'drone-shots') {
+      // Пункт "Съемка с дронов" - показываем раздел съемки с дронов
+      setCurrentSidebarSection('drone-shots');
+      setViewMode('generic360');
+      setIsDroneShotsSectionVisible(true);
+    } else if (item.id === 'participants') {
+      // Пункт "Участники" - показываем модальное окно участников
+      setCurrentSidebarSection('participants');
+      setIsParticipantModalOpen(true);
+    } else if (item.id === 'project-settings') {
+      // Пункт "Настройки проекта" - переходим в настройки проекта
+      setCurrentSidebarSection('project-settings');
+      navigate(`/editor/${project.id}?mode=settings`);
     } else if (item.type === 'separator') {
       // Разделители не кликабельны
       return;
@@ -256,57 +340,403 @@ const Viewer360Container = ({ project, onBack }) => {
     }
   };
 
+  // Объект с изображениями OP второго этажа
+  const opImages = {
+    current: {
+      1: opImg1Current,
+      2: opImg2Current,
+      3: opImg3Current,
+      4: opImg4Current,
+      5: opImg5Current
+    },
+    past: {
+      1: opImg1Past,
+      2: opImg2Past,
+      3: opImg3Past,
+      4: opImg4Past,
+      5: opImg5Past
+    }
+  };
+
+  // Функция для получения времени съемки на основе индекса изображения и даты
+  const getShootingTime = () => {
+    // Массив времен для каждого индекса изображения (1-5)
+    const timesByIndex = {
+      1: '09:15',
+      2: '12:30', 
+      3: '15:45',
+      4: '18:20',
+      5: '21:35'
+    };
+    
+    return timesByIndex[currentOPImageIndex] || '14:30';
+  };
+
+  // Функция для получения времени съемки для левой панели
+  const getLeftPanelShootingTime = () => {
+    return getShootingTime(); // Используем тот же индекс кадра
+  };
+
+  // Функция для получения времени съемки для правой панели  
+  const getRightPanelShootingTime = () => {
+    return getShootingTime(); // Используем тот же индекс кадра
+  };
+
+  // Функция для получения URL изображения OP на основе даты и индекса
+  const getOPImageUrl = (date = selectedDate) => {
+    // Временно используем img360 для проверки что вообще что-то отображается
+    if (!opImg1Current) {
+      console.warn('OP images not loaded, using fallback img360');
+      return img360;
+    }
+    
+    // Если нет img360 в качестве fallback, используем первое доступное изображение
+    if (!img360) {
+      console.warn('img360 fallback not available');
+      // Попробуем найти любое доступное изображение
+      const fallbackImage = opImg1Current || opImg1Past;
+      if (fallbackImage) {
+        console.log('Using first available OP image as fallback');
+        return fallbackImage;
+      }
+    }
+    
+    // Поменяли местами: 12 июля 2025 теперь показывает past, 24 июля 2025 - current
+    const isPastDate = date.getTime() === availableDates[0].getTime(); // 12 июля 2025 - past
+    const imageSet = isPastDate ? opImages.past : opImages.current;
+    const imageUrl = imageSet[currentOPImageIndex] || img360;
+    
+    return imageUrl;
+  };
+
+  // Функция для получения URL изображения для левой панели
+  const getLeftPanelImageUrl = () => {
+    return getOPImageUrl(leftPanelDate);
+  };
+
+  // Функция для получения URL изображения для правой панели
+  const getRightPanelImageUrl = () => {
+    return getOPImageUrl(rightPanelDate);
+  };
+
+  // Проверка доступности даты
+  const isDateAvailable = (date) => {
+    return availableDates.some(availableDate => 
+      availableDate.toDateString() === date.toDateString()
+    );
+  };
+
+  // Функция для получения тултипа для дат
+  const getDateTooltip = (date) => {
+    if (isDateAvailable(date)) {
+      return 'есть захват';
+    }
+    return null;
+  };
+
   // Обработчики для новых компонентов нижнего сайдбара
   const handleDateChange = (newDate) => {
     setSelectedDate(newDate);
-    console.log('Date changed:', newDate);
+  };
+
+  // Обработчики смены дат для панелей разделения экрана
+  const handleLeftPanelDateChange = (newDate) => {
+    setLeftPanelDate(newDate);
+    setLeftPanelImage(getOPImageUrl(newDate));
+  };
+
+  const handleRightPanelDateChange = (newDate) => {
+    setRightPanelDate(newDate);
+    setRightPanelImage(getOPImageUrl(newDate));
   };
 
   const handleVideoPlay = () => {
     setIsVideoPlaying(true);
-    console.log('Video play');
   };
 
   const handleVideoPause = () => {
     setIsVideoPlaying(false);
-    console.log('Video pause');
   };
 
+  // Сохраняем позицию камеры для восстановления при смене изображения
+  const savedCameraPositionRef = useRef({ yaw: 0, pitch: 0, fov: 75 });
+
+  // Обновляем сохраненную позицию при изменении камеры пользователем
+  useEffect(() => {
+    savedCameraPositionRef.current = currentCamera;
+  }, [currentCamera]);
+
+  // Логика восстановления позиции теперь не нужна, 
+  // так как позиция передается через initialCamera пропс в PanoramaViewer
+
+  // Обработчики навигации по изображениям OP
   const handleVideoFirstFrame = () => {
-    console.log('Video first frame');
-    // Логика для перехода к первому кадру
+    setCurrentOPImageIndex(1);
+    // Обновляем изображения в режиме разделения
+    if (isSplitScreenMode) {
+      setLeftPanelImage(getOPImageUrl(leftPanelDate));
+      setRightPanelImage(getOPImageUrl(rightPanelDate));
+    }
   };
 
   const handleVideoPreviousFrame = () => {
-    console.log('Video previous frame');
-    // Логика для перехода к предыдущему кадру
+    setCurrentOPImageIndex(prev => {
+      const newIndex = Math.max(1, prev - 1);
+      // Обновляем изображения в режиме разделения
+      if (isSplitScreenMode) {
+        setLeftPanelImage(getOPImageUrl(leftPanelDate));
+        setRightPanelImage(getOPImageUrl(rightPanelDate));
+      }
+      return newIndex;
+    });
   };
 
   const handleVideoNextFrame = () => {
-    console.log('Video next frame'); 
-    // Логика для перехода к следующему кадру
+    setCurrentOPImageIndex(prev => {
+      const newIndex = Math.min(5, prev + 1);
+      // Обновляем изображения в режиме разделения
+      if (isSplitScreenMode) {
+        setLeftPanelImage(getOPImageUrl(leftPanelDate));
+        setRightPanelImage(getOPImageUrl(rightPanelDate));
+      }
+      return newIndex;
+    });
   };
 
   const handleVideoLastFrame = () => {
-    console.log('Video last frame');
-    // Логика для перехода к последнему кадру
+    setCurrentOPImageIndex(5);
+    // Обновляем изображения в режиме разделения
+    if (isSplitScreenMode) {
+      setLeftPanelImage(getOPImageUrl(leftPanelDate));
+      setRightPanelImage(getOPImageUrl(rightPanelDate));
+    }
   };
 
   const handleFiltersClick = () => {
-    console.log('Filters clicked');
     // Заглушка - переключаем состояние для демонстрации
     setHasActiveFilters(prev => !prev);
   };
 
   // Обработчики для верхнего тулбара
   const handleCreateFieldNote = () => {
-    console.log('Создать полевую заметку - заглушка');
-    // Здесь будет логика создания полевой заметки
+    setIsFieldNoteMode(prev => !prev);
+  };
+
+  // Обработчик клика на изображении в режиме создания полевой заметки
+  const handlePanoramaClick = async (event) => {
+    if (!isFieldNoteMode) return;
+
+    // Получаем canvas из Three.js рендерера
+    const canvas = mainViewerRef.current?.getCanvas?.() || event.target;
+    
+    if (!canvas || !canvas.tagName || canvas.tagName.toLowerCase() !== 'canvas') {
+      console.error('Canvas не найден или недоступен');
+      return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Получаем текущую позицию камеры для привязки заметки к 3D-пространству
+    const currentCamera = mainViewerRef.current?.getCamera?.() || { yaw: 0, pitch: 0, fov: 75 };
+    
+    // Конвертируем пиксельные координаты в нормализованные координаты (-1 до 1)
+    const normalizedX = (x / canvas.clientWidth) * 2 - 1;
+    const normalizedY = -(y / canvas.clientHeight) * 2 + 1;
+    
+    // Вычисляем углы относительно центра экрана
+    const horizontalFOV = currentCamera.fov * (canvas.clientWidth / canvas.clientHeight);
+    const clickYaw = currentCamera.yaw + (normalizedX * horizontalFOV / 2);
+    const clickPitch = currentCamera.pitch + (normalizedY * currentCamera.fov / 2);
+    
+        // Создаем скриншот с проверкой доступности
+    let screenshot = null;
+    try {
+      // Ждем рендера текущего кадра
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      
+      // Временно создаем контекст для получения изображения
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+    
+      // Копируем содержимое оригинального canvas
+      tempCtx.drawImage(canvas, 0, 0);
+      
+      // Добавляем круглую метку в точке клика
+      const markerX = x * (canvas.width / canvas.clientWidth);
+      const markerY = y * (canvas.height / canvas.clientHeight);
+      
+      tempCtx.beginPath();
+      tempCtx.arc(markerX, markerY, 15, 0, 2 * Math.PI);
+      tempCtx.fillStyle = '#3b82f6';
+      tempCtx.fill();
+      tempCtx.strokeStyle = '#ffffff';
+      tempCtx.lineWidth = 3;
+      tempCtx.stroke();
+      
+      // Добавляем внутренний круг
+      tempCtx.beginPath();
+      tempCtx.arc(markerX, markerY, 5, 0, 2 * Math.PI);
+      tempCtx.fillStyle = '#ffffff';
+      tempCtx.fill();
+      
+      screenshot = tempCanvas.toDataURL('image/png');
+      console.log('Скриншот создан успешно, размер:', screenshot.length, 'Метка на позиции:', { markerX, markerY });
+    } catch (error) {
+      console.error('Ошибка создания скриншота:', error);
+      // Пытаемся создать простой скриншот без метки
+      try {
+        screenshot = canvas.toDataURL('image/png');
+        console.log('Создан простой скриншот без метки');
+      } catch (fallbackError) {
+        console.error('Ошибка создания простого скриншота:', fallbackError);
+        screenshot = null;
+      }
+    }
+    
+    // Сохраняем позицию в 3D-координатах и пиксельных координатах для отображения
+    const notePosition = {
+      // 3D координаты для правильного позиционирования
+      yaw: clickYaw,
+      pitch: clickPitch,
+      // Пиксельные координаты для текущего отображения
+      x,
+      y,
+      // Размеры canvas для пересчета при изменении размера
+      canvasWidth: canvas.clientWidth,
+      canvasHeight: canvas.clientHeight
+    };
+    
+    setFieldNotePosition(notePosition);
+    setFieldNoteScreenshot(screenshot);
+    
+    // Отключаем режим создания заметки и открываем модальное окно
+    setIsFieldNoteMode(false);
+    setIsFieldNoteModalOpen(true);
+    
+    console.log('Клик на позиции:', notePosition, 'Скриншот доступен:', !!screenshot);
+  };
+
+  // Обработчик сохранения полевой заметки
+  const handleSaveFieldNote = (noteData) => {
+    
+    if (editingFieldNote) {
+      // Обновляем существующую заметку
+      setFieldNotes(prev => prev.map(note => 
+        note.id === editingFieldNote.id 
+          ? { ...noteData, id: editingFieldNote.id }
+          : note
+      ));
+      setEditingFieldNote(null);
+    } else {
+      // Добавляем новую заметку
+      setFieldNotes(prev => [...prev, noteData]);
+    }
+    
+    setIsFieldNoteModalOpen(false);
+    setFieldNotePosition(null);
+    setFieldNoteScreenshot(null);
+  };
+
+  // Обработчик удаления полевой заметки
+  const handleDeleteFieldNote = () => {
+    if (editingFieldNote) {
+      setFieldNotes(prev => prev.filter(note => note.id !== editingFieldNote.id));
+      setEditingFieldNote(null);
+    }
+    setIsFieldNoteModalOpen(false);
+    setFieldNotePosition(null);
+    setFieldNoteScreenshot(null);
+  };
+
+  // Обработчик клика по маркеру существующей заметки
+  const handleMarkerClick = (note) => {
+    console.log('Клик по маркеру заметки:', note);
+    setEditingFieldNote(note);
+    setFieldNotePosition(note.position);
+    // Используем сохраненный скриншот заметки
+    setFieldNoteScreenshot(note.screenshot || null);
+    setIsFieldNoteModalOpen(true);
+  };
+
+  // Обработчик закрытия модального окна полевой заметки
+  const handleCloseFieldNoteModal = () => {
+    setIsFieldNoteModalOpen(false);
+    setIsFieldNoteMode(false);
+    setFieldNotePosition(null);
+    setFieldNoteScreenshot(null);
+    setEditingFieldNote(null);
+  };
+
+  // Обработчик закрытия сайдбара полевых заметок
+  const handleCloseFieldNotesSidebar = () => {
+    setIsFieldNotesSidebarVisible(false);
+  };
+
+  // Обработчик клика по полевой заметке в сайдбаре
+  const handleFieldNoteClick = (note) => {
+    console.log('Клик по полевой заметке в сайдбаре:', note);
+    // Позиционируем камеру на заметку (если есть 3D координаты)
+    if (note.position && note.position.yaw !== undefined && note.position.pitch !== undefined) {
+      if (isSplitScreenMode) {
+        // В режиме разделения экрана используем синхронизацию
+        sync.syncLookAt(note.position.yaw, note.position.pitch, null, 1000);
+      } else if (mainViewerRef.current) {
+        // В обычном режиме используем основной viewer
+        mainViewerRef.current.lookAt(note.position.yaw, note.position.pitch, null, 1000);
+      }
+    }
+    
+    // Открываем модальное окно для просмотра/редактирования заметки
+    setEditingFieldNote(note);
+    setFieldNotePosition(note.position);
+    setFieldNoteScreenshot(note.screenshot || null);
+    setIsFieldNoteModalOpen(true);
+    
+    // Закрываем сайдбар полевых заметок после клика (по желанию)
+    setIsFieldNotesSidebarVisible(false);
   };
 
   const handleCreateVideo = () => {
     console.log('Создать покадровое видео - заглушка');
     // Здесь будет логика создания покадрового видео
+    // Можно добавить уведомление пользователю
+    alert('Функция создания покадрового видео будет реализована в будущих версиях');
+  };
+
+  // Обработчик закрытия раздела таймлапсов
+  const handleCloseTimelapsesSection = () => {
+    setIsTimelapsesSectionVisible(false);
+    setCurrentSidebarSection('images');
+  };
+
+  // Обработчик закрытия раздела съемки с дронов
+  const handleCloseDroneShotsSection = () => {
+    setIsDroneShotsSectionVisible(false);
+    setCurrentSidebarSection('images');
+  };
+
+  // Обработчик загрузки файлов с дронов
+  const handleDroneFilesUpload = (files) => {
+    console.log('Загружены файлы с дронов:', files);
+    // Здесь будет логика обработки загруженных файлов
+    alert(`Загружено ${files.length} файлов. Обработка начнется в ближайшее время.`);
+  };
+
+  // Обработчик закрытия модального окна участников
+  const handleCloseParticipantModal = () => {
+    setIsParticipantModalOpen(false);
+  };
+
+  // Обработчик добавления участника
+  const handleAddParticipant = (participantData) => {
+    console.log('Добавлен участник:', participantData);
+    // Здесь будет логика добавления участника к проекту
+    // Можно обновить проект или отправить запрос на сервер
+    alert(`Участник ${participantData.email} успешно добавлен к проекту`);
   };
 
   const handleShare = () => {
@@ -331,8 +761,49 @@ const Viewer360Container = ({ project, onBack }) => {
   };
 
   const handleSplitScreen = () => {
-    console.log('Разделить экран - заглушка');
-    // Здесь будет логика разделения экрана
+    if (isSplitScreenMode) {
+      // Выключаем режим разделения экрана
+      setIsSplitScreenMode(false);
+      setLeftPanelImage(null);
+      setRightPanelImage(null);
+    } else {
+      // Включаем режим разделения экрана
+      // Инициализируем панели с разными датами для сравнения
+      setLeftPanelDate(availableDates[1]); // 24 июля 2025 (current)
+      setRightPanelDate(availableDates[0]); // 12 июля 2025 (past)
+      setLeftPanelImage(getOPImageUrl(availableDates[1]));
+      setRightPanelImage(getOPImageUrl(availableDates[0]));
+      setIsSplitScreenMode(true);
+    }
+  };
+
+  // Обработчики закрытия панелей в режиме разделения экрана
+  const handleCloseLeftPanel = () => {
+    if (rightPanelImage) {
+      // Если есть правая панель, делаем её основной
+      setIsSplitScreenMode(false);
+      setLeftPanelImage(null);
+      setRightPanelImage(null);
+    } else {
+      // Если нет правой панели, просто выключаем режим
+      setIsSplitScreenMode(false);
+      setLeftPanelImage(null);
+      setRightPanelImage(null);
+    }
+  };
+
+  const handleCloseRightPanel = () => {
+    if (leftPanelImage) {
+      // Если есть левая панель, делаем её основной
+      setIsSplitScreenMode(false);
+      setLeftPanelImage(null);
+      setRightPanelImage(null);
+    } else {
+      // Если нет левой панели, просто выключаем режим
+      setIsSplitScreenMode(false);
+      setLeftPanelImage(null);
+      setRightPanelImage(null);
+    }
   };
 
   const handleZoomIn = () => {
@@ -344,13 +815,13 @@ const Viewer360Container = ({ project, onBack }) => {
       
       // Применяем зум к основному вьюверу
       if (mainViewerRef.current.setCamera) {
-        mainViewerRef.current.setCamera(currentCamera.yaw, currentCamera.pitch, newFov);
+        mainViewerRef.current.setCamera(cameraData.yaw, cameraData.pitch, newFov);
       }
       
       // Если включен режим сравнения, синхронизируем зум
       if (isComparisonMode && comparisonViewerRef.current) {
         if (comparisonViewerRef.current.setCamera) {
-          comparisonViewerRef.current.setCamera(currentCamera.yaw, currentCamera.pitch, newFov);
+          comparisonViewerRef.current.setCamera(cameraData.yaw, cameraData.pitch, newFov);
         }
       }
     }
@@ -365,13 +836,13 @@ const Viewer360Container = ({ project, onBack }) => {
       
       // Применяем зум к основному вьюверу
       if (mainViewerRef.current.setCamera) {
-        mainViewerRef.current.setCamera(currentCamera.yaw, currentCamera.pitch, newFov);
+        mainViewerRef.current.setCamera(cameraData.yaw, cameraData.pitch, newFov);
       }
       
       // Если включен режим сравнения, синхронизируем зум
       if (isComparisonMode && comparisonViewerRef.current) {
         if (comparisonViewerRef.current.setCamera) {
-          comparisonViewerRef.current.setCamera(currentCamera.yaw, currentCamera.pitch, newFov);
+          comparisonViewerRef.current.setCamera(cameraData.yaw, cameraData.pitch, newFov);
         }
       }
     }
@@ -491,6 +962,21 @@ const Viewer360Container = ({ project, onBack }) => {
       sync.throttledSyncFromComparison(cameraData);
     }
   }, [sync.throttledSyncFromComparison]);
+
+  // Обработчики изменения камеры для панелей разделения экрана
+  const handleLeftPanelCameraChange = React.useCallback((cameraData) => {
+    setCurrentCamera(cameraData);
+    if (isSplitScreenMode) {
+      splitScreenSync.throttledSyncFromMain(cameraData);
+    }
+  }, [splitScreenSync.throttledSyncFromMain, isSplitScreenMode]);
+
+  const handleRightPanelCameraChange = React.useCallback((cameraData) => {
+    setCurrentCamera(cameraData);
+    if (isSplitScreenMode) {
+      splitScreenSync.throttledSyncFromComparison(cameraData);
+    }
+  }, [splitScreenSync.throttledSyncFromComparison, isSplitScreenMode]);
 
   // Определение активной кнопки сайдбара
   const isItemActive = (itemId) => {
@@ -671,16 +1157,27 @@ const Viewer360Container = ({ project, onBack }) => {
           onShare={handleShare}
           onDownloadScreen={handleDownloadScreen}
           onDownloadImage360={handleDownloadImage360}
+          isFieldNoteMode={isFieldNoteMode}
         />
 
         {/* Основной просмотрщик */}
         <div className={styles.panoramaWrapper}>
-          <PanoramaViewer
-            ref={mainViewerRef}
-            imageUrl={selectedPhoto.url}
-            onCameraChange={handleMainCameraChange}
-            className={styles.mainViewer}
-          />
+                      <PanoramaViewer
+              ref={mainViewerRef}
+              imageUrl={selectedPhoto.url}
+              onCameraChange={handleMainCameraChange}
+              onPanoramaClick={handlePanoramaClick}
+              className={`${styles.mainViewer} ${isFieldNoteMode ? styles.fieldNoteMode : ''}`}
+              initialCamera={savedCameraPositionRef.current}
+              isFieldNoteMode={isFieldNoteMode}
+            />
+            
+            {/* Маркеры полевых заметок */}
+            <FieldNoteMarkers
+              fieldNotes={fieldNotes}
+              onMarkerClick={handleMarkerClick}
+              containerRef={mainViewerRef}
+            />
           
           {/* Информация о фото */}
           <div className={styles.panoramaPhotoInfo}>
@@ -710,7 +1207,7 @@ const Viewer360Container = ({ project, onBack }) => {
             <div className={styles.miniSidebar}>
               <VideoControls
                 isPlaying={isVideoPlaying}
-                shootingTime={shootingTime}
+                shootingTime={getShootingTime()}
                 onPlay={handleVideoPlay}
                 onPause={handleVideoPause}
                 onFirstFrame={handleVideoFirstFrame}
@@ -747,6 +1244,7 @@ const Viewer360Container = ({ project, onBack }) => {
               isComparison={true}
               onCameraChange={handleComparisonCameraChange}
               className={styles.comparisonViewer}
+              initialCamera={savedCameraPositionRef.current}
             />
             
             {/* Информация о сравнительном фото */}
@@ -777,7 +1275,7 @@ const Viewer360Container = ({ project, onBack }) => {
               <div className={styles.miniSidebar}>
                 <VideoControls
                   isPlaying={isVideoPlaying}
-                  shootingTime={shootingTime}
+                  shootingTime={getShootingTime()}
                   onPlay={handleVideoPlay}
                   onPause={handleVideoPause}
                   onFirstFrame={handleVideoFirstFrame}
@@ -985,8 +1483,14 @@ const Viewer360Container = ({ project, onBack }) => {
 
 
 
+  // Мемоизированный URL изображения для предотвращения лишних перерендеров
+  const memoizedImageUrl = React.useMemo(() => {
+    return getOPImageUrl();
+  }, [currentOPImageIndex, selectedDate]);
+
   // Рендер 360° изображения для остальных разделов
   const renderGeneric360 = () => {
+
     return (
       <div className={styles.panoramaSection}>
         {/* Верхний тулбар */}
@@ -996,14 +1500,26 @@ const Viewer360Container = ({ project, onBack }) => {
           onShare={handleShare}
           onDownloadScreen={handleDownloadScreen}
           onDownloadImage360={handleDownloadImage360}
+          isFieldNoteMode={isFieldNoteMode}
         />
 
         <div className={styles.panoramaWrapper}>
           <PanoramaViewer
             ref={mainViewerRef}
-            imageUrl={img360}
+            imageUrl={memoizedImageUrl}
             onCameraChange={handleMainCameraChange}
-            className={styles.mainViewer}
+            onPanoramaClick={isFieldNoteMode ? handlePanoramaClick : undefined}
+            className={`${styles.mainViewer} ${isFieldNoteMode ? styles.fieldNoteMode : ''}`}
+            initialCamera={savedCameraPositionRef.current}
+            key={`panorama-${currentOPImageIndex}-${selectedDate.getTime()}`}
+            isFieldNoteMode={isFieldNoteMode}
+          />
+          
+          {/* Маркеры полевых заметок */}
+          <FieldNoteMarkers
+            fieldNotes={fieldNotes}
+            onMarkerClick={handleMarkerClick}
+            containerRef={mainViewerRef}
           />
           
           {/* Новый нижний сайдбар с тремя мини-сайдбарами */}
@@ -1012,13 +1528,17 @@ const Viewer360Container = ({ project, onBack }) => {
               <DateSelector
                 selectedDate={selectedDate}
                 onDateChange={handleDateChange}
+                availableDates={availableDates}
+                isDateAvailable={isDateAvailable}
+                getWorkersCount={(date) => isDateAvailable(date) ? 1 : 0}
+                dropdownPosition="top"
               />
             </div>
             
             <div className={styles.miniSidebar}>
               <VideoControls
                 isPlaying={isVideoPlaying}
-                shootingTime={shootingTime}
+                shootingTime={getShootingTime()}
                 onPlay={handleVideoPlay}
                 onPause={handleVideoPause}
                 onFirstFrame={handleVideoFirstFrame}
@@ -1055,6 +1575,193 @@ const Viewer360Container = ({ project, onBack }) => {
       <SchemesView 
         project={project}
       />
+    );
+  };
+
+  // Рендер режима разделения экрана
+  const renderSplitScreen = () => {
+    return (
+      <div className={styles.panoramaSection}>
+        {/* Верхний тулбар */}
+        <TopToolbar
+          onCreateFieldNote={handleCreateFieldNote}
+          onCreateVideo={handleCreateVideo}
+          onShare={handleShare}
+          onDownloadScreen={handleDownloadScreen}
+          onDownloadImage360={handleDownloadImage360}
+          isFieldNoteMode={isFieldNoteMode}
+        />
+
+        <div className={`${styles.splitScreenContainer} ${styles.splitScreenMode}`}>
+          {/* Левая панель */}
+          <div className={styles.splitScreenPanel}>
+            <div className={styles.panoramaWrapper}>
+              <PanoramaViewer
+                ref={leftPanelViewerRef}
+                imageUrl={getLeftPanelImageUrl()}
+                onCameraChange={handleLeftPanelCameraChange}
+                onPanoramaClick={isFieldNoteMode ? handlePanoramaClick : undefined}
+                className={`${styles.mainViewer} ${isFieldNoteMode ? styles.fieldNoteMode : ''}`}
+                initialCamera={savedCameraPositionRef.current}
+                isFieldNoteMode={isFieldNoteMode}
+                key={`left-panel-${leftPanelDate.getTime()}`}
+              />
+              
+              {/* Маркеры полевых заметок для левой панели */}
+              <FieldNoteMarkers
+                fieldNotes={fieldNotes}
+                onMarkerClick={handleMarkerClick}
+                containerRef={leftPanelViewerRef}
+              />
+              
+              {/* Кнопка закрытия левой панели */}
+              <button 
+                className={`${styles.closeViewerBtn} ${styles.leftPanelClose}`}
+                onClick={handleCloseLeftPanel}
+                title="Закрыть левое изображение"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+              
+              {/* Индикатор даты для левой панели */}
+              <div className={`${styles.panelDateIndicator} ${styles.leftPanelDate}`}>
+                {leftPanelDate.toLocaleDateString('ru-RU', { 
+                  day: '2-digit', 
+                  month: '2-digit', 
+                  year: 'numeric' 
+                })}
+              </div>
+              
+                                           {/* Нижний сайдбар для левой панели */}
+              <div className={styles.bottomSidebar}>
+                <div className={styles.miniSidebar}>
+                  <DateSelector
+                    selectedDate={leftPanelDate}
+                    onDateChange={handleLeftPanelDateChange}
+                    availableDates={availableDates}
+                    isDateAvailable={isDateAvailable}
+                    getWorkersCount={(date) => isDateAvailable(date) ? 1 : 0}
+                    dropdownPosition="top"
+                  />
+                </div>
+                
+                <div className={styles.miniSidebar}>
+                  <VideoControls
+                    isPlaying={isVideoPlaying}
+                    shootingTime={getLeftPanelShootingTime()}
+                    onPlay={handleVideoPlay}
+                    onPause={handleVideoPause}
+                    onFirstFrame={handleVideoFirstFrame}
+                    onPreviousFrame={handleVideoPreviousFrame}
+                    onNextFrame={handleVideoNextFrame}
+                    onLastFrame={handleVideoLastFrame}
+                  />
+                </div>
+                
+                <div className={styles.miniSidebar}>
+                  <FilterControls
+                    onFiltersClick={handleFiltersClick}
+                    hasActiveFilters={hasActiveFilters}
+                  />
+                </div>
+              </div>
+
+              {/* Правый вертикальный сайдбар для левой панели */}
+              <ViewerControlsSidebar
+                onImageSettings={handleImageSettings}
+                onSplitScreen={handleSplitScreen}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                currentZoom={currentCamera.fov}
+              />
+            </div>
+          </div>
+
+          {/* Правая панель */}
+          <div className={styles.splitScreenPanel}>
+            <div className={styles.panoramaWrapper}>
+              <PanoramaViewer
+                ref={rightPanelViewerRef}
+                imageUrl={getRightPanelImageUrl()}
+                onCameraChange={handleRightPanelCameraChange}
+                onPanoramaClick={isFieldNoteMode ? handlePanoramaClick : undefined}
+                className={`${styles.mainViewer} ${isFieldNoteMode ? styles.fieldNoteMode : ''}`}
+                initialCamera={savedCameraPositionRef.current}
+                isFieldNoteMode={isFieldNoteMode}
+                key={`right-panel-${rightPanelDate.getTime()}`}
+              />
+              
+              {/* Маркеры полевых заметок для правой панели */}
+              <FieldNoteMarkers
+                fieldNotes={fieldNotes}
+                onMarkerClick={handleMarkerClick}
+                containerRef={rightPanelViewerRef}
+              />
+              
+              {/* Кнопка закрытия правой панели */}
+              <button 
+                className={`${styles.closeViewerBtn} ${styles.rightPanelClose}`}
+                onClick={handleCloseRightPanel}
+                title="Закрыть правое изображение"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+              
+              {/* Индикатор даты для правой панели */}
+              <div className={`${styles.panelDateIndicator} ${styles.rightPanelDate}`}>
+                {rightPanelDate.toLocaleDateString('ru-RU', { 
+                  day: '2-digit', 
+                  month: '2-digit', 
+                  year: 'numeric' 
+                })}
+              </div>
+              
+                             {/* Нижний сайдбар для правой панели */}
+               <div className={styles.bottomSidebar}>
+                 <div className={styles.miniSidebar}>
+                   <DateSelector
+                     selectedDate={rightPanelDate}
+                     onDateChange={handleRightPanelDateChange}
+                     availableDates={availableDates}
+                     isDateAvailable={isDateAvailable}
+                     getWorkersCount={(date) => isDateAvailable(date) ? 1 : 0}
+                     dropdownPosition="top"
+                   />
+                 </div>
+                
+                <div className={styles.miniSidebar}>
+                  <VideoControls
+                    isPlaying={isVideoPlaying}
+                    shootingTime={getRightPanelShootingTime()}
+                    onPlay={handleVideoPlay}
+                    onPause={handleVideoPause}
+                    onFirstFrame={handleVideoFirstFrame}
+                    onPreviousFrame={handleVideoPreviousFrame}
+                    onNextFrame={handleVideoNextFrame}
+                    onLastFrame={handleVideoLastFrame}
+                  />
+                </div>
+                
+                <div className={styles.miniSidebar}>
+                  <FilterControls
+                    onFiltersClick={handleFiltersClick}
+                    hasActiveFilters={hasActiveFilters}
+                  />
+                </div>
+              </div>
+
+              {/* Правый вертикальный сайдбар для правой панели */}
+              <ViewerControlsSidebar
+                onImageSettings={handleImageSettings}
+                onSplitScreen={handleSplitScreen}
+                onZoomIn={handleZoomIn}
+                onZoomOut={handleZoomOut}
+                currentZoom={currentCamera.fov}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
     );
   };
 
@@ -1104,7 +1811,8 @@ const Viewer360Container = ({ project, onBack }) => {
       {/* Основная область */}
       <div className={styles.viewerMain}>
         {viewMode === 'viewer' && renderViewer()}
-        {viewMode === 'generic360' && renderGeneric360()}
+        {viewMode === 'generic360' && !isSplitScreenMode && renderGeneric360()}
+        {viewMode === 'generic360' && isSplitScreenMode && renderSplitScreen()}
         {viewMode === 'schemes' && renderSchemes()}
 
         {/* Фон-оверлей для развернутой миникарты */}
@@ -1120,6 +1828,55 @@ const Viewer360Container = ({ project, onBack }) => {
 
         {/* Модальные окна */}
         {showComparisonSelector && renderComparisonSelector()}
+        
+        {/* Модальное окно полевой заметки */}
+        <FieldNoteModal
+          isOpen={isFieldNoteModalOpen}
+          onClose={handleCloseFieldNoteModal}
+          onSave={handleSaveFieldNote}
+          onDelete={handleDeleteFieldNote}
+          notePosition={fieldNotePosition}
+          screenshot={fieldNoteScreenshot}
+          schemePreview={selectedScheme?.fullImage}
+          project={project}
+          photoDate={selectedDate.toISOString()}
+          availableStatuses={project?.fieldNotes?.statuses || []}
+          availableTags={project?.fieldNotes?.tags || []}
+          editingNote={editingFieldNote}
+        />
+        
+        {/* Сайдбар полевых заметок */}
+        <ViewerSidebar
+          isVisible={isFieldNotesSidebarVisible}
+          fieldNotes={fieldNotes}
+          onFieldNoteClick={handleFieldNoteClick}
+          onClose={handleCloseFieldNotesSidebar}
+        />
+        
+        {/* Раздел таймлапсов */}
+        {isTimelapsesSectionVisible && (
+          <TimelapsesSection
+            onCreateVideo={handleCreateVideo}
+            onClose={handleCloseTimelapsesSection}
+          />
+        )}
+        
+        {/* Раздел съемки с дронов */}
+        {isDroneShotsSectionVisible && (
+          <DroneShotsSection
+            onClose={handleCloseDroneShotsSection}
+            onUpload={handleDroneFilesUpload}
+          />
+        )}
+        
+        {/* Модальное окно участников */}
+        <ParticipantModal
+          isOpen={isParticipantModalOpen}
+          onClose={handleCloseParticipantModal}
+          project={project}
+          currentUser={currentUser}
+          onAddParticipant={handleAddParticipant}
+        />
       </div>
     </div>
   );

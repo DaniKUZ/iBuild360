@@ -1,0 +1,274 @@
+/* Секция благоустройства */
+.landscaping-section {
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.landscaping-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.landscaping-header h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.landscaping-header h3 i {
+  color: var(--success-color);
+  font-size: 32px;
+}
+
+.landscaping-description {
+  font-size: 16px;
+  color: var(--text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+.landscaping-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Секции загрузки */
+.upload-section {
+  margin-bottom: 32px;
+  padding: 24px;
+  border: 2px dashed var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-light);
+  transition: all 0.3s ease;
+}
+
+.upload-section:hover {
+  border-color: var(--primary-color);
+  background: rgba(74, 144, 226, 0.05);
+}
+
+.upload-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 16px;
+}
+
+.upload-section h4 i {
+  color: var(--primary-color);
+}
+
+.upload-area {
+  text-align: center;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.upload-btn:active {
+  transform: translateY(0);
+}
+
+/* Загруженные файлы */
+.uploaded-file,
+.uploaded-photo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.uploaded-file i,
+.uploaded-photo i {
+  color: var(--primary-color);
+}
+
+.file-size {
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: var(--error-color);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.remove-btn:hover {
+  background: rgba(220, 53, 69, 0.1);
+}
+
+.uploaded-photos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Секция анализа */
+.analysis-section {
+  text-align: center;
+  margin: 32px 0;
+}
+
+.analyze-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.analyze-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.analyze-btn:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.analyze-btn.analyzing {
+  background: var(--warning-color);
+}
+
+.analyze-btn i.fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Секция результатов */
+.results-section {
+  margin-top: 32px;
+  padding: 24px;
+  background: var(--bg-light);
+  border-radius: 12px;
+  border-left: 4px solid var(--success-color);
+}
+
+.results-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 16px;
+}
+
+.results-section h4 i {
+  color: var(--success-color);
+}
+
+.result-content {
+  position: relative;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-dark);
+  white-space: pre-wrap;
+  min-height: 100px;
+}
+
+.typing-cursor {
+  color: var(--primary-color);
+  font-weight: bold;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .landscaping-section {
+    padding: 16px;
+  }
+  
+  .upload-section {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .landscaping-header h3 {
+    font-size: 24px;
+  }
+  
+  .landscaping-description {
+    font-size: 14px;
+  }
+  
+  .analyze-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+  
+  .uploaded-file,
+  .uploaded-photo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .file-size {
+    margin-left: 0;
+  }
+} 

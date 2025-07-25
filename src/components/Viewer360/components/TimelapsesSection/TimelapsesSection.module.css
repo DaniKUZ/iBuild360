@@ -1,0 +1,160 @@
+/* =============================================================================
+   TIMELAPSES SECTION
+   ============================================================================= */
+
+.sectionOverlay {
+  position: fixed;
+  top: 0;
+  left: var(--viewer-sidebar-width);
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  display: flex;
+}
+
+.section {
+  width: 100%;
+  height: 100vh;
+  background: var(--background-card);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--background-primary);
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.header h3 i {
+  color: var(--color-primary);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.closeButton:hover {
+  background: var(--background-hover);
+  color: var(--text-primary);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* =============================================================================
+   INFO CARD
+   ============================================================================= */
+
+.infoCard {
+  max-width: 600px;
+  background: var(--background-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.infoIcon {
+  margin-bottom: var(--spacing-lg);
+}
+
+.infoIcon i {
+  font-size: 4rem;
+  color: var(--color-primary);
+  opacity: 0.8;
+}
+
+.infoContent h4 {
+  margin: 0 0 var(--spacing-md);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.infoContent p {
+  margin: 0 0 var(--spacing-xl);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.createButton {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--border-radius-md);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.createButton:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
+}
+
+.createButton i {
+  font-size: 0.9rem;
+}
+
+/* =============================================================================
+   АДАПТИВНОСТЬ
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .content {
+    padding: var(--spacing-lg);
+  }
+  
+  .infoCard {
+    padding: var(--spacing-lg);
+  }
+  
+  .infoIcon i {
+    font-size: 3rem;
+  }
+  
+  .infoContent h4 {
+    font-size: 1.25rem;
+  }
+  
+  .header {
+    padding: var(--spacing-md);
+  }
+} 

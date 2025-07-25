@@ -129,7 +129,7 @@ const ProjectCard = React.memo(({
           </div>
           <div className={styles.statItem}>
             <i className="fas fa-sticky-note" aria-hidden="true"></i>
-            <span>{project.fieldNotes} полевых заметок</span>
+            <span>{project.fieldNotes?.tags?.length || 0} тегов заметок</span>
           </div>
         </div>
       </div>
@@ -149,7 +149,10 @@ ProjectCard.propTypes = {
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
     captures: PropTypes.number.isRequired,
-    fieldNotes: PropTypes.number.isRequired,
+    fieldNotes: PropTypes.shape({
+      tags: PropTypes.array,
+      statuses: PropTypes.array
+    }),
   }).isRequired,
   onView360: PropTypes.func.isRequired,
   onEditProject: PropTypes.func.isRequired,

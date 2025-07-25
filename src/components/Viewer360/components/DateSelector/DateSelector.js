@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './DateSelector.module.css';
 
-const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableDates = [], isDateAvailable, getWorkersCount }) => {
+const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableDates = [], isDateAvailable, getWorkersCount, dropdownPosition = 'bottom' }) => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarDate, setCalendarDate] = useState(selectedDate || new Date());
   const [hoveredDay, setHoveredDay] = useState(null);
@@ -132,16 +132,18 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
   };
 
   const handleDayHover = (day, event) => {
-    if (!day || !getWorkersCount) return;
+    if (!day) return;
     
     const dayDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
-    const workersCount = getWorkersCount(dayDate);
     
-    if (workersCount > 0) {
+    // Проверяем есть ли захват для этой даты
+    const hasCapture = isDateAvailable && isDateAvailable(dayDate);
+    
+    if (hasCapture) {
       const rect = event.target.getBoundingClientRect();
       setTooltipInfo({
         day,
-        workersCount,
+        hasCapture: true,
         x: rect.left + rect.width / 2,
         y: rect.top - 10
       });
@@ -187,7 +189,7 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
       </div>
 
       {showCalendar && (
-        <div className={styles.calendarDropdown}>
+        <div className={`${styles.calendarDropdown} ${dropdownPosition === 'top' ? styles.calendarDropdownTop : ''}`}>
           <div className={styles.calendarHeader}>
             <button 
               className={styles.navButton}
@@ -254,7 +256,7 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
             zIndex: 10000
           }}
         >
-          {tooltipInfo.workersCount} рабочих
+          есть захват
         </div>
       )}
     </div>
@@ -267,7 +269,8 @@ DateSelector.propTypes = {
   disabled: PropTypes.bool,
   availableDates: PropTypes.arrayOf(PropTypes.instanceOf(Date)),
   isDateAvailable: PropTypes.func,
-  getWorkersCount: PropTypes.func
+  getWorkersCount: PropTypes.func,
+  dropdownPosition: PropTypes.oneOf(['top', 'bottom'])
 };
 
 export default DateSelector; 

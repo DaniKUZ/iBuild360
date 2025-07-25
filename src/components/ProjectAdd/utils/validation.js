@@ -2,22 +2,6 @@
 export const validateAddForm = (formData) => {
   const errors = {};
 
-  // Проверка имени
-  if (!formData.firstName || formData.firstName.trim() === '') {
-    errors.firstName = 'Имя обязательно для заполнения';
-  } else if (formData.firstName.trim().length < 2) {
-    errors.firstName = 'Имя должно содержать минимум 2 символа';
-  }
-
-  // Проверка фамилии
-  if (!formData.lastName || formData.lastName.trim() === '') {
-    errors.lastName = 'Фамилия обязательна для заполнения';
-  } else if (formData.lastName.trim().length < 2) {
-    errors.lastName = 'Фамилия должна содержать минимум 2 символа';
-  }
-
-
-
   // Проверка названия объекта
   if (!formData.propertyName || formData.propertyName.trim() === '') {
     errors.propertyName = 'Название объекта обязательно для заполнения';
@@ -57,7 +41,7 @@ export const validateAddForm = (formData) => {
 // Проверка валидности всей формы
 export const isAddFormValid = (formData) => {
   // Проверяем только основные обязательные поля для первой страницы
-  const requiredFields = ['firstName', 'lastName', 'propertyName', 'address'];
+  const requiredFields = ['propertyName', 'address'];
   
   for (const field of requiredFields) {
     if (!formData[field] || formData[field].toString().trim() === '') {
@@ -66,8 +50,6 @@ export const isAddFormValid = (formData) => {
   }
   
   // Дополнительные проверки
-  if (formData.firstName && formData.firstName.trim().length < 2) return false;
-  if (formData.lastName && formData.lastName.trim().length < 2) return false;
   if (formData.propertyName && formData.propertyName.trim().length < 3) return false;
   if (formData.address && formData.address.trim().length < 5) return false;
   
@@ -94,22 +76,6 @@ export const validateSingleField = (fieldName, value, formData) => {
   const errors = {};
 
   switch (fieldName) {
-    case 'firstName':
-      if (!value || value.trim() === '') {
-        errors.firstName = 'Имя обязательно для заполнения';
-      } else if (value.trim().length < 2) {
-        errors.firstName = 'Имя должно содержать минимум 2 символа';
-      }
-      break;
-
-    case 'lastName':
-      if (!value || value.trim() === '') {
-        errors.lastName = 'Фамилия обязательна для заполнения';
-      } else if (value.trim().length < 2) {
-        errors.lastName = 'Фамилия должна содержать минимум 2 символа';
-      }
-      break;
-
     case 'propertyName':
       if (!value || value.trim() === '') {
         errors.propertyName = 'Название объекта обязательно для заполнения';

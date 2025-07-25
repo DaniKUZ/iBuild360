@@ -22,7 +22,7 @@ const ViewerControlsSidebar = ({
       icon: 'fas fa-columns',
       tooltip: 'Разделить экран',
       onClick: onSplitScreen,
-      isStub: true
+      isStub: false
     },
     {
       id: 'zoom-in',

@@ -1,7 +1,15 @@
 import { useState, useCallback } from 'react';
 
 const useVideo360Management = (initialVideos = []) => {
-  const [videos, setVideos] = useState(initialVideos);
+  // Нормализуем существующие видео, добавляя недостающие поля
+  const normalizedVideos = initialVideos.map(video => ({
+    ...video,
+    serverStatus: video.serverStatus || 'not_sent',
+    assignedFloorId: video.assignedFloorId || null,
+    tags: video.tags || []
+  }));
+  
+  const [videos, setVideos] = useState(normalizedVideos);
   const [uploadProgress, setUploadProgress] = useState({});
   const [analysisProgress, setAnalysisProgress] = useState({});
   const [dragActive, setDragActive] = useState(false);
@@ -20,6 +28,9 @@ const useVideo360Management = (initialVideos = []) => {
       thumbnail: null, // Будет сгенерирована после загрузки
       status: 'uploading', // uploading, ready, error
       analysisStatus: 'not_analyzed', // not_analyzed, analyzing, analyzed, error
+      serverStatus: 'not_sent', // not_sent, sending, sent, error
+      assignedFloorId: null, // ID привязанного этажа/схемы
+      tags: [], // Теги для видео
       extractedFrames: [], // Извлеченные кадры после анализа
       walkthrough: null // Данные для навигации по маршруту
     };
@@ -255,6 +266,27 @@ const useVideo360Management = (initialVideos = []) => {
     ));
   }, []);
 
+  // Обновление статуса отправки на сервер
+  const updateVideoServerStatus = useCallback((videoId, serverStatus) => {
+    setVideos(prev => prev.map(video => 
+      video.id === videoId ? { ...video, serverStatus } : video
+    ));
+  }, []);
+
+  // Обновление привязанного этажа
+  const updateVideoAssignedFloor = useCallback((videoId, floorId) => {
+    setVideos(prev => prev.map(video => 
+      video.id === videoId ? { ...video, assignedFloorId: floorId } : video
+    ));
+  }, []);
+
+  // Обновление тегов видео
+  const updateVideoTags = useCallback((videoId, tags) => {
+    setVideos(prev => prev.map(video => 
+      video.id === videoId ? { ...video, tags } : video
+    ));
+  }, []);
+
   // Запуск анализа видео
   const analyzeVideo = useCallback((videoId) => {
     const video = videos.find(v => v.id === videoId);
@@ -371,6 +403,9 @@ const useVideo360Management = (initialVideos = []) => {
     addVideo,
     updateVideoName,
     updateVideoShootingDate,
+    updateVideoServerStatus,
+    updateVideoAssignedFloor,
+    updateVideoTags,
     analyzeVideo,
     removeVideo,
     handleDragIn,

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './TopToolbar.module.css';
 
-const TopToolbar = ({ onCreateFieldNote, onCreateVideo, onShare, onDownloadScreen, onDownloadImage360 }) => {
+const TopToolbar = ({ onCreateFieldNote, onCreateVideo, onShare, onDownloadScreen, onDownloadImage360, isFieldNoteMode = false }) => {
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const downloadRef = useRef(null);
 
@@ -35,17 +35,14 @@ const TopToolbar = ({ onCreateFieldNote, onCreateVideo, onShare, onDownloadScree
 
   const handleCreateFieldNote = () => {
     onCreateFieldNote();
-    console.log('Создать полевую заметку - заглушка');
   };
 
   const handleCreateVideo = () => {
     onCreateVideo();
-    console.log('Создать покадровое видео - заглушка');
   };
 
   const handleShare = () => {
     onShare();
-    console.log('Поделиться - заглушка');
   };
 
   return (
@@ -53,11 +50,11 @@ const TopToolbar = ({ onCreateFieldNote, onCreateVideo, onShare, onDownloadScree
       <div className={styles.toolbarContainer}>
         {/* Кнопка создания полевой заметки */}
         <button
-          className={styles.toolbarButton}
+          className={`${styles.toolbarButton} ${isFieldNoteMode ? styles.active : ''}`}
           onClick={handleCreateFieldNote}
-          data-tooltip="Полевая заметка"
+          data-tooltip={isFieldNoteMode ? "Режим создания заметки активен. Кликните на изображение или нажмите снова для отмены" : "Создать полевую заметку"}
         >
-          <i className="fas fa-sticky-note"></i>
+          <i className={`fas ${isFieldNoteMode ? 'fa-crosshairs' : 'fa-sticky-note'}`}></i>
         </button>
 
         {/* Кнопка создания покадрового видео */}
@@ -120,6 +117,7 @@ TopToolbar.propTypes = {
   onShare: PropTypes.func,
   onDownloadScreen: PropTypes.func,
   onDownloadImage360: PropTypes.func,
+  isFieldNoteMode: PropTypes.bool,
 };
 
 TopToolbar.defaultProps = {

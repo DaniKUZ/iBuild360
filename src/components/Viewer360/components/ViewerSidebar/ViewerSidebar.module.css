@@ -1,0 +1,262 @@
+/* =============================================================================
+   VIEWER SIDEBAR - ПОЛЕВЫЕ ЗАМЕТКИ
+   ============================================================================= */
+
+.sidebarOverlay {
+  position: fixed;
+  top: 0;
+  left: var(--viewer-sidebar-width);
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 10000;
+  display: flex;
+}
+
+.sidebar {
+  width: 100%;
+  height: 100vh;
+  background: var(--background-card);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--background-primary);
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.header h3 i {
+  color: var(--color-primary);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.closeButton:hover {
+  background: var(--background-hover);
+  color: var(--text-primary);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+}
+
+/* =============================================================================
+   ПУСТОЕ СОСТОЯНИЕ
+   ============================================================================= */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  height: 60%;
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  color: var(--color-muted);
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.6;
+}
+
+.emptyState h4 {
+  margin: 0 0 var(--spacing-md);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.emptyState p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 280px;
+}
+
+/* =============================================================================
+   СПИСОК ЗАМЕТОК
+   ============================================================================= */
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.noteItem {
+  background: var(--background-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.noteItem:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(var(--color-primary-rgb), 0.1);
+  transform: translateY(-1px);
+}
+
+.noteHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.noteAuthor {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.noteAuthor i {
+  color: var(--color-muted);
+}
+
+.noteDate {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.noteDescription {
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-sm);
+  font-size: 0.9rem;
+}
+
+.noteFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.leftFooter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.noteStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.statusName {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.noteTags {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: var(--background-secondary);
+  color: var(--text-secondary);
+  padding: 2px var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.moreTagsIndicator {
+  background: var(--color-muted);
+  color: var(--background-card);
+  padding: 2px var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.noteTime {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.noteDueDate {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.noteDueDate i {
+  color: var(--color-warning);
+}
+
+/* =============================================================================
+   АДАПТИВНОСТЬ
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .content {
+    padding: var(--spacing-sm);
+  }
+  
+  .noteItem {
+    padding: var(--spacing-sm);
+  }
+  
+  .emptyState {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+  
+  .emptyIcon {
+    font-size: 3rem;
+  }
+  
+  .header {
+    padding: var(--spacing-md);
+  }
+} 

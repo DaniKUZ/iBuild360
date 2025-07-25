@@ -5,47 +5,6 @@ function GeneralAddSection({ formData, errors, onInputChange, onBlur }) {
 
   return (
     <>
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="firstName">
-            Имя <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="firstName"
-            name="firstName"
-            value={formData.firstName}
-            onChange={onInputChange}
-            onBlur={onBlur}
-            className={errors.firstName ? 'error' : ''}
-            placeholder="Введите имя"
-          />
-          {errors.firstName && (
-            <span className="error-message">{errors.firstName}</span>
-          )}
-        </div>
-        <div className="form-group">
-          <label htmlFor="lastName">
-            Фамилия <span className="required">*</span>
-          </label>
-          <input
-            type="text"
-            id="lastName"
-            name="lastName"
-            value={formData.lastName}
-            onChange={onInputChange}
-            onBlur={onBlur}
-            className={errors.lastName ? 'error' : ''}
-            placeholder="Введите фамилию"
-          />
-          {errors.lastName && (
-            <span className="error-message">{errors.lastName}</span>
-          )}
-        </div>
-      </div>
-
-
-
       <div className="form-group">
         <label htmlFor="propertyName">
           Название объекта <span className="required">*</span>
@@ -165,8 +124,6 @@ function GeneralAddSection({ formData, errors, onInputChange, onBlur }) {
 
 GeneralAddSection.propTypes = {
   formData: PropTypes.shape({
-    firstName: PropTypes.string.isRequired,
-    lastName: PropTypes.string.isRequired,
     propertyName: PropTypes.string.isRequired,
     address: PropTypes.string.isRequired,
     latitude: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

@@ -130,10 +130,13 @@
 
 .tag-edit {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
 .tag-edit input {
-  width: 100%;
+  flex: 1;
   padding: var(--spacing-sm);
   border: 1px solid var(--primary-color);
   border-radius: var(--radius-sm);

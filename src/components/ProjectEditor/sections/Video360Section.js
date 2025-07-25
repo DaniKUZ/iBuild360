@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 function Video360Section({ 
   videos,
+  floors = [],
   dragActive, 
   uploadProgress,
-  analysisProgress,
   onDragIn, 
   onDragOut, 
   onDrag, 
@@ -14,13 +14,26 @@ function Video360Section({
   onRemoveVideo,
   onUpdateVideoName,
   onUpdateVideoShootingDate,
-  onAnalyzeVideo,
+  onUpdateVideoServerStatus,
+  onUpdateVideoAssignedFloor,
+  onUpdateVideoTags,
   formatFileSize 
 }) {
   const [editingVideoId, setEditingVideoId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [editingDateId, setEditingDateId] = useState(null);
   const [editingDate, setEditingDate] = useState('');
+  const [selectedScheme, setSelectedScheme] = useState(''); // Добавляем состояние для выбранной схемы
+  const [sendingVideoId, setSendingVideoId] = useState(null); // Состояние отправки на сервер
+
+  // Эффект для инициализации selectedScheme из данных видео
+  useEffect(() => {
+    // Если есть видео с привязанным этажом, устанавливаем его как выбранную схему
+    const videoWithFloor = videos.find(video => video.assignedFloorId);
+    if (videoWithFloor && !selectedScheme) {
+      setSelectedScheme(videoWithFloor.assignedFloorId.toString());
+    }
+  }, [videos, selectedScheme]);
 
   const handleEditName = (video) => {
     setEditingVideoId(video.id);
@@ -95,44 +108,58 @@ function Video360Section({
     }
   };
 
-  const getAnalysisStatusIcon = (analysisStatus) => {
-    switch (analysisStatus) {
-      case 'not_analyzed':
-        return 'fas fa-clock';
-      case 'analyzing':
-        return 'fas fa-spinner fa-spin';
-      case 'analyzed':
-        return 'fas fa-check-circle';
-      case 'error':
-        return 'fas fa-exclamation-triangle';
-      default:
-        return 'fas fa-clock';
+
+
+  // Функции для определения статуса готовности
+  const getReadyStatusIcon = (video, selectedScheme) => {
+    if (video.serverStatus === 'sent') return 'fas fa-check-double';
+    if (video.serverStatus === 'error') return 'fas fa-exclamation-triangle';
+    if (video.status !== 'ready') return 'fas fa-clock';
+    if (!selectedScheme) return 'fas fa-layer-group';
+    if (!video.shootingDate) return 'fas fa-calendar-times';
+    return 'fas fa-check-circle';
+  };
+
+  const getReadyStatusText = (video, selectedScheme) => {
+    if (video.serverStatus === 'sent') return 'Отправлено';
+    if (video.serverStatus === 'error') return 'Ошибка отправки';
+    if (video.status !== 'ready') return 'Загружается...';
+    if (!selectedScheme) return 'Выберите схему';
+    if (!video.shootingDate) return 'Укажите дату съемки';
+    return 'Готово к отправке';
+  };
+
+  // Обработчик отправки на сервер (заглушка)
+  const handleSendToServer = async (videoId) => {
+    const video = videos.find(v => v.id === videoId);
+    const scheme = floors.find(floor => floor.id === parseInt(selectedScheme));
+    
+    if (!video.shootingDate) {
+      return;
     }
-  };
-
-  const getAnalysisStatusText = (analysisStatus) => {
-    switch (analysisStatus) {
-      case 'not_analyzed':
-        return 'Не проанализировано';
-      case 'analyzing':
-        return 'Анализ...';
-      case 'analyzed':
-        return 'Проанализировано';
-      case 'error':
-        return 'Ошибка анализа';
-      default:
-        return 'Неизвестно';
+    
+    // Начинаем отправку
+    setSendingVideoId(videoId);
+    onUpdateVideoServerStatus?.(videoId, 'sending');
+    onUpdateVideoAssignedFloor?.(videoId, parseInt(selectedScheme));
+    
+    try {
+      // Имитация отправки на сервер (3 секунды)
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Успешная отправка
+      console.log(`Отправлено на сервер:\nВидео: ${video.name}\nСхема: ${scheme.name}\nДата съемки: ${video.shootingDate}`);
+      
+      // Обновляем статус отправки
+      onUpdateVideoServerStatus?.(videoId, 'sent');
+      
+    } catch (error) {
+      console.error('Ошибка отправки на сервер:', error);
+      onUpdateVideoServerStatus?.(videoId, 'error');
+    } finally {
+      // Завершаем отправку
+      setSendingVideoId(null);
     }
-  };
-
-  const getAnalysisButtonText = (video) => {
-    if (video.analysisStatus === 'analyzing') return 'Анализируется...';
-    if (video.analysisStatus === 'analyzed') return 'Повторить анализ';
-    return 'Анализировать';
-  };
-
-  const canAnalyze = (video) => {
-    return video.status === 'ready' && video.analysisStatus !== 'analyzing';
   };
 
   return (
@@ -143,8 +170,53 @@ function Video360Section({
           Загрузка видео 360°
         </h3>
         <p className="video360-description">
-          Загрузите видео 360° для вашего проекта. После загрузки укажите дату съемки и запустите анализ для создания интерактивного маршрута.
+          Выберите схему, загрузите видео 360° для вашего проекта и отправьте на сервер для обработки.
         </p>
+      </div>
+
+      {/* Добавляем селектор схемы */}
+      <div className="scheme-selector-section">
+        <h4>Выбор схемы</h4>
+        <div className="scheme-selector">
+          <label htmlFor="scheme-select">
+            <i className="fas fa-layer-group"></i>
+            Выберите схему из секции "Схемы":
+          </label>
+          <select
+            id="scheme-select"
+            value={selectedScheme}
+            onChange={(e) => setSelectedScheme(e.target.value)}
+            className="scheme-select"
+            required
+          >
+            <option value="">-- Выберите схему --</option>
+            {floors.map(floor => (
+              <option key={floor.id} value={floor.id}>
+                {floor.name} - {floor.description}
+              </option>
+            ))}
+          </select>
+          {selectedScheme && (
+            <div className="selected-scheme-preview">
+              {(() => {
+                const selectedFloor = floors.find(floor => floor.id === parseInt(selectedScheme));
+                return selectedFloor ? (
+                  <div className="scheme-preview">
+                    <img 
+                      src={selectedFloor.thumbnail} 
+                      alt={selectedFloor.name}
+                      className="scheme-thumbnail" 
+                    />
+                    <div className="scheme-info">
+                      <h5>{selectedFloor.name}</h5>
+                      <p>{selectedFloor.description}</p>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="video360-content">
@@ -233,11 +305,19 @@ function Video360Section({
                       </p>
                       <p className="video-filename">{video.fileName}</p>
                       
+                      {/* Связанная схема */}
+                      {video.assignedFloorId && (
+                        <div className="video-scheme-info">
+                          <i className="fas fa-layer-group"></i>
+                          <span>Схема: {floors.find(floor => floor.id === video.assignedFloorId)?.name || 'Неизвестная схема'}</span>
+                        </div>
+                      )}
+                      
                       {/* Дата съемки */}
                       <div className="video-shooting-date">
-                        <label className="shooting-date-label">
+                        <label className="shooting-date-label required">
                           <i className="fas fa-calendar"></i>
-                          Дата съемки:
+                          Дата съемки: <span className="required-star">*</span>
                         </label>
                         {editingDateId === video.id ? (
                           <div className="date-edit-form">
@@ -279,33 +359,66 @@ function Video360Section({
                         )}
                       </div>
 
-                      {/* Статус анализа */}
-                      <div className="video-analysis-status">
-                        <span className="analysis-status-label">
-                          <i className={getAnalysisStatusIcon(video.analysisStatus)}></i>
-                          {getAnalysisStatusText(video.analysisStatus)}
+                      {/* Информация о готовности к отправке */}
+                      <div className="video-ready-status">
+                        <span className="ready-status-label">
+                          <i className={getReadyStatusIcon(video, selectedScheme)}></i>
+                          {getReadyStatusText(video, selectedScheme)}
                         </span>
-                        {video.analysisStatus === 'analyzed' && video.extractedFrames && (
-                          <span className="frames-count">
-                            ({video.extractedFrames.length} кадров)
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Кнопка анализа */}
-                  {video.status === 'ready' && (
-                    <div className="video-analysis-section">
-                      <button 
-                        className={`analyze-video-btn ${video.analysisStatus === 'analyzed' ? 'btn-secondary' : 'btn-primary'}`}
-                        onClick={() => onAnalyzeVideo(video.id)}
-                        disabled={!canAnalyze(video)}
-                        title="Извлечь кадры для создания маршрута"
-                      >
-                        <i className={video.analysisStatus === 'analyzing' ? 'fas fa-spinner fa-spin' : 'fas fa-microscope'}></i>
-                        {getAnalysisButtonText(video)}
-                      </button>
+                  {/* Кнопка отправки на сервер / Статус отправлено */}
+                  {video.status === 'ready' && selectedScheme && (
+                    <div className="video-send-section">
+                      {video.serverStatus === 'sent' ? (
+                        <div className="sent-status">
+                          <i className="fas fa-check-circle"></i>
+                          <span>Отправлено</span>
+                        </div>
+                      ) : video.serverStatus === 'error' ? (
+                        <div className="error-status">
+                          <i className="fas fa-exclamation-triangle"></i>
+                          <span>Ошибка отправки</span>
+                        </div>
+                      ) : (
+                        <button 
+                          className={`send-to-server-btn ${
+                            video.serverStatus === 'sending' || sendingVideoId === video.id ? 'btn-sending' :
+                            video.shootingDate ? 'btn-primary' : 'btn-disabled'
+                          }`}
+                          onClick={() => handleSendToServer(video.id)}
+                          disabled={!video.shootingDate || video.serverStatus === 'sending' || sendingVideoId === video.id}
+                          title={
+                            video.serverStatus === 'sending' || sendingVideoId === video.id ? "Отправляем на сервер..." :
+                            video.shootingDate ? "Отправить видео и схему на сервер для обработки" : 
+                            "Укажите дату съемки перед отправкой на сервер"
+                          }
+                        >
+                          {video.serverStatus === 'sending' || sendingVideoId === video.id ? (
+                            <>
+                              <i className="fas fa-spinner fa-spin"></i>
+                              Отправляем...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-cloud-upload-alt"></i>
+                              Отправить на сервер
+                            </>
+                          )}
+                        </button>
+                      )}
+                      
+                      {/* Прогресс отправки */}
+                      {(video.serverStatus === 'sending' || sendingVideoId === video.id) && (
+                        <div className="sending-progress">
+                          <div className="progress-bar">
+                            <div className="progress-fill sending-progress-fill"></div>
+                          </div>
+                          <span className="progress-text">Загружаем на сервер...</span>
+                        </div>
+                      )}
                     </div>
                   )}
                   
@@ -322,19 +435,7 @@ function Video360Section({
                     </div>
                   )}
 
-                  {/* Прогресс анализа */}
-                  {analysisProgress[video.id] !== undefined && analysisProgress[video.id] < 100 && (
-                    <div className="analysis-progress">
-                      <div className="progress-label">Анализ видео:</div>
-                      <div className="progress-bar">
-                        <div 
-                          className="progress-fill analysis-progress-fill"
-                          style={{ width: `${Math.round(analysisProgress[video.id])}%` }}
-                        ></div>
-                      </div>
-                      <span>{Math.round(analysisProgress[video.id])}%</span>
-                    </div>
-                  )}
+
                   
                   <button 
                     className="remove-video-btn"
@@ -352,17 +453,17 @@ function Video360Section({
         <div className="video360-instructions">
           <h4>Инструкция по работе с видео 360°:</h4>
           <ul>
+            <li><strong>Выбор схемы:</strong> Сначала выберите схему из секции "Схемы", к которой будет привязано видео</li>
             <li><strong>Загрузка:</strong> Поддерживаемые форматы: .MP4, .MOV, .AVI</li>
             <li><strong>Качество:</strong> Рекомендуемое разрешение: 4K (3840×1920) или выше</li>
             <li><strong>Размер:</strong> Максимальный размер файла: 2 GB</li>
             <li><strong>Формат:</strong> Видео должно быть записано в формате 360° (эквирекциональная проекция)</li>
             <li><strong>Частота кадров:</strong> Рекомендуемая частота: 30 fps</li>
             <li><strong>Название:</strong> Дайте видео понятное название (кликните по имени для редактирования)</li>
-            <li><strong>Дата съемки:</strong> Укажите дату, когда было снято видео (поможет в навигации)</li>
-            <li><strong>Анализ:</strong> После загрузки нажмите "Анализировать" для извлечения кадров каждую секунду</li>
-            <li><strong>Время анализа:</strong> Процесс зависит от длительности видео (примерно 1-2 минуты на каждые 10 минут видео)</li>
-            <li><strong>Просмотр:</strong> Проанализированное видео появится во вкладке "Видео 360°" в режиме просмотра</li>
-            <li><strong>Навигация:</strong> В режиме просмотра можно "гулять" по видео, переключаясь между кадрами</li>
+            <li><strong>Дата съемки:</strong> Обязательно укажите дату съемки видео (требуется для отправки на сервер)</li>
+            <li><strong>Отправка на сервер:</strong> После выбора схемы и загрузки видео нажмите "Отправить на сервер"</li>
+            <li><strong>Обработка:</strong> Сервер обработает видео и привяжет его к выбранной схеме</li>
+            <li><strong>Просмотр:</strong> Обработанное видео появится во вкладке "Видео 360°" в режиме просмотра</li>
           </ul>
         </div>
       </div>
@@ -372,9 +473,9 @@ function Video360Section({
 
 Video360Section.propTypes = {
   videos: PropTypes.array.isRequired,
+  floors: PropTypes.array.isRequired,
   dragActive: PropTypes.bool.isRequired,
   uploadProgress: PropTypes.object.isRequired,
-  analysisProgress: PropTypes.object.isRequired,
   onDragIn: PropTypes.func.isRequired,
   onDragOut: PropTypes.func.isRequired,
   onDrag: PropTypes.func.isRequired,
@@ -383,7 +484,9 @@ Video360Section.propTypes = {
   onRemoveVideo: PropTypes.func.isRequired,
   onUpdateVideoName: PropTypes.func.isRequired,
   onUpdateVideoShootingDate: PropTypes.func.isRequired,
-  onAnalyzeVideo: PropTypes.func.isRequired,
+  onUpdateVideoServerStatus: PropTypes.func,
+  onUpdateVideoAssignedFloor: PropTypes.func,
+  onUpdateVideoTags: PropTypes.func,
   formatFileSize: PropTypes.func.isRequired
 };
 

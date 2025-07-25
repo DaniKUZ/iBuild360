@@ -32,7 +32,78 @@
   box-shadow: 0 6px 25px rgba(76, 81, 191, 0.3);
 }
 
-/* Индикатор загрузки */
+/* Overlay для загрузки */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #4c51bf;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loadingText {
+  font-size: 16px;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Overlay для ошибки */
+.errorOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+  text-align: center;
+}
+
+.errorIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.errorText {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #ff6b6b;
+}
+
+.errorHint {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 400px;
+  line-height: 1.4;
+}
+
+/* Индикатор загрузки (старый стиль - оставляем для совместимости) */
 .loadingIndicator {
   position: absolute;
   top: 50%;
@@ -48,21 +119,6 @@
   gap: var(--spacing-md);
   backdrop-filter: blur(4px);
   z-index: 10;
-}
-
-.loadingSpinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--white-alpha-30);
-  border-top: 3px solid var(--primary-color);
-  border-radius: var(--radius-full);
-  animation: spin 1s linear infinite;
-}
-
-.loadingText {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  text-align: center;
 }
 
 @keyframes spin {

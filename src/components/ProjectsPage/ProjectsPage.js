@@ -20,20 +20,28 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
   const [selectedProjectForParticipants, setSelectedProjectForParticipants] = useState(null);
 
   const filteredProjects = useMemo(() => {
+    let filtered = [];
+    
     if (activeSubItem === 'active-projects') {
-      return projects.filter(project => {
+      filtered = projects.filter(project => {
         const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase());
         const isActive = project.status !== 'Завершен';
         return matchesSearch && isActive;
       });
     } else if (activeSubItem === 'closed-projects') {
-      return projects.filter(project => {
+      filtered = projects.filter(project => {
         const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase());
         const isClosed = project.status === 'Завершен';
         return matchesSearch && isClosed;
       });
     }
-    return [];
+    
+    // Сортировка по дате последнего обновления (новые сверху)
+    return filtered.sort((a, b) => {
+      const dateA = new Date(a.lastUpdate);
+      const dateB = new Date(b.lastUpdate);
+      return dateB - dateA; // По убыванию (новые сверху)
+    });
   }, [searchTerm, projects, activeSubItem]);
 
   const handleView360 = useCallback((projectId) => {

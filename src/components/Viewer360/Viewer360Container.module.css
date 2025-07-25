@@ -50,7 +50,7 @@
   padding: var(--spacing-md) 0;
   gap: var(--spacing-sm);
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  z-index: 9999;
+  z-index: 10001;
   transition: width var(--transition-normal) ease-in-out;
   overflow: hidden;
   border-right: 1px solid var(--border-color);
@@ -198,7 +198,125 @@
 
 .panoramaSection.comparisonMode .panoramaWrapper {
   width: 50%;
-  border-right: 2px solid var(--primary-color);
+}
+
+/* =============================================================================
+   РЕЖИМ РАЗДЕЛЕНИЯ ЭКРАНА
+   ============================================================================= */
+.splitScreenContainer {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+}
+
+.splitScreenMode {
+  display: flex;
+  flex-direction: row;
+}
+
+.splitScreenPanel {
+  width: 50%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.splitScreenPanel .panoramaWrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.splitScreenPanel .mainViewer {
+  width: 100%;
+  height: 100%;
+}
+
+/* Кнопки закрытия для панелей разделения экрана */
+.leftPanelClose {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.rightPanelClose {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.leftPanelClose:hover,
+.rightPanelClose:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
+.leftPanelClose:active,
+.rightPanelClose:active {
+  transform: scale(0.95);
+}
+
+/* Разделительная линия между панелями */
+.splitScreenPanel:first-child::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--border-color);
+  z-index: 100;
+}
+
+/* Индикаторы дат для панелей */
+.panelDateIndicator {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leftPanelDate {
+  /* Позиционирование для левой панели */
+}
+
+.rightPanelDate {
+  /* Позиционирование для правой панели */
 }
 
 .panoramaSection.comparisonMode .panoramaWrapper:last-child {
@@ -1583,6 +1701,22 @@
     width: 100% !important;
     height: 95vh !important;
   }
+}
+
+/* Режим создания полевых заметок */
+.fieldNoteMode {
+  cursor: crosshair !important;
+}
+
+.fieldNoteMode canvas {
+  cursor: crosshair !important;
+}
+
+/* Активное состояние кнопки в TopToolbar */
+:global(.active) {
+  background: var(--primary-color) !important;
+  color: var(--white) !important;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3) !important;
 }
 
  

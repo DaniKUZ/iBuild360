@@ -10,7 +10,7 @@ export const mockProjects = [
   {
     id: 1,
     name: "Жилой комплекс «Солнечный»",
-    lastUpdate: "2024-01-15",
+    lastUpdate: "2024-01-20",
     user: "ООО «СтройИнвест»",
     status: "В работе",
     preview: buildingimg1,
@@ -18,7 +18,21 @@ export const mockProjects = [
     latitude: 55.7558,
     longitude: 37.6173,
     captures: 127,
-    fieldNotes: 23,
+    fieldNotes: {
+      tags: [
+        'Архитектурный',
+        'BIM-сравнение',
+        'Гражданский',
+        'Конкретный',
+        'Снос'
+      ],
+      statuses: [
+        { id: 1, name: 'Приоритет1', color: '#e53e3e' },
+        { id: 2, name: 'Приоритет2', color: '#f56500' },
+        { id: 3, name: 'Приоритет3', color: '#d69e2e' },
+        { id: 4, name: 'Закрыто', color: '#38a169' }
+      ]
+    },
     floors: [
       {
         id: 1,
@@ -79,12 +93,21 @@ export const mockProjects = [
         dependencies: [2],
         responsible: "Отделочники"
       }
+    ],
+    bimFiles: [
+      {
+        id: 1,
+        name: "План первого этажа",
+        fileName: "floor_1_plan.ifc",
+        size: 2048576,
+        uploadDate: "2024-01-15"
+      }
     ]
   },
   {
     id: 2,
     name: "Многофункциональный торговый центр",
-    lastUpdate: "2024-01-17",
+    lastUpdate: "2024-01-18",
     user: "ГК «РосСтрой»",
     status: "Завершен",
     preview: buildingimg2,
@@ -92,7 +115,18 @@ export const mockProjects = [
     latitude: 55.6415,
     longitude: 37.4858,
     captures: 73,
-    fieldNotes: 19,
+    fieldNotes: {
+      tags: [
+        'Общий',
+        'Оборудование',
+        'Электрические'
+      ],
+      statuses: [
+        { id: 1, name: 'Приоритет1', color: '#e53e3e' },
+        { id: 2, name: 'Закрыто', color: '#38a169' },
+        { id: 3, name: 'Проверено', color: '#3182ce' }
+      ]
+    },
     floors: [
       {
         id: 4,
@@ -153,12 +187,28 @@ export const mockProjects = [
         dependencies: [2],
         responsible: "Арендаторы"
       }
+    ],
+    bimFiles: [
+      {
+        id: 2,
+        name: "Модель торгового центра",
+        fileName: "mall_structure.dwg",
+        size: 5242880,
+        uploadDate: "2024-01-17"
+      },
+      {
+        id: 3,
+        name: "Электрические схемы",
+        fileName: "electrical_layout.rvt",
+        size: 1024000,
+        uploadDate: "2024-01-16"
+      }
     ]
   },
   {
     id: 3,
     name: "Офисное здание бизнес-класса",
-    lastUpdate: "2024-01-13",
+    lastUpdate: "2024-01-16",
     user: "АО «МосГорСтрой»",
     status: "В работе",
     preview: buildingimg3,
@@ -166,7 +216,17 @@ export const mockProjects = [
     latitude: 59.8736,
     longitude: 30.2627,
     captures: 45,
-    fieldNotes: 12,
+    fieldNotes: {
+      tags: [
+        'Документ',
+        'Лифт',
+        'Пожарная сигнализация'
+      ],
+      statuses: [
+        { id: 1, name: 'Приоритет2', color: '#f56500' },
+        { id: 2, name: 'В ходе выполнения', color: '#805ad5' }
+      ]
+    },
     floors: [
       {
         id: 6,
@@ -226,6 +286,15 @@ export const mockProjects = [
         description: "Установка мебели и оборудования",
         dependencies: [2],
         responsible: "Монтажники"
+      }
+    ],
+    bimFiles: [
+      {
+        id: 4,
+        name: "Офисная планировка",
+        fileName: "office_layout.dwg",
+        size: 3145728,
+        uploadDate: "2024-01-13"
       }
     ]
   }

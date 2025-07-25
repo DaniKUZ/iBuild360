@@ -133,6 +133,13 @@
   animation: slideDown 0.2s ease-out;
 }
 
+/* Calendar Dropdown positioned at top */
+.calendarDropdownTop {
+  top: auto;
+  bottom: calc(100% + 8px);
+  animation: slideUp 0.2s ease-out;
+}
+
 .calendarHeader {
   display: flex;
   justify-content: space-between;
@@ -267,6 +274,17 @@
   from {
     opacity: 0;
     transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
   }
   to {
     opacity: 1;

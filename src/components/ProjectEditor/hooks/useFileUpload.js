@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-function useFileUpload() {
+function useFileUpload(initialFiles = []) {
   const [dragActive, setDragActive] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploadedFiles, setUploadedFiles] = useState(initialFiles);
   const [uploadProgress, setUploadProgress] = useState({});
   
   const activeIntervals = useRef(new Set());
