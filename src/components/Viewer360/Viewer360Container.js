@@ -9,12 +9,14 @@ import TopToolbar from './components/TopToolbar';
 import ViewerControlsSidebar from './components/ViewerControlsSidebar';
 import FieldNoteMarkers from './components/FieldNoteMarkers';
 import ViewerSidebar from './components/ViewerSidebar';
+import AIComparisonSidebar from './components/AIComparisonSidebar';
 import TimelapsesSection from './components/TimelapsesSection';
 import DroneShotsSection from './components/DroneShotsSection';
 import { FieldNoteModal, ParticipantModal } from '../ProjectEditor/modals';
 import usePanoramaSync from './components/PanoramaViewer/hooks/usePanoramaSync';
 import { useNavigate } from 'react-router-dom';
 import { getUserData } from '../../utils/userManager';
+import { API_CONFIG } from '../../config/api';
 import { 
   mockPhotoArchive, 
   getAllRooms, 
@@ -35,6 +37,25 @@ import opImg2Past from '../../data/img/OPImg360_2_past_floor2.jpg';
 import opImg3Past from '../../data/img/OPImg360_3_past_floor2.jpg';
 import opImg4Past from '../../data/img/OPImg360_4_past_floor2.jpg';
 import opImg5Past from '../../data/img/OPImg360_5_past_floor2.jpg';
+
+import opImg1PastPast from '../../data/img/OPImg360_1_past_past_floor2.jpg';
+import opImg2PastPast from '../../data/img/OPImg360_2_past_past_floor2.jpg';
+import opImg3PastPast from '../../data/img/OPImg360_3_past_past_floor2.jpg';
+import opImg4PastPast from '../../data/img/OPImg360_4_past_past_floor2.jpg';
+import opImg5PastPast from '../../data/img/OPImg360_5_past_past_floor2.jpg';
+
+// Импорты изображений OP первого этажа
+import opImg1CurrentFloor1 from '../../data/img/OPImg360_1_floor1.jpg';
+import opImg2CurrentFloor1 from '../../data/img/OPImg360_2_floor1.jpg';
+import opImg3CurrentFloor1 from '../../data/img/OPImg360_3_floor1.jpg';
+
+import opImg1PastFloor1 from '../../data/img/OPImg360_1_past_floor1.jpg';
+import opImg2PastFloor1 from '../../data/img/OPImg360_2_past_floor1.jpg';
+import opImg3PastFloor1 from '../../data/img/OPImg360_3_past_floor1.jpg';
+
+import opImg1PastPastFloor1 from '../../data/img/OPImg360_1_past_past_floor1.jpg';
+import opImg2PastPastFloor1 from '../../data/img/OPImg360_2_past_past_floor1.jpg';
+import opImg3PastPastFloor1 from '../../data/img/OPImg360_3_past_past_floor1.jpg';
 
 import styles from './Viewer360Container.module.css';
 
@@ -71,7 +92,7 @@ const Viewer360Container = ({ project, onBack }) => {
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   
   // Состояния для работы с изображениями OP второго этажа
-  const [currentOPImageIndex, setCurrentOPImageIndex] = useState(1); // Индекс от 1 до 5
+  const [currentOPImageIndex, setCurrentOPImageIndex] = useState(1); // Индекс изображения (1-3 для первого этажа, 1-5 для второго)
 
   // Состояния для полевых заметок
   const [isFieldNoteMode, setIsFieldNoteMode] = useState(false);
@@ -89,19 +110,208 @@ const Viewer360Container = ({ project, onBack }) => {
   const [isSplitScreenMode, setIsSplitScreenMode] = useState(false);
   const [leftPanelImage, setLeftPanelImage] = useState(null); // Изображение левой панели
   const [rightPanelImage, setRightPanelImage] = useState(null); // Изображение правой панели
-  const [leftPanelDate, setLeftPanelDate] = useState(new Date(2025, 6, 24)); // Дата для левой панели
-  const [rightPanelDate, setRightPanelDate] = useState(new Date(2025, 6, 12)); // Дата для правой панели
+  const [leftPanelDate, setLeftPanelDate] = useState(new Date(2025, 6, 24)); // Дата для левой панели (current)
+  const [rightPanelDate, setRightPanelDate] = useState(new Date(2025, 6, 12)); // Дата для правой панели (past)
+
+  // Состояния для AI сравнения
+  const [isAIComparisonSidebarVisible, setIsAIComparisonSidebarVisible] = useState(false);
+  const [aiComparisonImages, setAIComparisonImages] = useState([]); // Изображения для AI сравнения
+  const [aiAnalysisResult, setAIAnalysisResult] = useState(null); // Результат AI анализа
+  const [isAIAnalyzing, setIsAIAnalyzing] = useState(false); // Состояние процесса анализа
+
+
+
+  // Функция для анализа изображений с помощью OpenAI API
+  const analyzeImagesWithAI = async (images) => {
+    if (images.length !== 2) return;
+
+    setIsAIAnalyzing(true);
+    setAIAnalysisResult(null);
+
+    try {
+      // Конвертируем изображения в base64 с уменьшением размера
+      const imageDataPromises = images.map(async (image) => {
+        const response = await fetch(image.url);
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            // Создаем canvas для уменьшения размера
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Уменьшаем до максимум 800px по большей стороне
+            const maxSize = 800;
+            let { width, height } = img;
+            
+            if (width > height) {
+              if (width > maxSize) {
+                height = (height * maxSize) / width;
+                width = maxSize;
+              }
+            } else {
+              if (height > maxSize) {
+                width = (width * maxSize) / height;
+                height = maxSize;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Рисуем уменьшенное изображение
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Конвертируем в base64 с качеством 0.7
+            const base64data = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+            resolve(base64data);
+          };
+          img.src = URL.createObjectURL(blob);
+        });
+      });
+
+      const imageDataArray = await Promise.all(imageDataPromises);
+
+      const systemMessage = "Ты - строительный аналитик.";
+      const userPrompt = (
+        "Перед тобой две фотографии со строительной площадки, снятые с одинаковых ракурсов. " +
+        "Определи, какой прогресс сделан в строительных работах и выдай свой анализ. " +
+        "Анализируй фото максимально детально и точно, вывод напиши не очень объемный " +
+        "(вывод должен содержать, какие работы были завершены в промежутке между двумя фото)."
+      );
+
+      const messages = [
+        { "role": "system", "content": systemMessage },
+        { 
+          "role": "user", 
+          "content": [
+            { "type": "text", "text": userPrompt },
+            { "type": "image_url", "image_url": { "url": `data:image/jpeg;base64,${imageDataArray[0]}` } },
+            { "type": "image_url", "image_url": { "url": `data:image/jpeg;base64,${imageDataArray[1]}` } }
+          ]
+        }
+      ];
+
+      // Если демо-режим, используем локальную заглушку
+      if (API_CONFIG.USE_DEMO) {
+        // Имитируем задержку анализа
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const demoResult = `🏗️ АНАЛИЗ СТРОИТЕЛЬНОГО ПРОГРЕССА:
+
+📊 За период между фотографиями выполнены следующие работы:
+
+✅ ЗАВЕРШЕННЫЕ РАБОТЫ:
+• Установлена внутренняя перегородка в левой части помещения  
+• Выполнена штукатурка стен в центральной зоне
+• Проложена электропроводка по потолку
+• Установлены оконные рамы
+
+🔄 НАЧАТЫЕ РАБОТЫ:
+• Подготовка пола под финишное покрытие
+• Монтаж системы вентиляции
+
+📈 ПРОГРЕСС: Примерно 65% работ по данному участку завершены.
+
+⚠️ ДЕМО-РЕЖИМ: Для получения реального AI анализа необходимо настроить сервер с поддержкой OpenAI API.`;
+
+        setAIAnalysisResult(demoResult);
+        setIsAIAnalyzing(false);
+        return;
+      }
+
+      // Для реального API
+      let apiUrl = API_CONFIG.OPENAI_API_URL;
+      let headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_CONFIG.OPENAI_API_KEY}`
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: messages,
+          max_tokens: 400,
+          temperature: 0.2
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `OpenAI API error: ${response.status} - ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const analysisText = data.choices[0].message.content.trim();
+      
+      setAIAnalysisResult(analysisText);
+    } catch (error) {
+      console.error('Ошибка при анализе изображений:', error);
+      setAIAnalysisResult('Произошла ошибка при анализе изображений. Попробуйте еще раз.');
+    } finally {
+      setIsAIAnalyzing(false);
+    }
+  };
+
+  // Функция добавления изображений для AI сравнения
+  const handleAddToAIComparison = () => {
+    if (!isSplitScreenMode || !leftPanelImage || !rightPanelImage) return;
+    
+    // Проверяем, что изображения из разных дат
+    if (leftPanelDate.getTime() === rightPanelDate.getTime()) {
+      alert('Нельзя сравнить одинаковые изображения. Выберите изображения из разных дат.');
+      return;
+    }
+
+    const newImages = [
+      {
+        url: getLeftPanelImageUrl(),
+        date: leftPanelDate.toISOString()
+      },
+      {
+        url: getRightPanelImageUrl(),
+        date: rightPanelDate.toISOString()
+      }
+    ];
+
+    setAIComparisonImages(newImages);
+    setCurrentSidebarSection('ai-comparison');
+    setIsAIComparisonSidebarVisible(true);
+  };
+
+  // Функция закрытия AI сравнения
+  const handleCloseAIComparison = () => {
+    setIsAIComparisonSidebarVisible(false);
+  };
 
   // Логгирование изменений viewMode для отладки
   useEffect(() => {
     console.log('Viewer360Container: ViewMode changed to:', viewMode);
   }, [viewMode]);
   
-  // Доступные даты для календаря
-  const availableDates = [
-    new Date(2025, 6, 12), // 12 июля 2025
-    new Date(2025, 6, 24)  // 24 июля 2025
-  ];
+  // Функция для получения доступных дат в зависимости от этажа
+  const getAvailableDates = (floorId) => {
+    if (floorId === 1) {
+      // Первый этаж: 21 июля (только current), 12 июля (current + past), 4 июля (current + past + past_past)
+      return [
+        new Date(2025, 6, 4),  // 4 июля 2025 - past_past
+        new Date(2025, 6, 12), // 12 июля 2025 - past
+        new Date(2025, 6, 21)  // 21 июля 2025 - current
+      ];
+    } else {
+      // Второй этаж (по умолчанию): 1 июля (past_past), 12 июля (past), 24 июля (current)
+      return [
+        new Date(2025, 6, 1),  // 1 июля 2025 - past_past
+        new Date(2025, 6, 12), // 12 июля 2025 - past
+        new Date(2025, 6, 24)  // 24 июля 2025 - current
+      ];
+    }
+  };
+
+  // Получаем доступные даты для текущего этажа
+  const availableDates = getAvailableDates(selectedScheme?.id || 2);
 
   // Refs для вьюверов
   const mainViewerRef = useRef(null);
@@ -134,6 +344,31 @@ const Viewer360Container = ({ project, onBack }) => {
     }
   }, [project, selectedScheme]);
 
+  // Обновляем selectedDate при смене этажа, если текущая дата недоступна
+  React.useEffect(() => {
+    if (selectedScheme) {
+      const floorId = selectedScheme.id;
+      const currentDates = getAvailableDates(floorId);
+      
+      // Проверяем, доступна ли текущая выбранная дата для нового этажа
+      const isCurrentDateAvailable = currentDates.some(date => 
+        date.toDateString() === selectedDate.toDateString()
+      );
+      
+      // Если текущая дата недоступна, выбираем самую новую доступную дату
+      if (!isCurrentDateAvailable) {
+        setSelectedDate(currentDates[currentDates.length - 1]); // Самая новая дата (current)
+      }
+
+      // Проверяем и корректируем индекс изображения для нового этажа
+      const maxIndex = getMaxImageIndex(floorId);
+      if (currentOPImageIndex > maxIndex) {
+        console.log(`🔧 Сброс индекса изображения с ${currentOPImageIndex} на ${maxIndex} для этажа ${floorId}`);
+        setCurrentOPImageIndex(maxIndex);
+      }
+    }
+  }, [selectedScheme]);
+
   // Закрытие dropdown при клике вне его области
   React.useEffect(() => {
     const handleClickOutside = (event) => {
@@ -159,6 +394,7 @@ const Viewer360Container = ({ project, onBack }) => {
     { id: 'images', icon: 'fas fa-image', label: 'Изображение', isActive: true },
     { id: 'schemes', icon: 'fas fa-layer-group', label: 'Схемы' },
     { id: 'field-notes', icon: 'fas fa-sticky-note', label: 'Полевые заметки' },
+    { id: 'ai-comparison', icon: 'fas fa-brain', label: 'AI сравнение' },
     { id: 'timelapses', icon: 'fas fa-clock', label: 'Таймлапсы' },
     { id: 'drone-shots', icon: 'fas fa-helicopter', label: 'Съемка с дронов' },
     { id: 'separator-2', type: 'separator' },
@@ -287,6 +523,7 @@ const Viewer360Container = ({ project, onBack }) => {
     setIsFieldNotesSidebarVisible(false);
     setIsTimelapsesSectionVisible(false);
     setIsDroneShotsSectionVisible(false);
+    setIsAIComparisonSidebarVisible(false);
     
     if (item.action) {
       item.action();
@@ -303,6 +540,11 @@ const Viewer360Container = ({ project, onBack }) => {
       setCurrentSidebarSection('field-notes');
       setViewMode('generic360');
       setIsFieldNotesSidebarVisible(true);
+    } else if (item.id === 'ai-comparison') {
+      // Пункт "AI сравнение" - показываем сайдбар AI сравнения
+      setCurrentSidebarSection('ai-comparison');
+      setViewMode('generic360');
+      setIsAIComparisonSidebarVisible(true);
     } else if (item.id === 'timelapses') {
       // Пункт "Таймлапсы" - показываем раздел таймлапсов
       setCurrentSidebarSection('timelapses');
@@ -341,7 +583,7 @@ const Viewer360Container = ({ project, onBack }) => {
   };
 
   // Объект с изображениями OP второго этажа
-  const opImages = {
+  const opImagesFloor2 = {
     current: {
       1: opImg1Current,
       2: opImg2Current,
@@ -355,6 +597,84 @@ const Viewer360Container = ({ project, onBack }) => {
       3: opImg3Past,
       4: opImg4Past,
       5: opImg5Past
+    },
+    pastPast: {
+      1: opImg1PastPast,
+      2: opImg2PastPast,
+      3: opImg3PastPast,
+      4: opImg4PastPast,
+      5: opImg5PastPast
+    }
+  };
+
+  // Объект с изображениями OP первого этажа
+  const opImagesFloor1 = {
+    current: {
+      1: opImg1CurrentFloor1,
+      2: opImg2CurrentFloor1,
+      3: opImg3CurrentFloor1
+    },
+    past: {
+      1: opImg1PastFloor1,
+      2: opImg2PastFloor1,
+      3: opImg3PastFloor1
+    },
+    pastPast: {
+      1: opImg1PastPastFloor1,
+      2: opImg2PastPastFloor1,
+      3: opImg3PastPastFloor1
+    }
+  };
+
+  // Начальные позиции камеры для каждого изображения
+  const initialCameraPositions = {
+    // Второй этаж
+    floor2: {
+      // 1 июля 2025 - past_past
+      'Sat Jul 01 2025': {
+        1: { yaw: 171.76, pitch: 1.41, fov: 75 },
+        2: { yaw: 64.21, pitch: 2.79, fov: 75 },
+        3: { yaw: 180.38, pitch: 1.01, fov: 75 },
+        4: { yaw: 53.93, pitch: 3.83, fov: 75 },
+        5: { yaw: 63.83, pitch: 5.55, fov: 75 }
+      },
+      // 12 июля 2025 - past
+      'Sat Jul 12 2025': {
+        1: { yaw: 54.42, pitch: 1.41, fov: 75 },
+        2: { yaw: 91.29, pitch: 3.3, fov: 75 },
+        3: { yaw: 341.94, pitch: 0.27, fov: 75 },
+        4: { yaw: 177.46, pitch: 2.58, fov: 75 },
+        5: { yaw: 157.31, pitch: 3.83, fov: 75 }
+      },
+      // 24 июля 2025 - current
+      'Thu Jul 24 2025': {
+        1: { yaw: 170.22, pitch: 2.1, fov: 75 },
+        2: { yaw: 79.71, pitch: 3.53, fov: 75 },
+        3: { yaw: 87.02, pitch: -2.67, fov: 75 },
+        4: { yaw: 140.7, pitch: 4.84, fov: 75 },
+        5: { yaw: 57.84, pitch: 2.69, fov: 75 }
+      }
+    },
+    // Первый этаж
+    floor1: {
+      // 4 июля 2025 - past_past
+      'Fri Jul 04 2025': {
+        1: { yaw: 262.27, pitch: 5.64, fov: 75 },
+        2: { yaw: 60.97, pitch: 0.63, fov: 75 },
+        3: { yaw: 146.22, pitch: 12.17, fov: 75 }
+      },
+      // 12 июля 2025 - past
+      'Sat Jul 12 2025': {
+        1: { yaw: 124, pitch: 4.95, fov: 75 },
+        2: { yaw: 74.42, pitch: 1.33, fov: 75 },
+        3: { yaw: 87.29, pitch: 5.49, fov: 75 }
+      },
+      // 21 июля 2025 - current
+      'Mon Jul 21 2025': {
+        1: { yaw: 323.57, pitch: 5.64, fov: 75 },
+        2: { yaw: 280.27, pitch: 5.53, fov: 75 },
+        3: { yaw: 187.64, pitch: -0.17, fov: 75 }
+      }
     }
   };
 
@@ -382,8 +702,37 @@ const Viewer360Container = ({ project, onBack }) => {
     return getShootingTime(); // Используем тот же индекс кадра
   };
 
+  // Функция для получения максимального индекса изображений для этажа
+  const getMaxImageIndex = (floorId) => {
+    return floorId === 1 ? 3 : 5; // Первый этаж: 3 изображения, второй этаж: 5 изображений
+  };
+
+  // Функция для получения начальной позиции камеры
+  const getInitialCameraPosition = (floorId, date, imageIndex) => {
+    const floorKey = `floor${floorId}`;
+    const dateKey = date.toDateString();
+    
+    const position = initialCameraPositions[floorKey]?.[dateKey]?.[imageIndex];
+    
+    if (position) {
+      console.log(`📸 Позиция камеры: этаж ${floorId}, изображение ${imageIndex}`, position);
+      return position;
+    }
+    
+    // Позиция по умолчанию
+    const defaultPosition = { yaw: 0, pitch: 0, fov: 75 };
+    console.warn(`⚠️ Позиция не найдена для этажа ${floorId}, даты ${dateKey}, изображения ${imageIndex}. Используется позиция по умолчанию.`);
+    return defaultPosition;
+  };
+
   // Функция для получения URL изображения OP на основе даты и индекса
   const getOPImageUrl = (date = selectedDate) => {
+    const floorId = selectedScheme?.id || 2;
+    const currentDates = getAvailableDates(floorId);
+    
+    // Выбираем правильный набор изображений в зависимости от этажа
+    const opImages = floorId === 1 ? opImagesFloor1 : opImagesFloor2;
+    
     // Временно используем img360 для проверки что вообще что-то отображается
     if (!opImg1Current) {
       console.warn('OP images not loaded, using fallback img360');
@@ -394,17 +743,28 @@ const Viewer360Container = ({ project, onBack }) => {
     if (!img360) {
       console.warn('img360 fallback not available');
       // Попробуем найти любое доступное изображение
-      const fallbackImage = opImg1Current || opImg1Past;
+      const fallbackImage = opImg1Current || opImg1Past || opImg1PastPast || opImg1CurrentFloor1;
       if (fallbackImage) {
         console.log('Using first available OP image as fallback');
         return fallbackImage;
       }
     }
     
-    // Поменяли местами: 12 июля 2025 теперь показывает past, 24 июля 2025 - current
-    const isPastDate = date.getTime() === availableDates[0].getTime(); // 12 июля 2025 - past
-    const imageSet = isPastDate ? opImages.past : opImages.current;
-    const imageUrl = imageSet[currentOPImageIndex] || img360;
+    // Определяем набор изображений на основе даты и этажа
+    let imageSet;
+    if (date.getTime() === currentDates[0].getTime()) { // Самая ранняя дата - pastPast
+      imageSet = opImages.pastPast;
+    } else if (date.getTime() === currentDates[1].getTime()) { // Средняя дата - past
+      imageSet = opImages.past;
+    } else { // Самая поздняя дата - current
+      imageSet = opImages.current;
+    }
+    
+    // Для первого этажа максимальный индекс 3, для второго - 5
+    const maxIndex = floorId === 1 ? 3 : 5;
+    const imageIndex = currentOPImageIndex <= maxIndex ? currentOPImageIndex : 1;
+    
+    const imageUrl = imageSet[imageIndex] || img360;
     
     return imageUrl;
   };
@@ -419,9 +779,23 @@ const Viewer360Container = ({ project, onBack }) => {
     return getOPImageUrl(rightPanelDate);
   };
 
+  // Функция для получения начальной позиции камеры для левой панели
+  const getLeftPanelInitialCamera = () => {
+    const floorId = selectedScheme?.id || 2;
+    return getInitialCameraPosition(floorId, leftPanelDate, currentOPImageIndex);
+  };
+
+  // Функция для получения начальной позиции камеры для правой панели
+  const getRightPanelInitialCamera = () => {
+    const floorId = selectedScheme?.id || 2;
+    return getInitialCameraPosition(floorId, rightPanelDate, currentOPImageIndex);
+  };
+
   // Проверка доступности даты
   const isDateAvailable = (date) => {
-    return availableDates.some(availableDate => 
+    const floorId = selectedScheme?.id || 2;
+    const currentDates = getAvailableDates(floorId);
+    return currentDates.some(availableDate => 
       availableDate.toDateString() === date.toDateString()
     );
   };
@@ -461,9 +835,41 @@ const Viewer360Container = ({ project, onBack }) => {
   // Сохраняем позицию камеры для восстановления при смене изображения
   const savedCameraPositionRef = useRef({ yaw: 0, pitch: 0, fov: 75 });
 
-  // Обновляем сохраненную позицию при изменении камеры пользователем
+  // Флаг для отслеживания, устанавливаем ли мы начальную позицию программно
+  const isSettingInitialPositionRef = useRef(false);
+
+  // Обновляем начальную позицию камеры при смене этажа, даты или изображения
   useEffect(() => {
-    savedCameraPositionRef.current = currentCamera;
+    // Не устанавливаем начальную позицию в режимах сравнения или разделения экрана
+    // чтобы не мешать синхронизации камер
+    if (isComparisonMode || isSplitScreenMode) {
+      console.log('🚫 Пропускаем установку начальной позиции в режиме сравнения/разделения экрана');
+      return;
+    }
+
+    const floorId = selectedScheme?.id || 2;
+    const initialPosition = getInitialCameraPosition(floorId, selectedDate, currentOPImageIndex);
+    
+    console.log(`🔄 Инициализация камеры: этаж ${floorId}, изображение ${currentOPImageIndex}`);
+    
+    // Устанавливаем флаг что мы программно обновляем позицию
+    isSettingInitialPositionRef.current = true;
+    
+    // Обновляем позиции
+    savedCameraPositionRef.current = initialPosition;
+    setCurrentCamera(initialPosition);
+    
+    // Сбрасываем флаг через небольшую задержку
+    setTimeout(() => {
+      isSettingInitialPositionRef.current = false;
+    }, 100);
+  }, [selectedScheme, selectedDate, currentOPImageIndex, isComparisonMode, isSplitScreenMode]);
+
+  // Обновляем сохраненную позицию при изменении камеры пользователем (НЕ программно)
+  useEffect(() => {
+    if (!isSettingInitialPositionRef.current) {
+      savedCameraPositionRef.current = currentCamera;
+    }
   }, [currentCamera]);
 
   // Логика восстановления позиции теперь не нужна, 
@@ -493,7 +899,9 @@ const Viewer360Container = ({ project, onBack }) => {
 
   const handleVideoNextFrame = () => {
     setCurrentOPImageIndex(prev => {
-      const newIndex = Math.min(5, prev + 1);
+      const floorId = selectedScheme?.id || 2;
+      const maxIndex = getMaxImageIndex(floorId);
+      const newIndex = Math.min(maxIndex, prev + 1);
       // Обновляем изображения в режиме разделения
       if (isSplitScreenMode) {
         setLeftPanelImage(getOPImageUrl(leftPanelDate));
@@ -504,7 +912,9 @@ const Viewer360Container = ({ project, onBack }) => {
   };
 
   const handleVideoLastFrame = () => {
-    setCurrentOPImageIndex(5);
+    const floorId = selectedScheme?.id || 2;
+    const maxIndex = getMaxImageIndex(floorId);
+    setCurrentOPImageIndex(maxIndex);
     // Обновляем изображения в режиме разделения
     if (isSplitScreenMode) {
       setLeftPanelImage(getOPImageUrl(leftPanelDate));
@@ -516,6 +926,8 @@ const Viewer360Container = ({ project, onBack }) => {
     // Заглушка - переключаем состояние для демонстрации
     setHasActiveFilters(prev => !prev);
   };
+
+
 
   // Обработчики для верхнего тулбара
   const handleCreateFieldNote = () => {
@@ -769,10 +1181,12 @@ const Viewer360Container = ({ project, onBack }) => {
     } else {
       // Включаем режим разделения экрана
       // Инициализируем панели с разными датами для сравнения
-      setLeftPanelDate(availableDates[1]); // 24 июля 2025 (current)
-      setRightPanelDate(availableDates[0]); // 12 июля 2025 (past)
-      setLeftPanelImage(getOPImageUrl(availableDates[1]));
-      setRightPanelImage(getOPImageUrl(availableDates[0]));
+      const floorId = selectedScheme?.id || 2;
+      const currentDates = getAvailableDates(floorId);
+      setLeftPanelDate(currentDates[2]); // Самая новая дата (current)
+      setRightPanelDate(currentDates[1]); // Средняя дата (past)
+      setLeftPanelImage(getOPImageUrl(currentDates[2]));
+      setRightPanelImage(getOPImageUrl(currentDates[1]));
       setIsSplitScreenMode(true);
     }
   };
@@ -950,10 +1364,25 @@ const Viewer360Container = ({ project, onBack }) => {
   const handleMainCameraChange = React.useCallback((cameraData) => {
     const currentIsComparisonMode = isComparisonModeRef.current;
     setCurrentCamera(cameraData);
+    
+    // Логирование координат камеры для настройки начальных позиций
+    const floorId = selectedScheme?.id || 2;
+    const dateKey = selectedDate.toDateString();
+    console.log(`📹 КООРДИНАТЫ КАМЕРЫ:`, {
+      floor: floorId,
+      date: dateKey,
+      imageIndex: currentOPImageIndex,
+      coordinates: {
+        yaw: Math.round(cameraData.yaw * 100) / 100,
+        pitch: Math.round(cameraData.pitch * 100) / 100,
+        fov: Math.round(cameraData.fov * 100) / 100
+      }
+    });
+    
     if (currentIsComparisonMode) {
       sync.throttledSyncFromMain(cameraData);
     }
-  }, [sync.throttledSyncFromMain]);
+  }, [sync.throttledSyncFromMain, selectedScheme, selectedDate, currentOPImageIndex]);
 
   const handleComparisonCameraChange = React.useCallback((cameraData) => {
     const currentIsComparisonMode = isComparisonModeRef.current;
@@ -1311,6 +1740,69 @@ const Viewer360Container = ({ project, onBack }) => {
   const renderSchemesMinimap = () => {
     if (!project?.floors) return null;
 
+    // Данные контрольных точек для каждого этажа
+    const floorRouteData = {
+      1: {
+        points: [
+          { id: 1, x: 35, y: 60, name: 'Точка 1' },
+          { id: 2, x: 50, y: 50, name: 'Точка 2' },
+          { id: 3, x: 65, y: 40, name: 'Точка 3' }
+        ],
+        routes: [
+          { from: 1, to: 2 },
+          { from: 2, to: 3 }
+        ]
+      },
+      2: {
+        points: [
+          { id: 1, x: 30, y: 65, name: 'Точка 1' },
+          { id: 2, x: 40, y: 55, name: 'Точка 2' },
+          { id: 3, x: 50, y: 45, name: 'Точка 3' },
+          { id: 4, x: 60, y: 35, name: 'Точка 4' },
+          { id: 5, x: 70, y: 25, name: 'Точка 5' }
+        ],
+        routes: [
+          { from: 1, to: 2 },
+          { from: 2, to: 3 },
+          { from: 3, to: 4 },
+          { from: 4, to: 5 }
+        ]
+      }
+    };
+
+    // Определяем текущий этаж на основе selectedScheme
+    const getCurrentFloor = () => {
+      if (!selectedScheme) return 2;
+      if (selectedScheme.name && selectedScheme.name.includes('1-й этаж')) return 1;
+      if (selectedScheme.id === 1) return 1;
+      return 2;
+    };
+
+    const currentFloor = getCurrentFloor();
+    const currentFloorData = floorRouteData[currentFloor];
+
+    // Обработчик клика по контрольной точке
+    const handleRoutePointClick = (pointId) => {
+      console.log(`🗺️ Переход к точке ${pointId} на этаже ${currentFloor}`);
+      setCurrentOPImageIndex(pointId);
+      
+      // Обновляем изображения в режиме разделения экрана
+      if (isSplitScreenMode) {
+        setLeftPanelImage(getOPImageUrl(leftPanelDate));
+        setRightPanelImage(getOPImageUrl(rightPanelDate));
+      }
+    };
+
+    // Функция для создания SVG путей между точками
+    const createRoutePath = (route) => {
+      const fromPoint = currentFloorData.points.find(p => p.id === route.from);
+      const toPoint = currentFloorData.points.find(p => p.id === route.to);
+      
+      if (!fromPoint || !toPoint) return '';
+      
+      return `M ${fromPoint.x} ${fromPoint.y} L ${toPoint.x} ${toPoint.y}`;
+    };
+
     const filteredSchemes = project.floors.filter(floor => 
       floor.name.toLowerCase().includes(schemeSearchQuery.toLowerCase()) ||
       floor.description.toLowerCase().includes(schemeSearchQuery.toLowerCase())
@@ -1474,6 +1966,66 @@ const Viewer360Container = ({ project, onBack }) => {
                 } : {}}
                 draggable={false}
               />
+              
+              {/* SVG оверлей для маршрутов и точек */}
+              {currentFloorData && (
+                <svg 
+                  className={styles.routeOverlay} 
+                  viewBox="0 0 100 100" 
+                  preserveAspectRatio="none"
+                  style={isMinimapExpanded ? {
+                    transform: `translate(${minimapPosition.x}px, ${minimapPosition.y}px) scale(${minimapZoom})`,
+                    transformOrigin: 'center center',
+                  } : {}}
+                >
+                  {/* Маршруты */}
+                  {currentFloorData.routes.map((route, index) => (
+                    <path
+                      key={index}
+                      d={createRoutePath(route)}
+                      className={styles.routePath}
+                      strokeDasharray="5,5"
+                    />
+                  ))}
+                  
+                  {/* Контрольные точки */}
+                  {currentFloorData.points.map((point) => (
+                    <g key={point.id}>
+                      {/* Внешний круг (подсветка для активной точки) */}
+                      {currentOPImageIndex === point.id && (
+                        <circle
+                          cx={point.x}
+                          cy={point.y}
+                          r="4"
+                          className={styles.activePointRing}
+                        />
+                      )}
+                      
+                      {/* Основная точка */}
+                      <circle
+                        cx={point.x}
+                        cy={point.y}
+                        r="2.5"
+                        className={`${styles.controlPoint} ${
+                          currentOPImageIndex === point.id ? styles.active : ''
+                        }`}
+                        onClick={() => handleRoutePointClick(point.id)}
+                      />
+                      
+                      {/* Номер точки */}
+                      <text
+                        x={point.x}
+                        y={point.y + 0.8}
+                        className={styles.pointNumber}
+                        textAnchor="middle"
+                        onClick={() => handleRoutePointClick(point.id)}
+                      >
+                        {point.id}
+                      </text>
+                    </g>
+                  ))}
+                </svg>
+              )}
             </div>
           </div>
         )}
@@ -1511,7 +2063,7 @@ const Viewer360Container = ({ project, onBack }) => {
             onPanoramaClick={isFieldNoteMode ? handlePanoramaClick : undefined}
             className={`${styles.mainViewer} ${isFieldNoteMode ? styles.fieldNoteMode : ''}`}
             initialCamera={savedCameraPositionRef.current}
-            key={`panorama-${currentOPImageIndex}-${selectedDate.getTime()}`}
+            key={`panorama-${selectedScheme?.id || 2}-${currentOPImageIndex}-${selectedDate.getTime()}`}
             isFieldNoteMode={isFieldNoteMode}
           />
           
@@ -1602,9 +2154,9 @@ const Viewer360Container = ({ project, onBack }) => {
                 onCameraChange={handleLeftPanelCameraChange}
                 onPanoramaClick={isFieldNoteMode ? handlePanoramaClick : undefined}
                 className={`${styles.mainViewer} ${isFieldNoteMode ? styles.fieldNoteMode : ''}`}
-                initialCamera={savedCameraPositionRef.current}
+                initialCamera={getLeftPanelInitialCamera()}
                 isFieldNoteMode={isFieldNoteMode}
-                key={`left-panel-${leftPanelDate.getTime()}`}
+                key={`left-panel-${leftPanelDate.getTime()}-${currentOPImageIndex}`}
               />
               
               {/* Маркеры полевых заметок для левой панели */}
@@ -1677,6 +2229,22 @@ const Viewer360Container = ({ project, onBack }) => {
             </div>
           </div>
 
+          {/* Кнопка сравнения между панелями */}
+          <div className={styles.compareButtonContainer}>
+            <button 
+              className={styles.compareButton}
+              onClick={handleAddToAIComparison}
+              disabled={!leftPanelImage || !rightPanelImage || leftPanelDate.getTime() === rightPanelDate.getTime()}
+              title={leftPanelDate.getTime() === rightPanelDate.getTime() ? 
+                "Нельзя сравнить одинаковые изображения" : 
+                "Добавить в AI сравнение"
+              }
+            >
+              <i className="fas fa-magic"></i>
+              <span>Сравнить</span>
+            </button>
+          </div>
+
           {/* Правая панель */}
           <div className={styles.splitScreenPanel}>
             <div className={styles.panoramaWrapper}>
@@ -1686,9 +2254,9 @@ const Viewer360Container = ({ project, onBack }) => {
                 onCameraChange={handleRightPanelCameraChange}
                 onPanoramaClick={isFieldNoteMode ? handlePanoramaClick : undefined}
                 className={`${styles.mainViewer} ${isFieldNoteMode ? styles.fieldNoteMode : ''}`}
-                initialCamera={savedCameraPositionRef.current}
+                initialCamera={getRightPanelInitialCamera()}
                 isFieldNoteMode={isFieldNoteMode}
-                key={`right-panel-${rightPanelDate.getTime()}`}
+                key={`right-panel-${rightPanelDate.getTime()}-${currentOPImageIndex}`}
               />
               
               {/* Маркеры полевых заметок для правой панели */}
@@ -1853,6 +2421,16 @@ const Viewer360Container = ({ project, onBack }) => {
           onClose={handleCloseFieldNotesSidebar}
         />
         
+        {/* Сайдбар AI сравнения */}
+        <AIComparisonSidebar
+          isVisible={isAIComparisonSidebarVisible}
+          comparisonImages={aiComparisonImages}
+          onClose={handleCloseAIComparison}
+          onAnalyze={analyzeImagesWithAI}
+          analysisResult={aiAnalysisResult}
+          isAnalyzing={isAIAnalyzing}
+        />
+        
         {/* Раздел таймлапсов */}
         {isTimelapsesSectionVisible && (
           <TimelapsesSection
@@ -1877,6 +2455,8 @@ const Viewer360Container = ({ project, onBack }) => {
           currentUser={currentUser}
           onAddParticipant={handleAddParticipant}
         />
+
+
       </div>
     </div>
   );

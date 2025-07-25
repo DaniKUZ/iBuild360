@@ -2,9 +2,14 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
+require('dotenv').config();
 
-module.exports = {
-  mode: 'production',
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === 'production';
+
+  return {
+  mode: argv.mode || 'development',
   entry: './src/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -37,6 +42,9 @@ module.exports = {
     ],
   },
   plugins: [
+    new webpack.DefinePlugin({
+      'process.env.REACT_APP_OPENAI_API_KEY': JSON.stringify(process.env.REACT_APP_OPENAI_API_KEY),
+    }),
     new HtmlWebpackPlugin({
       template: './public/index.html',
       minify: {
@@ -117,4 +125,5 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.jsx'],
   },
+  };
 }; 

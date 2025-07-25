@@ -241,7 +241,7 @@
 
 .preview-image {
   width: 100%;
-  height: 200px;
+  height: 300px;
   object-fit: cover;
   border-radius: var(--radius-md);
   border: 2px solid var(--border-color);
@@ -399,7 +399,7 @@
   
   .preview-image {
     width: 100%;
-    height: 200px;
+    height: 300px;
   }
   
   .preview-info {

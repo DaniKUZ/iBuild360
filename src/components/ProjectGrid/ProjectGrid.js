@@ -9,7 +9,8 @@ const ProjectGrid = React.memo(({
   onEditProject, 
   onViewFloors, 
   onAddParticipant, 
-  onProjectSettings 
+  onProjectSettings,
+  onLandscaping 
 }) => {
   if (projects.length === 0) {
     return (
@@ -31,6 +32,7 @@ const ProjectGrid = React.memo(({
           onViewFloors={onViewFloors}
           onAddParticipant={onAddParticipant}
           onProjectSettings={onProjectSettings}
+          onLandscaping={onLandscaping}
         />
       ))}
     </div>
@@ -53,6 +55,7 @@ ProjectGrid.propTypes = {
   onViewFloors: PropTypes.func.isRequired,
   onAddParticipant: PropTypes.func.isRequired,
   onProjectSettings: PropTypes.func.isRequired,
+  onLandscaping: PropTypes.func.isRequired,
 };
 
 export default ProjectGrid; 

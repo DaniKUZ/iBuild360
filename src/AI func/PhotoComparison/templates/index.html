@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Анализ прогресса строительства</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+    }
+    .container {
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 6px 32px rgba(0,0,0,0.10), 0 1.5px 6px rgba(0,0,0,0.05);
+      padding: 36px 30px 30px 30px;
+      max-width: 410px;
+      width: 100%;
+      margin: 30px 10px;
+      transition: box-shadow 0.2s;
+      animation: fadein 0.8s;
+    }
+    @keyframes fadein {
+      0% { opacity: 0; transform: translateY(32px);}
+      100% { opacity: 1; transform: none;}
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.7em;
+      color: #3071c8;
+      margin-bottom: 18px;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    p {
+      text-align: center;
+      color: #555;
+      margin-bottom: 25px;
+      font-size: 1.07em;
+    }
+    .field {
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: 500;
+      color: #265c92;
+      margin-bottom: 6px;
+      display: block;
+    }
+    input[type="file"] {
+      background: #f4f7fb;
+      border: 1px solid #d3e0ef;
+      border-radius: 10px;
+      width: 100%;
+      padding: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 2px;
+      transition: border 0.15s;
+    }
+    input[type="file"]:hover, input[type="file"]:focus {
+      border: 1.5px solid #7daaff;
+    }
+    button {
+      width: 100%;
+      background: linear-gradient(90deg, #69c6f8 0%, #3a8dde 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 13px 0;
+      font-size: 1.15em;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(60,110,255,0.09);
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+      transition: background 0.18s, box-shadow 0.18s;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #4dafe7 0%, #2176c9 100%);
+      box-shadow: 0 4px 16px rgba(60,110,255,0.18);
+    }
+    .result {
+      background: #f7faff;
+      border-left: 4px solid #56b5f6;
+      padding: 20px 20px 12px 18px;
+      margin-top: 28px;
+      border-radius: 12px;
+      color: #18577a;
+      box-shadow: 0 2px 12px rgba(90,190,250,0.07);
+      animation: fadein 0.8s;
+    }
+    .result h2 {
+      font-size: 1.14em;
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: #2176c9;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 16px 4vw 18px 4vw;
+        max-width: 97vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Анализ прогресса<br>строительства</h1>
+    <p>Загрузите две фотографии строительной площадки с одинакового ракурса — получите AI-анализ, какие работы были выполнены.</p>
+    {% if result %}
+      <div class="result">
+        <h2>Результат анализа:</h2>
+        <p>{{ result }}</p>
+      </div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" autocomplete="off">
+      <div class="field">
+        <label for="photo1">Фото 1 (раньше):</label>
+        <input type="file" id="photo1" name="photo1" accept="image/*" required>
+      </div>
+      <div class="field">
+        <label for="photo2">Фото 2 (позже):</label>
+        <input type="file" id="photo2" name="photo2" accept="image/*" required>
+      </div>
+      <button type="submit">Анализировать прогресс</button>
+    </form>
+  </div>
+</body>
+</html>

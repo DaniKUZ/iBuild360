@@ -11,7 +11,8 @@ const TopNavbar = ({
   onUserClick, 
   showProjectSettings = false, 
   showProjectAdd = false,
-  showWorkerStats = false 
+  showWorkerStats = false,
+  showLandscaping = false 
 }) => {
   const [isHelpMenuOpen, setIsHelpMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -23,6 +24,8 @@ const TopNavbar = ({
 
   const tabs = [
     { id: 'projects', label: 'Проекты', active: true },
+    // Показываем вкладку благоустройства только когда это необходимо
+    ...(showLandscaping ? [{ id: 'landscaping', label: 'Благоустройство', active: false }] : []),
     // Показываем вкладку статистики работников только когда это необходимо
     ...(showWorkerStats ? [{ id: 'worker-stats', label: 'Статистика работников', active: false }] : []),
     // Показываем вкладку настроек проекта только когда это необходимо
@@ -203,6 +206,7 @@ TopNavbar.propTypes = {
   showProjectSettings: PropTypes.bool,
   showProjectAdd: PropTypes.bool,
   showWorkerStats: PropTypes.bool,
+  showLandscaping: PropTypes.bool,
 };
 
 export default TopNavbar; 

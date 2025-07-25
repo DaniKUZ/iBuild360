@@ -13,7 +13,7 @@ import SheetsSection from './ProjectEditor/sections/SheetsSection';
 import ZonesSection from './ProjectEditor/sections/ZonesSection';
 import FieldNotesSection from './ProjectEditor/sections/FieldNotesSection';
 import Video360Section from './ProjectEditor/sections/Video360Section';
-import LandscapingSection from './ProjectEditor/sections/LandscapingSection';
+
 import BIMSection from './ProjectEditor/sections/BIMSection';
 import FloorModal from './ProjectEditor/modals/FloorModal';
 import FloorEditModal from './ProjectEditor/modals/FloorEditModal';
@@ -106,12 +106,6 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
       id: 'video360',
       title: 'Видео 360°',
       icon: 'fas fa-video',
-      active: true
-    },
-    {
-      id: 'landscaping',
-      title: 'Благоустройство',
-      icon: 'fas fa-seedling',
       active: true
     },
     {
@@ -345,13 +339,7 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
             formatFileSize={video360Management.formatFileSize}
           />
         );
-      case 'landscaping':
-        return (
-          <LandscapingSection
-            onPlanUpload={(file) => console.log('Plan uploaded:', file)}
-            onPhotosUpload={(files) => console.log('Photos uploaded:', files)}
-          />
-        );
+
       case 'bim':
         return (
           <BIMSection
@@ -397,7 +385,7 @@ function ProjectAdd({ onBack, onSave, isSettingsMode = false }) {
         </header>
       )}
 
-      <div className={`editor-content ${activeSection === 'zones' ? 'zones-active' : activeSection === 'field-notes' ? 'field-notes-active' : activeSection === 'video360' ? 'video360-active' : activeSection === 'landscaping' ? 'landscaping-active' : ''}`}>
+              <div className={`editor-content ${activeSection === 'zones' ? 'zones-active' : activeSection === 'field-notes' ? 'field-notes-active' : activeSection === 'video360' ? 'video360-active' : ''}`}>
         <div className="editor-form">
           {renderActiveSection()}
         </div>

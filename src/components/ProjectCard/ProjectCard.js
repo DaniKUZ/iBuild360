@@ -10,7 +10,8 @@ const ProjectCard = React.memo(({
   onEditProject, 
   onViewFloors, 
   onAddParticipant, 
-  onProjectSettings 
+  onProjectSettings,
+  onLandscaping 
 }) => {
   const getStatusClass = (status) => {
     switch (status) {
@@ -54,6 +55,11 @@ const ProjectCard = React.memo(({
     onProjectSettings(project.id);
   }, [onProjectSettings, project.id]);
 
+  const handleLandscapingClick = useCallback((e) => {
+    e.stopPropagation();
+    onLandscaping(project.id);
+  }, [onLandscaping, project.id]);
+
   return (
     <article className={styles.projectCard} role="gridcell">
       <div 
@@ -76,6 +82,14 @@ const ProjectCard = React.memo(({
           decoding="async"
         />
         <div className={styles.previewActions} role="group" aria-label="Действия с проектом">
+          <button 
+            className={`action-btn ${styles.tooltipBtn}`}
+            onClick={handleLandscapingClick}
+            data-tooltip="Благоустройство"
+            aria-label="Благоустройство"
+          >
+            <i className="fas fa-seedling" aria-hidden="true"></i>
+          </button>
           <button 
             className={`action-btn ${styles.tooltipBtn}`}
             onClick={handleView360Click}
@@ -159,6 +173,7 @@ ProjectCard.propTypes = {
   onViewFloors: PropTypes.func.isRequired,
   onAddParticipant: PropTypes.func.isRequired,
   onProjectSettings: PropTypes.func.isRequired,
+  onLandscaping: PropTypes.func.isRequired,
 };
 
 export default ProjectCard; 

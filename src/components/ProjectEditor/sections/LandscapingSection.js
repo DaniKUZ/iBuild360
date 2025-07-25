@@ -11,6 +11,8 @@ function LandscapingSection({
   const [analysisResult, setAnalysisResult] = useState('');
   const [displayedText, setDisplayedText] = useState('');
   const [showResult, setShowResult] = useState(false);
+  const [planPreviewUrl, setPlanPreviewUrl] = useState(null);
+  const [photoPreviewUrls, setPhotoPreviewUrls] = useState([]);
   
   const planInputRef = useRef(null);
   const photosInputRef = useRef(null);
@@ -27,15 +29,33 @@ function LandscapingSection({
       } else {
         clearInterval(interval);
       }
-    }, 50); // 50ms на символ для эффекта печатания
+    }, 25); // 25ms на символ для эффекта печатания (ускорено в 2 раза)
 
     return () => clearInterval(interval);
   }, [analysisResult, showResult]);
 
+  const isImageFile = (file) => {
+    return file && file.type && file.type.startsWith('image/');
+  };
+
   const handlePlanUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Очищаем предыдущий URL если был
+      if (planPreviewUrl) {
+        URL.revokeObjectURL(planPreviewUrl);
+      }
+      
       setUploadedPlan(file);
+      
+      // Создаем превью только для изображений
+      if (isImageFile(file)) {
+        const previewUrl = URL.createObjectURL(file);
+        setPlanPreviewUrl(previewUrl);
+      } else {
+        setPlanPreviewUrl(null);
+      }
+      
       if (onPlanUpload) {
         onPlanUpload(file);
       }
@@ -45,6 +65,11 @@ function LandscapingSection({
   const handlePhotosUpload = (e) => {
     const files = Array.from(e.target.files);
     setUploadedPhotos(prev => [...prev, ...files]);
+    
+    // Создаем превью для новых фотографий
+    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
+    setPhotoPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+    
     if (onPhotosUpload) {
       onPhotosUpload(files);
     }
@@ -62,25 +87,20 @@ function LandscapingSection({
 
     // Имитация анализа
     setTimeout(() => {
-      const mockResult = `Анализ благоустройства завершен успешно.
+      const mockResult = `Отчет по выполнению работ по благоустройству:
 
-Выявленные особенности территории:
-• Общая площадь участка: 2,450 м²
-• Зеленые насаждения: 65% территории
-• Пешеходные дорожки: в хорошем состоянии
-• Система освещения: требует модернизации
+1. Подготовка территории ............................ 100%
+2. Земляные работы ................................... 90%
+3. Укладка тротуарной плитки ........................ 75%
+4. Посадка деревьев .................................. 65%
+5. Устройство газонов ................................ 55%
+6. Монтаж освещения .................................. 45%
+7. Установка скамеек ................................. 40%
+8. Устройство детской площадки ...................... 30%
+9. Финальная уборка .................................. 15%
+10. Приемка работ ..................................... 10%
 
-Рекомендации по благоустройству:
-1. Установка дополнительных фонарей в северной части
-2. Обновление детской площадки
-3. Создание зоны отдыха с беседками
-4. Посадка декоративных кустарников вдоль дорожек
-
-Ориентировочная стоимость работ: 1,250,000 руб.
-Срок выполнения: 45-60 дней
-
-Анализ проведен на основе загруженного плана-графика и 
-${uploadedPhotos.length} фотографий территории.`;
+Общий прогресс выполнения работ: 62%`;
 
       setAnalysisResult(mockResult);
       setIsAnalyzing(false);
@@ -88,9 +108,37 @@ ${uploadedPhotos.length} фотографий территории.`;
     }, 3000);
   };
 
-  const removePhoto = (index) => {
-    setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
+  const removePlan = () => {
+    // Очищаем URL превью
+    if (planPreviewUrl) {
+      URL.revokeObjectURL(planPreviewUrl);
+    }
+    
+    setUploadedPlan(null);
+    setPlanPreviewUrl(null);
   };
+
+  const removePhoto = (index) => {
+    // Очищаем URL превью
+    if (photoPreviewUrls[index]) {
+      URL.revokeObjectURL(photoPreviewUrls[index]);
+    }
+    
+    setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
+    setPhotoPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Cleanup URLs при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      if (planPreviewUrl) {
+        URL.revokeObjectURL(planPreviewUrl);
+      }
+      photoPreviewUrls.forEach(url => {
+        if (url) URL.revokeObjectURL(url);
+      });
+    };
+  }, [planPreviewUrl, photoPreviewUrls]);
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
@@ -136,12 +184,36 @@ ${uploadedPhotos.length} фотографий территории.`;
             </button>
             {uploadedPlan && (
               <div className="uploaded-file">
-                <i className="fas fa-file"></i>
-                <span>{uploadedPlan.name}</span>
-                <span className="file-size">({formatFileSize(uploadedPlan.size)})</span>
+                {planPreviewUrl ? (
+                  <div className="file-preview">
+                    <img 
+                      src={planPreviewUrl} 
+                      alt={uploadedPlan.name}
+                      className="landscaping-preview-image"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <div className="preview-placeholder" style={{ display: 'none' }}>
+                      <i className="fas fa-image"></i>
+                      <span>Ошибка загрузки</span>
+                    </div>
+                    <div className="landscaping-file-info">
+                      <span className="file-name">{uploadedPlan.name}</span>
+                      <span className="file-size">({formatFileSize(uploadedPlan.size)})</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="landscaping-file-info">
+                    <i className="fas fa-file"></i>
+                    <span className="file-name">{uploadedPlan.name}</span>
+                    <span className="file-size">({formatFileSize(uploadedPlan.size)})</span>
+                  </div>
+                )}
                 <button 
                   className="remove-btn"
-                  onClick={() => setUploadedPlan(null)}
+                  onClick={removePlan}
                 >
                   <i className="fas fa-times"></i>
                 </button>
@@ -176,9 +248,25 @@ ${uploadedPhotos.length} фотографий территории.`;
               <div className="uploaded-photos">
                 {uploadedPhotos.map((photo, index) => (
                   <div key={index} className="uploaded-photo">
-                    <i className="fas fa-image"></i>
-                    <span>{photo.name}</span>
-                    <span className="file-size">({formatFileSize(photo.size)})</span>
+                    <div className="photo-preview">
+                      <img 
+                        src={photoPreviewUrls[index]} 
+                        alt={photo.name}
+                        className="landscaping-preview-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                      <div className="preview-placeholder" style={{ display: 'none' }}>
+                        <i className="fas fa-image"></i>
+                        <span>Ошибка загрузки</span>
+                      </div>
+                      <div className="landscaping-file-info">
+                        <span className="file-name">{photo.name}</span>
+                        <span className="file-size">({formatFileSize(photo.size)})</span>
+                      </div>
+                    </div>
                     <button 
                       className="remove-btn"
                       onClick={() => removePhoto(index)}

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styles from './DateSelector.module.css';
 
-const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableDates = [], isDateAvailable, getWorkersCount, dropdownPosition = 'bottom' }) => {
+const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableDates = [], isDateAvailable, getWorkersCount, dropdownPosition = 'bottom', tooltipType = 'capture' }) => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarDate, setCalendarDate] = useState(selectedDate || new Date());
   const [hoveredDay, setHoveredDay] = useState(null);
@@ -136,14 +136,30 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
     
     const dayDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
     
-    // Проверяем есть ли захват для этой даты
-    const hasCapture = isDateAvailable && isDateAvailable(dayDate);
+    // Проверяем есть ли данные для этой даты
+    const hasData = isDateAvailable && isDateAvailable(dayDate);
     
-    if (hasCapture) {
+    if (hasData) {
       const rect = event.target.getBoundingClientRect();
+      
+      // Определяем контент тултипа в зависимости от типа
+      let tooltipContent = "есть захват"; // по умолчанию
+      
+      if (tooltipType === 'workers' && getWorkersCount) {
+        const workersCount = getWorkersCount(dayDate);
+        if (workersCount === 1) {
+          tooltipContent = "1 работник";
+        } else if (workersCount > 1) {
+          tooltipContent = `${workersCount} работников`;
+        } else {
+          tooltipContent = "нет работников";
+        }
+      }
+      
       setTooltipInfo({
         day,
         hasCapture: true,
+        content: tooltipContent,
         x: rect.left + rect.width / 2,
         y: rect.top - 10
       });
@@ -256,7 +272,7 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
             zIndex: 10000
           }}
         >
-          есть захват
+          {tooltipInfo.content}
         </div>
       )}
     </div>
@@ -270,7 +286,8 @@ DateSelector.propTypes = {
   availableDates: PropTypes.arrayOf(PropTypes.instanceOf(Date)),
   isDateAvailable: PropTypes.func,
   getWorkersCount: PropTypes.func,
-  dropdownPosition: PropTypes.oneOf(['top', 'bottom'])
+  dropdownPosition: PropTypes.oneOf(['top', 'bottom']),
+  tooltipType: PropTypes.oneOf(['capture', 'workers'])
 };
 
 export default DateSelector; 

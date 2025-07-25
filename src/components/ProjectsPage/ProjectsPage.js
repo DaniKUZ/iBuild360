@@ -98,6 +98,12 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
     navigate(`/editor/${projectId}?mode=settings`);
   }, [navigate]);
 
+  const handleLandscaping = useCallback((projectId) => {
+    console.log('Открыть благоустройство для проекта:', projectId);
+    // Переходим на отдельную страницу благоустройства
+    navigate(`/landscaping/${projectId}`);
+  }, [navigate]);
+
   const handleAddProject = useCallback(() => {
     console.log('Открыть форму добавления проекта');
     navigate('/add-project');
@@ -215,6 +221,7 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
                 onViewFloors={handleViewWorkerStats}
                 onAddParticipant={handleAddParticipant}
                 onProjectSettings={handleProjectSettings}
+                onLandscaping={handleLandscaping}
               />
             </Suspense>
           </ErrorBoundary>

@@ -11,15 +11,33 @@ import {
 import DateSelector from '../Viewer360/components/DateSelector/DateSelector';
 import styles from './WorkerStats.module.css';
 
-// Импортируем изображения напрямую
-import face1 from '../../assets/images/faceImg_1.jpg';
-import face2 from '../../assets/images/faceImg_2.jpg';
-import face3 from '../../assets/images/faceImg_3.jpg';
-import face4 from '../../assets/images/faceImg_4.jpg';
-import face5 from '../../assets/images/faceImg_5.jpg';
-import face6 from '../../assets/images/faceImg_6.jpg';
-import face7 from '../../assets/images/faceImg_7.jpg';
-import face8 from '../../assets/images/faceImg_8.jpg';
+// Импортируем все 26 изображений из папки data/img
+import face1 from '../../data/img/faceImg_1.jpg';
+import face2 from '../../data/img/faceImg_2.jpg';
+import face3 from '../../data/img/faceImg_3.jpg';
+import face4 from '../../data/img/faceImg_4.jpg';
+import face5 from '../../data/img/faceImg_5.jpg';
+import face6 from '../../data/img/faceImg_6.jpg';
+import face7 from '../../data/img/faceImg_7.jpg';
+import face8 from '../../data/img/faceImg_8.jpg';
+import face9 from '../../data/img/faceImg_9.jpg';
+import face10 from '../../data/img/faceImg_10.jpg';
+import face11 from '../../data/img/faceImg_11.jpg';
+import face12 from '../../data/img/faceImg_12.jpg';
+import face13 from '../../data/img/faceImg_13.jpg';
+import face14 from '../../data/img/faceImg_14.jpg';
+import face15 from '../../data/img/faceImg_15.jpg';
+import face16 from '../../data/img/faceImg_16.jpg';
+import face17 from '../../data/img/faceImg_17.jpg';
+import face18 from '../../data/img/faceImg_18.jpg';
+import face19 from '../../data/img/faceImg_19.jpg';
+import face20 from '../../data/img/faceImg_20.jpg';
+import face21 from '../../data/img/faceImg_21.jpg';
+import face22 from '../../data/img/faceImg_22.jpg';
+import face23 from '../../data/img/faceImg_23.jpg';
+import face24 from '../../data/img/faceImg_24.jpg';
+import face25 from '../../data/img/faceImg_25.jpg';
+import face26 from '../../data/img/faceImg_26.jpg';
 
 const generateEmptyHourlyData = () => {
     const hours = Array.from(
@@ -40,55 +58,149 @@ const availableDates = [
 ];
 
 const dailyData = {};
+const workerDataCache = {}; // Кеш для статичных данных работников
 
-// Генерируем данные только для доступных дат
+// Генерируем данные только для доступных дат (с максимумом 26 рабочих за весь день)
 availableDates.forEach((date, index) => {
     const dateKey = date.toISOString().split('T')[0];
     
-    // Различные паттерны активности для разнообразия
-    switch (index % 4) {
-        case 0: // Утренняя активность
-            dailyData[dateKey] = generateEmptyHourlyData().map((entry, idx) => {
-                if (idx >= 7 && idx <= 9) return { ...entry, workers: 15 + Math.floor(Math.random() * 10) };
-                if (idx >= 17 && idx <= 18) return { ...entry, workers: 8 + Math.floor(Math.random() * 5) };
-                return entry;
-            });
+    // Определяем общее количество рабочих за день (максимум 26)
+    const totalWorkersForDay = Math.min(26, 12 + Math.floor(Math.random() * 15));
+    
+    // Генерируем паттерн распределения по часам
+    const hourlyData = generateEmptyHourlyData();
+    let remainingWorkers = totalWorkersForDay;
+    
+    // Создаем более рандомный выбор рабочих часов
+    const allPossibleHours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];
+    const numWorkingHours = Math.min(8, 3 + Math.floor(Math.random() * 6)); // От 3 до 8 рабочих часов
+    
+    // Различные стратегии выбора часов для большего разнообразия
+    let workingHours = [];
+    const strategy = Math.floor(Math.random() * 6);
+    
+    switch (strategy) {
+        case 0: // Утренний акцент
+            workingHours = [7, 8, 9].filter(() => Math.random() > 0.3);
+            const additionalMorning = allPossibleHours.filter(h => h >= 10 && h <= 12);
+            workingHours.push(...additionalMorning.filter(() => Math.random() > 0.5));
             break;
-        case 1: // Равномерная активность в течение дня
-            dailyData[dateKey] = generateEmptyHourlyData().map((entry, idx) => {
-                if (idx >= 8 && idx <= 17) return { ...entry, workers: 5 + Math.floor(Math.random() * 15) };
-                return entry;
-            });
+            
+        case 1: // Дневной акцент  
+            workingHours = [12, 13, 14].filter(() => Math.random() > 0.2);
+            const additionalDay = allPossibleHours.filter(h => h >= 10 && h <= 16);
+            workingHours.push(...additionalDay.filter(() => Math.random() > 0.6));
             break;
-        case 2: // Пиковая активность в обед
-            dailyData[dateKey] = generateEmptyHourlyData().map((entry, idx) => {
-                if (idx >= 8 && idx <= 10) return { ...entry, workers: 10 + Math.floor(Math.random() * 8) };
-                if (idx >= 12 && idx <= 14) return { ...entry, workers: 20 + Math.floor(Math.random() * 12) };
-                if (idx >= 16 && idx <= 17) return { ...entry, workers: 7 + Math.floor(Math.random() * 6) };
-                return entry;
-            });
+            
+        case 2: // Вечерний акцент
+            workingHours = [16, 17, 18].filter(() => Math.random() > 0.3);
+            const additionalEvening = allPossibleHours.filter(h => h >= 14 && h <= 19);
+            workingHours.push(...additionalEvening.filter(() => Math.random() > 0.5));
             break;
-        case 3: // Вечерняя активность
-            dailyData[dateKey] = generateEmptyHourlyData().map((entry, idx) => {
-                if (idx >= 14 && idx <= 19) return { ...entry, workers: 8 + Math.floor(Math.random() * 18) };
-                return entry;
-            });
+            
+        case 3: // Двухпиковый (утро + вечер)
+            workingHours.push(...[8, 9].filter(() => Math.random() > 0.4));
+            workingHours.push(...[17, 18].filter(() => Math.random() > 0.4));
+            const bridgeHours = [12, 13, 14].filter(() => Math.random() > 0.7);
+            workingHours.push(...bridgeHours);
+            break;
+            
+        case 4: // Равномерное распределение
+            workingHours = allPossibleHours.filter(() => Math.random() > 0.6);
+            break;
+            
+        case 5: // Случайный выбор
+            const shuffled = [...allPossibleHours].sort(() => Math.random() - 0.5);
+            workingHours = shuffled.slice(0, numWorkingHours);
             break;
     }
+    
+    // Удаляем дубликаты и сортируем
+    workingHours = [...new Set(workingHours)].sort((a, b) => a - b);
+    
+    // Если часов получилось слишком мало, добавляем случайные
+    while (workingHours.length < Math.max(2, Math.min(numWorkingHours, totalWorkersForDay))) {
+        const randomHour = allPossibleHours[Math.floor(Math.random() * allPossibleHours.length)];
+        if (!workingHours.includes(randomHour)) {
+            workingHours.push(randomHour);
+        }
+    }
+    
+    workingHours.sort((a, b) => a - b);
+    
+    // Распределяем рабочих по часам более рандомно
+    const distribution = [];
+    for (let i = 0; i < workingHours.length; i++) {
+        if (i === workingHours.length - 1) {
+            // Последний час получает всех оставшихся
+            distribution.push(remainingWorkers);
+        } else {
+            // Случайное распределение с весами
+            const maxForThisHour = Math.max(1, Math.floor(remainingWorkers * 0.7));
+            const minForThisHour = 1;
+            const workersForHour = Math.min(
+                remainingWorkers - (workingHours.length - i - 1), // Оставляем минимум по 1 на каждый оставшийся час
+                Math.max(minForThisHour, Math.floor(Math.random() * maxForThisHour) + 1)
+            );
+            distribution.push(workersForHour);
+            remainingWorkers -= workersForHour;
+        }
+    }
+    
+    // Применяем распределение
+    workingHours.forEach((hour, idx) => {
+        hourlyData[hour].workers = distribution[idx];
+    });
+    
+    dailyData[dateKey] = hourlyData;
 });
 
-// Массив импортированных изображений
-const faceImages = [face1, face2, face3, face4, face5, face6, face7, face8];
+// Массив всех 26 импортированных изображений
+const faceImages = [
+    face1, face2, face3, face4, face5, face6, face7, face8, face9, face10,
+    face11, face12, face13, face14, face15, face16, face17, face18, face19, face20,
+    face21, face22, face23, face24, face25, face26
+];
 
-// Массив имен, фамилий и должностей для разнообразия
-const firstNames = ['Александр', 'Михаил', 'Дмитрий', 'Сергей', 'Андрей', 'Владимир', 'Алексей', 'Николай'];
-const lastNames = ['Иванов', 'Петров', 'Сидоров', 'Козлов', 'Новиков', 'Морозов', 'Попов', 'Волков'];
-const positions = ['Строитель', 'Электрик', 'Сантехник', 'Маляр', 'Прораб', 'Монтажник', 'Сварщик', 'Отделочник'];
+// 26 уникальных имен
+const uniqueWorkers = [
+    { firstName: 'Александр', lastName: 'Иванов', position: 'Прораб' },
+    { firstName: 'Михаил', lastName: 'Петров', position: 'Электрик' },
+    { firstName: 'Дмитрий', lastName: 'Сидоров', position: 'Сантехник' },
+    { firstName: 'Сергей', lastName: 'Козлов', position: 'Маляр' },
+    { firstName: 'Андрей', lastName: 'Новиков', position: 'Монтажник' },
+    { firstName: 'Владимир', lastName: 'Морозов', position: 'Сварщик' },
+    { firstName: 'Алексей', lastName: 'Попов', position: 'Отделочник' },
+    { firstName: 'Николай', lastName: 'Волков', position: 'Каменщик' },
+    { firstName: 'Иван', lastName: 'Лебедев', position: 'Плиточник' },
+    { firstName: 'Евгений', lastName: 'Соколов', position: 'Кровельщик' },
+    { firstName: 'Роман', lastName: 'Михайлов', position: 'Стекольщик' },
+    { firstName: 'Павел', lastName: 'Новиков', position: 'Штукатур' },
+    { firstName: 'Денис', lastName: 'Федоров', position: 'Паркетчик' },
+    { firstName: 'Антон', lastName: 'Морозов', position: 'Плотник' },
+    { firstName: 'Игорь', lastName: 'Волков', position: 'Бетонщик' },
+    { firstName: 'Олег', lastName: 'Алексеев', position: 'Арматурщик' },
+    { firstName: 'Виктор', lastName: 'Лебедев', position: 'Крановщик' },
+    { firstName: 'Константин', lastName: 'Григорьев', position: 'Изолировщик' },
+    { firstName: 'Максим', lastName: 'Степанов', position: 'Облицовщик' },
+    { firstName: 'Артем', lastName: 'Семенов', position: 'Мостовщик' },
+    { firstName: 'Юрий', lastName: 'Павлов', position: 'Слесарь' },
+    { firstName: 'Виталий', lastName: 'Захаров', position: 'Токарь' },
+    { firstName: 'Станислав', lastName: 'Казаков', position: 'Фрезеровщик' },
+    { firstName: 'Вячеслав', lastName: 'Ершов', position: 'Шлифовщик' },
+    { firstName: 'Георгий', lastName: 'Демидов', position: 'Водитель' },
+    { firstName: 'Анатолий', lastName: 'Громов', position: 'Механик' }
+];
 
-// Используем реальные фотографии лиц
+// Генерируем статичные данные работников один раз для каждой даты
 const generateWorkerPhotos = (dateKey, hourlyData) => {
+    // Если данные уже сгенерированы для этой даты, возвращаем их
+    if (workerDataCache[dateKey]) {
+        return workerDataCache[dateKey];
+    }
+    
     const workers = [];
-    let workerId = 1;
+    let workerIndex = 0;
     
     // Проходим по каждому часу и генерируем точное количество работников
     hourlyData.forEach((hourData) => {
@@ -96,30 +208,67 @@ const generateWorkerPhotos = (dateKey, hourlyData) => {
         const workersCount = hourData.workers;
         
         // Генерируем работников для этого часа
-        for (let i = 0; i < workersCount; i++) {
-            const randomFaceIndex = Math.floor(Math.random() * 8);
-            const randomFirstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-            const randomLastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-            const randomPosition = positions[Math.floor(Math.random() * positions.length)];
+        for (let i = 0; i < workersCount && workerIndex < 26; i++) {
+            const worker = uniqueWorkers[workerIndex];
             
-            // Генерируем случайную минуту в пределах этого часа
-            const randomMinute = Math.floor(Math.random() * 60);
-            const time = `${hour.toString().padStart(2, '0')}:${randomMinute.toString().padStart(2, '0')}`;
+            // Генерируем фиксированную минуту на основе индекса работника (чтобы было статично)
+            const minute = (workerIndex * 7) % 60; // Используем простую формулу для генерации статичных минут
+            const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
             
             workers.push({
-                id: workerId++,
-                src: faceImages[randomFaceIndex],
-                firstName: randomFirstName,
-                lastName: randomLastName,
-                position: randomPosition,
+                id: workerIndex + 1,
+                src: faceImages[workerIndex],
+                firstName: worker.firstName,
+                lastName: worker.lastName,
+                position: worker.position,
                 time: time,
                 hour: hour
             });
+            
+            workerIndex++;
         }
     });
     
     // Сортируем по времени (от раннего к позднему)
-    return workers.sort((a, b) => a.time.localeCompare(b.time));
+    const sortedWorkers = workers.sort((a, b) => a.time.localeCompare(b.time));
+    
+    // Кешируем результат
+    workerDataCache[dateKey] = sortedWorkers;
+    
+    return sortedWorkers;
+};
+
+// Функция экспорта данных в CSV
+const exportToCSV = (workers, selectedDate) => {
+    if (!workers || workers.length === 0) {
+        alert('Нет данных для экспорта');
+        return;
+    }
+    
+    const headers = ['№', 'Имя', 'Фамилия', 'Должность', 'Время входа'];
+    const csvContent = [
+        headers.join(','),
+        ...workers.map((worker, index) => [
+            index + 1,
+            worker.firstName,
+            worker.lastName,
+            worker.position,
+            worker.time
+        ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    const formattedDate = selectedDate.toLocaleDateString('ru-RU').replace(/\./g, '-');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `workers_${formattedDate}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
 // Кастомный компонент Tooltip для графика
@@ -188,7 +337,7 @@ const WorkerStats = () => {
     const totalWorkers = hourlyData.reduce((acc, curr) => acc + curr.workers, 0);
     const hasData = totalWorkers > 0;
     
-    // Генерируем фотографии работников для текущей даты
+    // Генерируем фотографии работников для текущей даты (данные кешируются)
     const workerPhotos = hasData ? generateWorkerPhotos(selectedDateKey, hourlyData) : [];
 
     const handleDateChange = (newDate) => {
@@ -221,27 +370,45 @@ const WorkerStats = () => {
         setSelectedWorker(null);
     };
 
+    // Обработчик экспорта данных
+    const handleExport = () => {
+        exportToCSV(workerPhotos, selectedDate);
+    };
+
     return (
         <div className={styles.workerStats}>
             <div className={styles.header}>
                 <h2 className={styles.title}>Контроль сотрудников</h2>
-                <div className={styles.dateSelector}>
-                    <DateSelector
-                        selectedDate={selectedDate}
-                        onDateChange={handleDateChange}
-                        availableDates={availableDates}
-                        isDateAvailable={isDateAvailable}
-                        getWorkersCount={getWorkersCountForDate}
-                    />
-                    <div className={styles.selectedDateInfo}>
-                        <span className={styles.dateText}>{formatSelectedDate(selectedDate)}</span>
-                        {!hasData && (
-                            <span className={styles.noDataIndicator}>
-                                <i className="fas fa-info-circle"></i>
-                                Нет данных за эту дату
-                            </span>
-                        )}
+                <div className={styles.headerControls}>
+                    <div className={styles.dateSelector}>
+                        <DateSelector
+                            selectedDate={selectedDate}
+                            onDateChange={handleDateChange}
+                            availableDates={availableDates}
+                            isDateAvailable={isDateAvailable}
+                            getWorkersCount={getWorkersCountForDate}
+                            tooltipType="workers"
+                        />
+                        <div className={styles.selectedDateInfo}>
+                            <span className={styles.dateText}>{formatSelectedDate(selectedDate)}</span>
+                            {!hasData && (
+                                <span className={styles.noDataIndicator}>
+                                    <i className="fas fa-info-circle"></i>
+                                    Нет данных за эту дату
+                                </span>
+                            )}
+                        </div>
                     </div>
+                    {hasData && (
+                        <button 
+                            className={styles.exportButton}
+                            onClick={handleExport}
+                            title="Экспортировать данные в CSV"
+                        >
+                            <i className="fas fa-download"></i>
+                            Экспорт CSV
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -271,10 +438,15 @@ const WorkerStats = () => {
                                 />
                             </BarChart>
                         </ResponsiveContainer>
-                        <p className={styles.totalStats}>
-                            Всего за день: <span className={styles.totalCount}>{totalWorkers}</span>{" "}
-                            работников
-                        </p>
+                        <div className={styles.statsInfo}>
+                            <p className={styles.totalStats}>
+                                Всего за день: <span className={styles.totalCount}>{totalWorkers}</span>{" "}
+                                работников
+                            </p>
+                            <p className={styles.maxWorkersInfo}>
+                                Максимум: <span className={styles.maxCount}>26</span> работников
+                            </p>
+                        </div>
                     </>
                 ) : (
                     <div className={styles.noDataState}>

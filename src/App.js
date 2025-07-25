@@ -9,6 +9,7 @@ import ProjectAddPage from './components/ProjectAddPage';
 import Viewer360Page from './components/Viewer360Page';
 import WorkerStatsPage from './components/WorkerStatsPage';
 import SettingsPage from './components/SettingsPage';
+import LandscapingPage from './components/LandscapingPage';
 import { mockProjects } from './data/mockData';
 import './styles/main.css';
 
@@ -93,6 +94,16 @@ function App() {
           <Route 
             path="/worker-stats/:projectId" 
             element={<WorkerStatsPage />} 
+          />
+          
+          {/* Благоустройство */}
+          <Route 
+            path="/landscaping/:projectId" 
+            element={
+              <LandscapingPage 
+                projects={projects}
+              />
+            } 
           />
           
           {/* Перенаправление неизвестных маршрутов на главную */}

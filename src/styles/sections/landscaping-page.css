@@ -1,0 +1,73 @@
+/* Landscaping Page Styles */
+.landscaping-page {
+  padding: var(--spacing-xl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--border-light);
+}
+
+.page-title h1 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.page-title h1 i {
+  color: var(--success-color);
+  font-size: var(--font-size-2xl);
+}
+
+.project-address {
+  font-size: var(--font-size-lg);
+  color: var(--text-muted);
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.page-content {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .landscaping-page {
+    padding: var(--spacing-lg) var(--spacing-md);
+  }
+  
+  .page-header {
+    gap: var(--spacing-md);
+  }
+  
+  .page-title h1 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .project-address {
+    font-size: var(--font-size-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .landscaping-page {
+    padding: var(--spacing-md) var(--spacing-sm);
+  }
+  
+  .page-title h1 {
+    font-size: var(--font-size-xl);
+  }
+} 

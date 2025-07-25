@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат анализа</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f9fa; margin: 0; }
+        .center-box {
+            max-width: 600px; margin: 2em auto; background: #fff; border-radius: 16px;
+            box-shadow: 0 6px 36px #0001; padding: 2.5em 2em 2em 2em;
+            position: relative;
+        }
+        .back-link {
+            position: absolute;
+            left: 2em; top: 2em;
+            color: #227; text-decoration: none; font-weight: bold; font-size: 1.05em;
+            background: #e8f1ff; border-radius: 6px; padding: 0.3em 1em;
+            border: 1px solid #b6dbf9;
+        }
+        h2 { color: #2464a8; margin-bottom: 1.5em; text-align: center; }
+        .result-block {
+            padding: 1.2em 1.5em;
+            background: #f0f8ff;
+            border-left: 6px solid #39a7ff;
+            border-radius: 9px;
+            font-size: 1.15em;
+            color: #215;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        .new-photo-form {
+            margin-top: 2.5em;
+            background: #f6f6fa;
+            padding: 1.2em 1em;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #39a7ff15;
+        }
+        .file-label { cursor: pointer; color: #2464a8; text-decoration: underline; }
+        input[type="file"] { display: none; }
+        button {
+            margin-top: 0.8em; width: 100%;
+            padding: 0.85em 0;
+            background: linear-gradient(90deg, #39a7ff, #2464a8);
+            color: #fff; font-size: 1.05em; border: none; border-radius: 9px; cursor: pointer;
+            font-weight: bold; letter-spacing: 1px; transition: background 0.2s;
+        }
+        button:hover { background: linear-gradient(90deg, #2464a8, #39a7ff); }
+    </style>
+</head>
+<body>
+<div class="center-box">
+    <a href="/" class="back-link">← Назад</a>
+    <h2>Результат анализа</h2>
+    <div class="result-block">{{ analysis|safe }}</div>
+
+    {% if allow_new_photo %}
+    <form class="new-photo-form" action="/result" method="post" enctype="multipart/form-data">
+        <label class="file-label">
+            <input type="file" name="photo" accept=".png,.jpg,.jpeg" required>
+            Загрузить новое фото объекта (JPG, PNG)
+        </label>
+        <button type="submit">Проанализировать ещё одно фото</button>
+    </form>
+    {% endif %}
+</div>
+</body>
+</html>

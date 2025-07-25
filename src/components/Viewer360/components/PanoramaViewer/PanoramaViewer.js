@@ -53,6 +53,47 @@ const PanoramaViewer = forwardRef(({
     onPanoramaClickRef.current = onPanoramaClick;
   }, [onPanoramaClick]);
 
+  // Состояние для отслеживания первоначальной инициализации
+  const isInitializedRef = useRef(false);
+
+  // Обновляем позицию камеры при изменении initialCamera (только при первой инициализации)
+  useEffect(() => {
+    if (cameraRef.current && initialCamera && !isInitializedRef.current) {
+      console.log('PanoramaViewer: Устанавливаем начальную позицию камеры:', initialCamera);
+      
+      // Устанавливаем флаг программного обновления
+      isProgrammaticUpdateRef.current = true;
+      
+      // Конвертируем углы в радианы для Three.js
+      const yawRad = THREE.MathUtils.degToRad(initialCamera.yaw || 0);
+      const pitchRad = THREE.MathUtils.degToRad(initialCamera.pitch || 0);
+      
+      rotationRef.current.x = pitchRad;
+      rotationRef.current.y = yawRad;
+      
+      if (initialCamera.fov && cameraRef.current.fov !== initialCamera.fov) {
+        cameraRef.current.fov = initialCamera.fov;
+        targetFovRef.current = initialCamera.fov;
+        cameraRef.current.updateProjectionMatrix();
+      }
+      
+      updateCameraPosition();
+      
+      // Помечаем как инициализированное
+      isInitializedRef.current = true;
+      
+      // Сбрасываем флаг после обновления
+      setTimeout(() => {
+        isProgrammaticUpdateRef.current = false;
+      }, 0);
+    }
+  }, [initialCamera?.yaw, initialCamera?.pitch, initialCamera?.fov]);
+
+  // Сбрасываем флаг инициализации при смене изображения
+  useEffect(() => {
+    isInitializedRef.current = false;
+  }, [imageUrl]);
+
   // Предоставляем API для родительского компонента
   useImperativeHandle(ref, () => ({
     setCamera: (yaw, pitch, fov) => {

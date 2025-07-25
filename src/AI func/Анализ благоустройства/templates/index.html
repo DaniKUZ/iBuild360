@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Анализ стройки (AI)</title>
+    <style>
+        body { background: #f6f9fa; font-family: 'Segoe UI', Arial, sans-serif; }
+        .center-box {
+            max-width: 430px; margin: 3em auto; background: #fff; border-radius: 16px;
+            box-shadow: 0 6px 36px #0001; padding: 2.5em 2em;
+        }
+        h2 { color: #333; margin-bottom: 1.5em; text-align: center; }
+        .drop-area {
+            border: 2px dashed #39a7ff;
+            border-radius: 10px;
+            background: #f0f8ff;
+            padding: 1.2em 1em;
+            text-align: center;
+            color: #2171b0;
+            margin-bottom: 1.1em;
+            transition: background 0.2s;
+        }
+        .drop-area.dragover { background: #e1f2ff; }
+        label { display: block; margin-top: 0.7em; font-weight: 500; }
+        input[type="file"] { display: none; }
+        .file-label { cursor: pointer; color: #2464a8; text-decoration: underline; }
+        .file-list { margin-top: 0.4em; font-size: 0.97em; color: #555; }
+        button {
+            width: 100%; margin-top: 1.2em;
+            padding: 0.9em 0;
+            background: linear-gradient(90deg, #39a7ff, #2464a8);
+            color: #fff; font-size: 1.15em;
+            border: none; border-radius: 9px; cursor: pointer;
+            font-weight: bold; letter-spacing: 1px;
+            transition: background 0.2s;
+        }
+        button:hover { background: linear-gradient(90deg, #2464a8, #39a7ff); }
+    </style>
+</head>
+<body>
+<div class="center-box">
+    <h2>Анализ стройки (AI)</h2>
+    <form id="uploadForm" action="/result" method="post" enctype="multipart/form-data">
+        <div class="drop-area" id="drop-area">
+            <div>
+                <label class="file-label">
+                    <input type="file" name="gantt" id="gantt" accept=".png,.jpg,.jpeg,.pdf,.xls,.xlsx" required>
+                    <span id="gantt-label">Загрузить диаграмму Ганта (PNG, JPG, PDF, XLS/XLSX)</span>
+                </label>
+                <div class="file-list" id="gantt-list"></div>
+            </div>
+            <div style="margin-top:1em">
+                <label class="file-label">
+                    <input type="file" name="photo" id="photo" accept=".png,.jpg,.jpeg" required>
+                    <span id="photo-label">Загрузить фото объекта (JPG, PNG)</span>
+                </label>
+                <div class="file-list" id="photo-list"></div>
+            </div>
+        </div>
+        <button type="submit">Проанализировать</button>
+    </form>
+</div>
+<script>
+    // Drag and drop UI
+    const dropArea = document.getElementById('drop-area');
+    ['dragenter', 'dragover'].forEach(evt =>
+        dropArea.addEventListener(evt, e => { e.preventDefault(); dropArea.classList.add('dragover'); }, false)
+    );
+    ['dragleave', 'drop'].forEach(evt =>
+        dropArea.addEventListener(evt, e => { e.preventDefault(); dropArea.classList.remove('dragover'); }, false)
+    );
+    document.getElementById('gantt').addEventListener('change', function() {
+        document.getElementById('gantt-list').textContent = this.files.length ? this.files[0].name : '';
+    });
+    document.getElementById('photo').addEventListener('change', function() {
+        document.getElementById('photo-list').textContent = this.files.length ? this.files[0].name : '';
+    });
+</script>
+</body>
+</html>

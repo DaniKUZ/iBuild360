@@ -98,27 +98,106 @@
 }
 
 /* Загруженные файлы */
-.uploaded-file,
-.uploaded-photo {
+.uploaded-file {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
   margin-top: 12px;
   background: white;
   border: 1px solid var(--border-light);
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
+  position: relative;
 }
 
-.uploaded-file i,
-.uploaded-photo i {
+.file-preview,
+.photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.landscaping-file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.landscaping-file-info i {
   color: var(--primary-color);
+  margin-right: 8px;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--text-dark);
+  word-break: break-word;
 }
 
 .file-size {
   color: var(--text-muted);
-  margin-left: auto;
+  font-size: 12px;
+}
+
+.landscaping-preview-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-light);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.uploaded-file .landscaping-preview-image {
+  width: 60px;
+  height: 60px;
+}
+
+.uploaded-photo .landscaping-preview-image {
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+}
+
+.uploaded-photo .landscaping-preview-image:hover {
+  transform: scale(1.05);
+}
+
+.preview-placeholder {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-light);
+  border: 1px dashed var(--border-light);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.uploaded-file .preview-placeholder {
+  width: 60px;
+  height: 60px;
+}
+
+.uploaded-photo .preview-placeholder {
+  width: 100px;
+  height: 100px;
+}
+
+.preview-placeholder i {
+  font-size: 20px;
+  margin-bottom: 4px;
+  color: var(--text-muted);
 }
 
 .remove-btn {
@@ -126,20 +205,43 @@
   border: none;
   color: var(--error-color);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 3px;
-  transition: background 0.2s ease;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .remove-btn:hover {
   background: rgba(220, 53, 69, 0.1);
+  transform: scale(1.1);
 }
 
 .uploaded-photos {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.uploaded-photo {
+  padding: 16px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.uploaded-photo:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+  transform: translateY(-2px);
 }
 
 /* Секция анализа */
@@ -261,14 +363,60 @@
     font-size: 14px;
   }
   
-  .uploaded-file,
-  .uploaded-photo {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+  .uploaded-photos {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
   
-  .file-size {
-    margin-left: 0;
+  .uploaded-photo {
+    padding: 12px;
+  }
+  
+  .landscaping-preview-image {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .uploaded-file .landscaping-preview-image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .uploaded-photo .landscaping-preview-image {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .preview-placeholder {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .uploaded-file .preview-placeholder {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .uploaded-photo .preview-placeholder {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .file-preview,
+  .photo-preview {
+    gap: 10px;
+  }
+  
+  .remove-btn {
+    position: static;
+    margin-left: auto;
+    width: auto;
+    height: auto;
+    padding: 4px 8px;
+    transform: none;
+  }
+  
+  .remove-btn:hover {
+    transform: none;
   }
 } 
