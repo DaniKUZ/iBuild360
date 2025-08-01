@@ -252,7 +252,7 @@
   display: block;
 }
 
-.workerTime {
+.workerTimes {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -262,7 +262,21 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   padding: var(--spacing-xs) var(--spacing-sm);
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workerTime {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+}
+
+.workerTime i {
+  font-size: 10px;
 }
 
 .noDataState {
@@ -363,6 +377,12 @@
   font-size: var(--font-size-base);
   color: var(--text-secondary);
   font-weight: var(--font-weight-medium);
+}
+
+.modalTimes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
 }
 
 .modalTime {
@@ -502,8 +522,17 @@
     height: 60px;
   }
 
-  .workerTime {
-    font-size: 10px;
+  .workerTimes {
     padding: 2px 4px;
+    gap: 1px;
+  }
+
+  .workerTime {
+    font-size: 9px;
+    gap: 2px;
+  }
+  
+  .workerTime i {
+    font-size: 8px;
   }
 } 

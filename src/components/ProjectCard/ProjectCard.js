@@ -82,22 +82,26 @@ const ProjectCard = React.memo(({
           decoding="async"
         />
         <div className={styles.previewActions} role="group" aria-label="Действия с проектом">
-          <button 
-            className={`action-btn ${styles.tooltipBtn}`}
-            onClick={handleLandscapingClick}
-            data-tooltip="Благоустройство"
-            aria-label="Благоустройство"
-          >
-            <i className="fas fa-seedling" aria-hidden="true"></i>
-          </button>
-          <button 
-            className={`action-btn ${styles.tooltipBtn}`}
-            onClick={handleView360Click}
-            data-tooltip="Изображение 360"
-            aria-label="Изображение 360"
-          >
-            <i className="fas fa-eye" aria-hidden="true"></i>
-          </button>
+          {/* Показываем только одну кнопку в зависимости от типа проекта */}
+          {(!project.projectType || project.projectType === 'landscaping') ? (
+            <button 
+              className={`action-btn ${styles.tooltipBtn}`}
+              onClick={handleLandscapingClick}
+              data-tooltip="Благоустройство"
+              aria-label="Благоустройство"
+            >
+              <i className="fas fa-seedling" aria-hidden="true"></i>
+            </button>
+          ) : (
+            <button 
+              className={`action-btn ${styles.tooltipBtn}`}
+              onClick={handleView360Click}
+              data-tooltip="Просмотр 360"
+              aria-label="Просмотр 360"
+            >
+              <i className="fas fa-eye" aria-hidden="true"></i>
+            </button>
+          )}
           <button 
             className={`action-btn ${styles.tooltipBtn}`}
             onClick={handleViewFloorsClick}

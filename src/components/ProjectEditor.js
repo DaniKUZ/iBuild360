@@ -34,7 +34,8 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
     latitude: '',
     longitude: '',
     constructionStartDate: '',
-    constructionEndDate: ''
+    constructionEndDate: '',
+    projectType: 'landscaping' // 'landscaping' или 'viewer360'
   });
   const [errors, setErrors] = useState({});
   const [activeSection, setActiveSection] = useState('general');
@@ -95,44 +96,54 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
   const imageInputRef = useRef(null);
 
   // Конфигурация секций (мемоизируем для оптимизации)
-  const sections = useMemo(() => [
-    {
-      id: 'general',
-      title: 'Общая информация',
-      icon: 'fas fa-info-circle',
-      active: true
-    },
-    {
-      id: 'schemes',
-      title: 'Схемы',
-      icon: 'fas fa-layer-group',
-      active: true
-    },
-    {
-      id: 'zones',
-      title: 'Зоны',
-      icon: 'fas fa-map-marked-alt',
-      active: true
-    },
-    {
-      id: 'field-notes',
-      title: 'Полевые заметки',
-      icon: 'fas fa-sticky-note',
-      active: true
-    },
-    {
-      id: 'video360',
-      title: 'Видео 360°',
-      icon: 'fas fa-video',
-      active: true
-    },
-    {
-      id: 'bim',
-      title: 'Загрузка BIM',
-      icon: 'fas fa-cube',
-      active: true
+  const sections = useMemo(() => {
+    const baseSections = [
+      {
+        id: 'general',
+        title: 'Общая информация',
+        icon: 'fas fa-info-circle',
+        active: true
+      },
+      {
+        id: 'schemes',
+        title: 'Планы этажей',
+        icon: 'fas fa-layer-group',
+        active: true
+      },
+      {
+        id: 'zones',
+        title: 'Зоны',
+        icon: 'fas fa-map-marked-alt',
+        active: true
+      },
+      {
+        id: 'field-notes',
+        title: 'Полевые заметки',
+        icon: 'fas fa-sticky-note',
+        active: true
+      }
+    ];
+
+    // Добавляем секции video360 и bim только для режима "Просмотр 360"
+    if (formData.projectType === 'viewer360') {
+      baseSections.push(
+        {
+          id: 'video360',
+          title: 'Видео 360°',
+          icon: 'fas fa-video',
+          active: true
+        },
+        {
+          id: 'bim',
+          title: 'Загрузка BIM',
+          icon: 'fas fa-cube',
+          active: true
+        }
+      );
     }
-  ], []);
+
+    return baseSections;
+  }, [formData.projectType]);
 
   // Инициализация данных проекта
   useEffect(() => {
@@ -143,7 +154,8 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
         latitude: project.latitude || '',
         longitude: project.longitude || '',
         constructionStartDate: project.constructionStartDate || '',
-        constructionEndDate: project.constructionEndDate || ''
+        constructionEndDate: project.constructionEndDate || '',
+        projectType: project.projectType || 'landscaping'
       });
       setPreviewImage(project.preview || null);
     }
@@ -177,6 +189,13 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
         ...prev,
         [name]: ''
       }));
+    }
+
+    // Если меняется тип проекта и текущая секция недоступна в новом режиме
+    if (name === 'projectType') {
+      if (value === 'landscaping' && (activeSection === 'video360' || activeSection === 'bim')) {
+        setActiveSection('general');
+      }
     }
   };
 
@@ -225,6 +244,7 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
         longitude: parseFloat(formData.longitude) || project.longitude,
         constructionStartDate: formData.constructionStartDate,
         constructionEndDate: formData.constructionEndDate,
+        projectType: formData.projectType,
         preview: previewImage || project.preview,
         floors: floorManagement.floors,
         videos360: video360Management.videos,

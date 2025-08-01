@@ -6,6 +6,32 @@ function GeneralAddSection({ formData, errors, onInputChange, onBlur }) {
   return (
     <>
       <div className="form-group">
+        <label>Тип проекта</label>
+        <div className="project-type-toggle">
+          <label className="project-type-option">
+            <input
+              type="radio"
+              name="projectType"
+              value="landscaping"
+              checked={formData.projectType === 'landscaping'}
+              onChange={onInputChange}
+            />
+            <span>Благоустройство</span>
+          </label>
+          <label className="project-type-option">
+            <input
+              type="radio"
+              name="projectType"
+              value="viewer360"
+              checked={formData.projectType === 'viewer360'}
+              onChange={onInputChange}
+            />
+            <span>Просмотр 360</span>
+          </label>
+        </div>
+      </div>
+      
+      <div className="form-group">
         <label htmlFor="propertyName">
           Название объекта <span className="required">*</span>
         </label>
@@ -129,7 +155,8 @@ GeneralAddSection.propTypes = {
     latitude: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     longitude: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     constructionStartDate: PropTypes.string,
-    constructionEndDate: PropTypes.string
+    constructionEndDate: PropTypes.string,
+    projectType: PropTypes.oneOf(['landscaping', 'viewer360']).isRequired
   }).isRequired,
   errors: PropTypes.object.isRequired,
   onInputChange: PropTypes.func.isRequired,

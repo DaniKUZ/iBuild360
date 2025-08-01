@@ -44,7 +44,7 @@ const generateEmptyHourlyData = () => {
         { length: 24 },
         (_, i) => `${i.toString().padStart(2, "0")}:00`
     );
-    return hours.map((hour) => ({ hour, workers: 0 }));
+    return hours.map((hour) => ({ hour, arrival: 0, departure: 0 }));
 };
 
 // Данные только для некоторых дат (случайно выбранные)
@@ -59,6 +59,9 @@ const availableDates = [
 
 const dailyData = {};
 const workerDataCache = {}; // Кеш для статичных данных работников
+
+// Очищаем кеш при обновлении кода
+Object.keys(workerDataCache).forEach(key => delete workerDataCache[key]);
 
 // Генерируем данные только для доступных дат (с максимумом 26 рабочих за весь день)
 availableDates.forEach((date, index) => {
@@ -147,9 +150,27 @@ availableDates.forEach((date, index) => {
         }
     }
     
-    // Применяем распределение
+    // Применяем распределение прихода
     workingHours.forEach((hour, idx) => {
-        hourlyData[hour].workers = distribution[idx];
+        hourlyData[hour].arrival = distribution[idx];
+    });
+    
+    // Генерируем данные ухода (через 6-10 часов после прихода)
+    const departureHours = [];
+    const departureDistribution = [];
+    
+    workingHours.forEach((arrivalHour, idx) => {
+        const workDuration = 6 + Math.floor(Math.random() * 5); // 6-10 часов работы
+        const departureHour = Math.min(23, arrivalHour + workDuration);
+        departureHours.push(departureHour);
+        departureDistribution.push(distribution[idx]);
+    });
+    
+    // Применяем распределение ухода
+    departureHours.forEach((hour, idx) => {
+        if (hour < 24) {
+            hourlyData[hour].departure += departureDistribution[idx];
+        }
     });
     
     dailyData[dateKey] = hourlyData;
@@ -202,18 +223,18 @@ const generateWorkerPhotos = (dateKey, hourlyData) => {
     const workers = [];
     let workerIndex = 0;
     
-    // Проходим по каждому часу и генерируем точное количество работников
+    // Сначала создаем всех работников с временем прихода
     hourlyData.forEach((hourData) => {
         const hour = parseInt(hourData.hour.split(':')[0]);
-        const workersCount = hourData.workers;
+        const workersCount = hourData.arrival;
         
         // Генерируем работников для этого часа
         for (let i = 0; i < workersCount && workerIndex < 26; i++) {
             const worker = uniqueWorkers[workerIndex];
             
             // Генерируем фиксированную минуту на основе индекса работника (чтобы было статично)
-            const minute = (workerIndex * 7) % 60; // Используем простую формулу для генерации статичных минут
-            const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+            const minute = (workerIndex * 7) % 60;
+            const arrivalTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
             
             workers.push({
                 id: workerIndex + 1,
@@ -221,16 +242,45 @@ const generateWorkerPhotos = (dateKey, hourlyData) => {
                 firstName: worker.firstName,
                 lastName: worker.lastName,
                 position: worker.position,
-                time: time,
-                hour: hour
+                arrivalTime: arrivalTime,
+                departureTime: null, // Установим позже
+                hour: hour,
+                workerIndex: workerIndex
             });
             
             workerIndex++;
         }
     });
     
-    // Сортируем по времени (от раннего к позднему)
-    const sortedWorkers = workers.sort((a, b) => a.time.localeCompare(b.time));
+    // Теперь назначаем время ухода в соответствии с данными графика
+    let assignedWorkers = [...workers];
+    let departureWorkerIndex = 0;
+    
+    hourlyData.forEach((hourData) => {
+        const hour = parseInt(hourData.hour.split(':')[0]);
+        const departureCount = hourData.departure;
+        
+        // Назначаем время ухода работникам в этот час
+        for (let i = 0; i < departureCount && departureWorkerIndex < assignedWorkers.length; i++) {
+            if (assignedWorkers[departureWorkerIndex]) {
+                const baseMinute = (assignedWorkers[departureWorkerIndex].workerIndex * 7) % 60;
+                const departureMinute = (baseMinute + 30 + (assignedWorkers[departureWorkerIndex].workerIndex * 5) % 30) % 60;
+                const departureTime = `${hour.toString().padStart(2, '0')}:${departureMinute.toString().padStart(2, '0')}`;
+                
+                assignedWorkers[departureWorkerIndex].departureTime = departureTime;
+                departureWorkerIndex++;
+            }
+        }
+    });
+    
+    // Удаляем временное поле workerIndex
+    const finalWorkers = assignedWorkers.map(worker => {
+        const { workerIndex, ...cleanWorker } = worker;
+        return cleanWorker;
+    });
+    
+    // Сортируем по времени прихода (от раннего к позднему)
+    const sortedWorkers = finalWorkers.sort((a, b) => a.arrivalTime.localeCompare(b.arrivalTime));
     
     // Кешируем результат
     workerDataCache[dateKey] = sortedWorkers;
@@ -245,7 +295,7 @@ const exportToCSV = (workers, selectedDate) => {
         return;
     }
     
-    const headers = ['№', 'Имя', 'Фамилия', 'Должность', 'Время входа'];
+    const headers = ['№', 'Имя', 'Фамилия', 'Должность', 'Время входа', 'Время ухода'];
     const csvContent = [
         headers.join(','),
         ...workers.map((worker, index) => [
@@ -253,7 +303,8 @@ const exportToCSV = (workers, selectedDate) => {
             worker.firstName,
             worker.lastName,
             worker.position,
-            worker.time
+            worker.arrivalTime,
+            worker.departureTime
         ].join(','))
     ].join('\n');
     
@@ -272,13 +323,14 @@ const exportToCSV = (workers, selectedDate) => {
 };
 
 // Кастомный компонент Tooltip для графика
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, type }) => {
     if (active && payload && payload.length) {
+        const typeLabel = type === 'departure' ? 'ушло' : 'пришло';
         return (
             <div className={styles.customTooltip}>
                 <p className={styles.tooltipLabel}>{`Время: ${label}`}</p>
                 <p className={styles.tooltipValue}>
-                    {`Рабочие: ${payload[0].value}`}
+                    {`Работников ${typeLabel}: ${payload[0].value}`}
                 </p>
             </div>
         );
@@ -291,7 +343,7 @@ const getWorkersCountForDate = (date) => {
     const dateKey = date.toISOString().split('T')[0];
     const data = dailyData[dateKey];
     if (!data) return 0;
-    return data.reduce((acc, curr) => acc + curr.workers, 0);
+    return data.reduce((acc, curr) => acc + curr.arrival, 0);
 };
 
 // Модальное окно с информацией о работнике
@@ -316,10 +368,16 @@ const WorkerModal = ({ worker, isOpen, onClose }) => {
                             {worker.firstName} {worker.lastName}
                         </h3>
                         <p className={styles.modalPosition}>{worker.position}</p>
-                        <p className={styles.modalTime}>
-                            <i className="fas fa-clock"></i>
-                            Время входа: {worker.time}
-                        </p>
+                        <div className={styles.modalTimes}>
+                            <p className={styles.modalTime}>
+                                <i className="fas fa-sign-in-alt"></i>
+                                Время входа: {worker.arrivalTime}
+                            </p>
+                            <p className={styles.modalTime}>
+                                <i className="fas fa-sign-out-alt"></i>
+                                Время ухода: {worker.departureTime}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -334,7 +392,7 @@ const WorkerStats = () => {
     
     const selectedDateKey = selectedDate.toISOString().split('T')[0];
     const hourlyData = dailyData[selectedDateKey] || generateEmptyHourlyData();
-    const totalWorkers = hourlyData.reduce((acc, curr) => acc + curr.workers, 0);
+    const totalWorkers = hourlyData.reduce((acc, curr) => acc + curr.arrival, 0);
     const hasData = totalWorkers > 0;
     
     // Генерируем фотографии работников для текущей даты (данные кешируются)
@@ -414,11 +472,11 @@ const WorkerStats = () => {
 
             <div className={styles.chartSection}>
                 <h3 className={styles.sectionTitle}>
-                    Количество работников по часам
+                    Время прихода работников
                 </h3>
                 {hasData ? (
                     <>
-                        <ResponsiveContainer width="100%" height={350}>
+                        <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={hourlyData}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis
@@ -430,10 +488,45 @@ const WorkerStats = () => {
                                     tick={{ fill: "#6b7280", fontSize: 12 }}
                                 />
                                 <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} />
-                                <Tooltip content={<CustomTooltip />} />
+                                <Tooltip content={<CustomTooltip type="arrival" />} />
                                 <Bar 
-                                    dataKey="workers" 
+                                    dataKey="arrival" 
                                     fill="var(--primary-color)" 
+                                    radius={[4, 4, 0, 0]}
+                                />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </>
+                ) : (
+                    <div className={styles.noDataState}>
+                        <i className="fas fa-chart-bar" style={{ fontSize: '3rem', color: 'var(--text-muted)' }}></i>
+                        <p>Нет данных о времени прихода за выбранную дату</p>
+                    </div>
+                )}
+            </div>
+
+            <div className={styles.chartSection}>
+                <h3 className={styles.sectionTitle}>
+                    Время ухода работников
+                </h3>
+                {hasData ? (
+                    <>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={hourlyData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis
+                                    dataKey="hour"
+                                    angle={-45}
+                                    textAnchor="end"
+                                    height={60}
+                                    interval={0}
+                                    tick={{ fill: "#6b7280", fontSize: 12 }}
+                                />
+                                <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} />
+                                <Tooltip content={<CustomTooltip type="departure" />} />
+                                <Bar 
+                                    dataKey="departure" 
+                                    fill="#10b981" 
                                     radius={[4, 4, 0, 0]}
                                 />
                             </BarChart>
@@ -443,15 +536,12 @@ const WorkerStats = () => {
                                 Всего за день: <span className={styles.totalCount}>{totalWorkers}</span>{" "}
                                 работников
                             </p>
-                            <p className={styles.maxWorkersInfo}>
-                                Максимум: <span className={styles.maxCount}>26</span> работников
-                            </p>
                         </div>
                     </>
                 ) : (
                     <div className={styles.noDataState}>
                         <i className="fas fa-chart-bar" style={{ fontSize: '3rem', color: 'var(--text-muted)' }}></i>
-                        <p>Нет данных о посещениях за выбранную дату</p>
+                        <p>Нет данных о времени ухода за выбранную дату</p>
                     </div>
                 )}
             </div>
@@ -473,8 +563,17 @@ const WorkerStats = () => {
                                     alt={`${worker.firstName} ${worker.lastName}`}
                                     className={styles.workerPhoto}
                                 />
-                                <div className={styles.workerTime}>
-                                    {worker.time}
+                                <div className={styles.workerTimes}>
+                                    <div className={styles.workerTime}>
+                                        <i className="fas fa-sign-in-alt"></i>
+                                        {worker.arrivalTime}
+                                    </div>
+                                    {worker.departureTime && (
+                                        <div className={styles.workerTime}>
+                                            <i className="fas fa-sign-out-alt"></i>
+                                            {worker.departureTime}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}

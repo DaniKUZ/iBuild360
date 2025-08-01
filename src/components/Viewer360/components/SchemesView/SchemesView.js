@@ -183,8 +183,8 @@ const SchemesView = ({ project }) => {
       <div className={styles.schemesView}>
         <div className={styles.emptyState}>
           <i className="fas fa-layer-group"></i>
-          <h3>Схемы отсутствуют</h3>
-          <p>В этом проекте пока нет добавленных схем этажей</p>
+          <h3>Планы этажей отсутствуют</h3>
+          <p>В этом проекте пока нет добавленных планов этажей</p>
         </div>
       </div>
     );
@@ -235,7 +235,7 @@ const SchemesView = ({ project }) => {
       {/* Карточки схем сверху */}
       <div className={styles.schemesCards}>
         <div className={styles.cardsHeader}>
-          <h3>Схемы этажей</h3>
+          <h3>Планы этажей</h3>
           <span className={styles.cardsCount}>
             {filteredFloors.length} из {project.floors.length}
           </span>

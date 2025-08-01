@@ -392,7 +392,7 @@ const Viewer360Container = ({ project, onBack }) => {
   const sidebarItems = [
     { id: 'home', icon: 'fas fa-home', label: 'Дом', action: onBack },
     { id: 'images', icon: 'fas fa-image', label: 'Изображение', isActive: true },
-    { id: 'schemes', icon: 'fas fa-layer-group', label: 'Схемы' },
+    { id: 'schemes', icon: 'fas fa-layer-group', label: 'Планы этажей' },
     { id: 'field-notes', icon: 'fas fa-sticky-note', label: 'Полевые заметки' },
     { id: 'ai-comparison', icon: 'fas fa-brain', label: 'AI сравнение' },
     { id: 'timelapses', icon: 'fas fa-clock', label: 'Таймлапсы' },
@@ -1865,7 +1865,7 @@ const Viewer360Container = ({ project, onBack }) => {
                     <i className="fas fa-search"></i>
                     <input
                       type="text"
-                      placeholder="Поиск схемы..."
+                      placeholder="Поиск планов этажей..."
                       value={schemeSearchQuery}
                       onChange={(e) => setSchemeSearchQuery(e.target.value)}
                       className={styles.searchInput}
@@ -1886,7 +1886,7 @@ const Viewer360Container = ({ project, onBack }) => {
               {/* Список схем */}
               <div className={styles.dropdownList}>
                 {filteredSchemes.length === 0 ? (
-                  <div className={styles.noResults}>Схемы не найдены</div>
+                  <div className={styles.noResults}>Планы этажей не найдены</div>
                 ) : (
                   filteredSchemes.map((scheme) => (
                     <button

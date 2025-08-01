@@ -491,7 +491,7 @@ const SchemeViewer = ({
           <div className="loading-overlay">
             <div className="loading-spinner">
               <i className="fas fa-spinner fa-spin"></i>
-              Загрузка схемы...
+              Загрузка плана этажа...
             </div>
           </div>
         )}
