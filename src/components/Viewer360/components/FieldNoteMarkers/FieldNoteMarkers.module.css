@@ -14,13 +14,14 @@
   transform: translate(-50%, -50%);
   pointer-events: auto;
   cursor: pointer;
-  transition: all var(--transition-normal);
   z-index: 11;
+  /* Убираем transition для мгновенного позиционирования */
 }
 
 .fieldNoteMarker:hover {
   transform: translate(-50%, -50%) scale(1.1);
   z-index: 12;
+  transition: transform var(--transition-fast);
 }
 
 .markerIcon {

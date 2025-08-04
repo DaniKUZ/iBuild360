@@ -1,0 +1,380 @@
+/* Контейнер для разделенного экрана */
+.splitScreenContainer {
+  display: flex;
+  width: calc(100% - 60px);
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-left: 60px;
+  position: relative;
+}
+
+/* Панель (левая или правая) */
+.splitPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 300px;
+  background: #1a1a1a;
+}
+
+/* Заголовок панели */
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(26, 26, 26, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  min-height: 40px;
+}
+
+/* Подпись панели */
+.panelLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Дата панели */
+.panelDate {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+}
+
+/* Кнопка закрытия панели */
+.closeButton {
+  position: absolute;
+  top: var(--spacing-lg);
+  left: var(--spacing-lg);
+  width: 50px;
+  height: 50px;
+  background: var(--black-alpha-80);
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--white);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xl);
+  z-index: var(--z-index-dropdown);
+  backdrop-filter: blur(4px);
+}
+
+.closeButton:hover {
+  background: var(--error-color);
+  transform: scale(1.1);
+  box-shadow: var(--shadow-md);
+}
+
+.closeButton:active {
+  transform: scale(0.95);
+}
+
+/* Панорамы в панелях */
+.leftPanorama,
+.rightPanorama {
+  flex: 1;
+  width: 100%;
+  background: #0f0f0f;
+  border-radius: 0;
+}
+
+/* Разделитель между панелями */
+.splitDivider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 4px;
+  background: linear-gradient(
+    to bottom,
+    rgba(59, 130, 246, 0.3),
+    rgba(59, 130, 246, 0.6),
+    rgba(59, 130, 246, 0.3)
+  );
+  position: relative;
+  transition: all 0.3s ease;
+  z-index: 1001;
+}
+
+/* Hover эффект убран для разделяющей линии */
+/* .splitDivider:hover {
+  width: 6px;
+  background: linear-gradient(
+    to bottom,
+    rgba(59, 130, 246, 0.5),
+    rgba(59, 130, 246, 0.8),
+    rgba(59, 130, 246, 0.5)
+  );
+} */
+
+/* Линия разделителя */
+.dividerLine {
+  width: 100%;
+  height: 100%;
+  background: inherit;
+}
+
+/* Ручка разделителя */
+.dividerHandle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 60px;
+  background: transparent;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 1002;
+}
+
+/* .splitDivider:hover .dividerHandle {
+  width: 120px;
+  height: 60px;
+} */
+
+/* Иконка ручки */
+.handleIcon {
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+
+/* .splitDivider:hover .handleIcon {
+  opacity: 1;
+  font-size: 14px;
+} */
+
+/* Адаптивность для планшетов */
+@media (max-width: 1024px) {
+  .splitPanel {
+    min-width: 250px;
+  }
+  
+  .panelHeader {
+    padding: 10px 12px;
+    min-height: 45px;
+  }
+  
+  .panelLabel {
+    font-size: 13px;
+  }
+  
+  .panelDate {
+    font-size: 11px;
+  }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .splitScreenContainer {
+    flex-direction: column;
+    width: calc(100% - 50px);
+    margin-left: 50px;
+  }
+  
+  .splitPanel {
+    min-width: auto;
+    min-height: 200px;
+    flex: 1;
+  }
+  
+  .splitDivider {
+    width: 100%;
+    height: 4px;
+  }
+  
+  /* .splitDivider:hover {
+    height: 6px;
+  } */
+  
+  .dividerHandle {
+    width: 40px;
+    height: 20px;
+  }
+  
+  /* .splitDivider:hover .dividerHandle {
+    width: 48px;
+    height: 24px;
+  } */
+  
+  .handleIcon {
+    transform: rotate(0deg);
+  }
+  
+  .panelHeader {
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+  
+  .closeButton {
+    width: 20px;
+    height: 20px;
+    font-size: 16px;
+  }
+}
+
+/* Адаптивность для очень маленьких экранов */
+@media (max-width: 480px) {
+  .splitScreenContainer {
+    width: calc(100% - 45px);
+    margin-left: 45px;
+  }
+  
+  .splitPanel {
+    min-height: 150px;
+  }
+  
+  .panelLabel {
+    font-size: 12px;
+  }
+  
+  .panelDate {
+    font-size: 10px;
+  }
+  
+  .panelHeader {
+    padding: 6px 10px;
+    min-height: 36px;
+  }
+}
+
+/* Контейнер для сайдбаров панели */
+.panelSidebars {
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Нижний сайдбар для каждой панели */
+.panelBottomSidebar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  pointer-events: auto;
+  transition: all var(--transition-fast);
+}
+
+/* Правый сайдбар для каждой панели */
+.panelRightSidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+
+
+/* Мини-сайдбар внутри панели */
+.miniSidebar {
+  background: var(--background-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(8px);
+  transition: all var(--transition-fast);
+  min-width: 45px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miniSidebar:hover {
+  box-shadow: var(--shadow-xl);
+  border-color: var(--border-color-hover);
+}
+
+/* Кнопка сравнения в центре */
+.compareButton {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  z-index: 1002;
+}
+
+.compareButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.compareButton:disabled,
+.compareButton.disabled {
+  background: #4a4a4a;
+  color: #888888;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
+  transform: none;
+}
+
+.compareButton:disabled:hover,
+.compareButton.disabled:hover {
+  background: #4a4a4a;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Адаптивность для сайдбаров */
+@media (max-width: 768px) {
+  .panelBottomSidebar {
+    padding: 6px;
+    gap: 4px;
+  }
+  
+  .miniSidebar {
+    padding: 4px;
+    min-width: 50px;
+  }
+  
+  .compareButton {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .closeButton {
+    width: 40px;
+    height: 40px;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    font-size: var(--font-size-lg);
+  }
+  
+
+}

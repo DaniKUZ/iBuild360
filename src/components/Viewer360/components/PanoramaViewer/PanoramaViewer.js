@@ -10,8 +10,7 @@ const PanoramaViewer = forwardRef(({
   onPanoramaClick,
   className,
   initialCamera = { yaw: 0, pitch: 0, fov: 75 },
-  isFieldNoteMode = false,
-  ...props 
+  isFieldNoteMode = false
 }, ref) => {
 
   const mountRef = useRef(null);
@@ -35,14 +34,24 @@ const PanoramaViewer = forwardRef(({
   const momentumAnimationRef = useRef(null);
   const zoomAnimationRef = useRef(null);
   const targetFovRef = useRef(75);
+  
+  // Ref для throttling onCameraChange вызовов
+  const lastCameraChangeTime = useRef(0);
 
   // Добавляем состояния загрузки
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
 
   // Refs to keep latest values inside event handlers
   const isFieldNoteModeRef = useRef(isFieldNoteMode);
   const onPanoramaClickRef = useRef(onPanoramaClick);
+  
+  // Ref для отслеживания последнего пользовательского взаимодействия
+  const lastUserInteractionRef = useRef(0);
+  
+  // Ref для отслеживания применения initialCamera (для split-screen панелей)
+  const isApplyingInitialCameraRef = useRef(false);
 
   // Update refs whenever props change
   useEffect(() => {
@@ -53,16 +62,80 @@ const PanoramaViewer = forwardRef(({
     onPanoramaClickRef.current = onPanoramaClick;
   }, [onPanoramaClick]);
 
-  // Состояние для отслеживания первоначальной инициализации
-  const isInitializedRef = useRef(false);
+  // Флаг инициализации больше не нужен - позиция обновляется при каждом изменении initialCamera
 
-  // Обновляем позицию камеры при изменении initialCamera (только при первой инициализации)
+  // Логируем получение новых пропсов
   useEffect(() => {
-    if (cameraRef.current && initialCamera && !isInitializedRef.current) {
-      console.log('PanoramaViewer: Устанавливаем начальную позицию камеры:', initialCamera);
+    const viewerId = className?.includes('mainViewer') ? '[MAIN]' : 
+                     className?.includes('leftSplitPanel') ? '[LEFT]' : 
+                     className?.includes('rightSplitPanel') ? '[RIGHT]' : '[UNKNOWN]';
+  }, [initialCamera, className]);
+
+  // Обновляем позицию камеры при изменении initialCamera И когда камера готова
+  useEffect(() => {
+    const viewerId = className?.includes('mainViewer') ? '[MAIN]' : 
+                     className?.includes('leftSplitPanel') ? '[LEFT]' : 
+                     className?.includes('rightSplitPanel') ? '[RIGHT]' : '[UNKNOWN]';
+    const isSplitScreenPanel = viewerId === '[LEFT]' || viewerId === '[RIGHT]';
+    
+    if (cameraRef.current && initialCamera) {
+
       
-      // Устанавливаем флаг программного обновления
-      isProgrammaticUpdateRef.current = true;
+      // Для split-screen панелей используем специальный флаг вместо isProgrammaticUpdateRef
+      if (isSplitScreenPanel) {
+        isApplyingInitialCameraRef.current = true;
+      } else {
+        isProgrammaticUpdateRef.current = true;
+      }
+      
+      // Конвертируем углы в радианы для Three.js
+      const yawRad = THREE.MathUtils.degToRad(initialCamera.yaw || 0);
+      const pitchRad = THREE.MathUtils.degToRad(initialCamera.pitch || 0);
+      
+
+      
+      rotationRef.current.x = pitchRad;
+      rotationRef.current.y = yawRad;
+      
+      if (initialCamera.fov && cameraRef.current.fov !== initialCamera.fov) {
+        console.log('🔭 Обновляем FOV:', { old: cameraRef.current.fov, new: initialCamera.fov });
+        cameraRef.current.fov = initialCamera.fov;
+        targetFovRef.current = initialCamera.fov;
+        cameraRef.current.updateProjectionMatrix();
+      }
+      
+      updateCameraPosition();
+
+      
+      // Сбрасываем флаги после обновления
+      if (isSplitScreenPanel) {
+        setTimeout(() => {
+          isApplyingInitialCameraRef.current = false;
+        }, 0);
+      } else {
+        setTimeout(() => {
+          isProgrammaticUpdateRef.current = false;
+        }, 0);
+      }
+    }
+  }, [initialCamera?.yaw, initialCamera?.pitch, initialCamera?.fov, className]);
+  
+  // Дополнительный useEffect для случая когда камера инициализируется после получения координат
+  useEffect(() => {
+    if (cameraRef.current && initialCamera && (initialCamera.yaw !== 0 || initialCamera.pitch !== 0)) {
+      const viewerId = className?.includes('mainViewer') ? '[MAIN]' : 
+                     className?.includes('leftSplitPanel') ? '[LEFT]' : 
+                     className?.includes('rightSplitPanel') ? '[RIGHT]' : '[UNKNOWN]';
+      const isSplitScreenPanel = className?.includes('leftSplitPanel') || className?.includes('rightSplitPanel');
+      
+
+      
+      // Для split-screen панелей используем специальный флаг вместо isProgrammaticUpdateRef
+      if (isSplitScreenPanel) {
+        isApplyingInitialCameraRef.current = true;
+      } else {
+        isProgrammaticUpdateRef.current = true;
+      }
       
       // Конвертируем углы в радианы для Three.js
       const yawRad = THREE.MathUtils.degToRad(initialCamera.yaw || 0);
@@ -78,20 +151,25 @@ const PanoramaViewer = forwardRef(({
       }
       
       updateCameraPosition();
-      
-      // Помечаем как инициализированное
-      isInitializedRef.current = true;
-      
-      // Сбрасываем флаг после обновления
-      setTimeout(() => {
-        isProgrammaticUpdateRef.current = false;
-      }, 0);
-    }
-  }, [initialCamera?.yaw, initialCamera?.pitch, initialCamera?.fov]);
 
-  // Сбрасываем флаг инициализации при смене изображения
+      
+      // Сбрасываем флаги после обновления
+      if (isSplitScreenPanel) {
+        setTimeout(() => {
+          isApplyingInitialCameraRef.current = false;
+        }, 0);
+      } else {
+        setTimeout(() => {
+          isProgrammaticUpdateRef.current = false;
+        }, 0);
+      }
+    }
+  }, [isCameraReady, initialCamera, className]); // Зависит от готовности камеры И координат
+
+  // Сбрасываем состояние камеры при смене изображения
   useEffect(() => {
-    isInitializedRef.current = false;
+
+    setIsCameraReady(false);
   }, [imageUrl]);
 
   // Предоставляем API для родительского компонента
@@ -117,7 +195,8 @@ const PanoramaViewer = forwardRef(({
         
         updateCameraPosition();
         
-        // Сбрасываем флаг после обновления
+        // Сбрасываем флаг после обновления с достаточной задержкой
+        // чтобы предотвратить случайную синхронизацию между панелями при императивном setCamera
         setTimeout(() => {
           isProgrammaticUpdateRef.current = false;
         }, 0);
@@ -172,6 +251,22 @@ const PanoramaViewer = forwardRef(({
     getCanvas: () => {
       // Возвращаем canvas из Three.js рендерера
       return rendererRef.current?.domElement || null;
+    },
+    zoomIn: () => {
+      if (cameraRef.current) {
+        const currentFov = targetFovRef.current || cameraRef.current.fov;
+        const newFov = Math.max(30, currentFov - 10);
+        targetFovRef.current = newFov;
+        animateZoom(newFov);
+      }
+    },
+    zoomOut: () => {
+      if (cameraRef.current) {
+        const currentFov = targetFovRef.current || cameraRef.current.fov;
+        const newFov = Math.min(130, currentFov + 10);
+        targetFovRef.current = newFov;
+        animateZoom(newFov);
+      }
     }
   }));
 
@@ -188,27 +283,26 @@ const PanoramaViewer = forwardRef(({
       cameraRef.current.position.set(newPosition.x, newPosition.y, newPosition.z);
       cameraRef.current.lookAt(0, 0, 0);
       
-      // Логируем только при программном обновлении для отладки
-      if (isProgrammaticUpdateRef.current) {
-        console.log('PanoramaViewer: Camera position updated programmatically:', {
-          rotation: {
-            x: THREE.MathUtils.radToDeg(rotationRef.current.x),
-            y: THREE.MathUtils.radToDeg(rotationRef.current.y)
-          },
-          fov: cameraRef.current.fov
-        });
-      }
+
       
       // Уведомляем родительский компонент об изменении камеры
       // Уведомляем только при пользовательском взаимодействии, не при программной синхронизации
-      if (onCameraChange && !isProgrammaticUpdateRef.current) {
-        const yaw = THREE.MathUtils.radToDeg(rotationRef.current.y);
-        const pitch = THREE.MathUtils.radToDeg(rotationRef.current.x);
-        onCameraChange({
-          yaw: ((yaw % 360) + 360) % 360,
-          pitch: pitch,
-          fov: cameraRef.current.fov
-        });
+      // Добавляем throttling для лучшей производительности
+      if (onCameraChange && !isProgrammaticUpdateRef.current && !isApplyingInitialCameraRef.current) {
+        // Отмечаем время последнего пользовательского взаимодействия
+        lastUserInteractionRef.current = Date.now();
+        
+        const now = performance.now();
+        if (now - lastCameraChangeTime.current > 16) { // ~60fps limit
+          const yaw = THREE.MathUtils.radToDeg(rotationRef.current.y);
+          const pitch = THREE.MathUtils.radToDeg(rotationRef.current.x);
+          onCameraChange({
+            yaw: ((yaw % 360) + 360) % 360,
+            pitch: pitch,
+            fov: cameraRef.current.fov
+          });
+          lastCameraChangeTime.current = now;
+        }
       }
     }
   };
@@ -223,9 +317,16 @@ const PanoramaViewer = forwardRef(({
     const minVelocity = 0.0005; // Уменьшена минимальная скорость для более долгого скольжения
 
     const animate = () => {
-      // Применяем скорость к вращению
-      rotationRef.current.y += velocityRef.current.x;
-      rotationRef.current.x += velocityRef.current.y;
+      // Динамическое масштабирование скорости в зависимости от зума
+      const currentFov = cameraRef.current.fov;
+      const maxFov = 130;
+      const minFov = 30;
+      const zoomFactor = (currentFov - minFov) / (maxFov - minFov);
+      const velocityScale = 0.2 + 0.8 * zoomFactor; // От 20% до 100% скорости инерции
+      
+      // Применяем скорость к вращению с учетом зума
+      rotationRef.current.y += velocityRef.current.x * velocityScale;
+      rotationRef.current.x += velocityRef.current.y * velocityScale;
 
       // Ограничиваем поворот по вертикали
       rotationRef.current.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, rotationRef.current.x));
@@ -255,21 +356,19 @@ const PanoramaViewer = forwardRef(({
 
     const startFov = cameraRef.current.fov;
     const startTime = Date.now();
-    const duration = 300; // Увеличена длительность анимации для более плавного зума
+    const duration = 150; // Уменьшена длительность анимации для быстрого отклика
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       
-      // Easing функция (ease-out)
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      
-      const currentFov = startFov + (targetFov - startFov) * easeProgress;
+      // Линейная интерполяция без easing эффекта
+      const currentFov = startFov + (targetFov - startFov) * progress;
       cameraRef.current.fov = currentFov;
       cameraRef.current.updateProjectionMatrix();
       
       // Уведомляем о изменении зума
-      if (onCameraChange && !isProgrammaticUpdateRef.current) {
+              if (onCameraChange && !isProgrammaticUpdateRef.current && !isApplyingInitialCameraRef.current) {
         const yaw = THREE.MathUtils.radToDeg(rotationRef.current.y);
         const pitch = THREE.MathUtils.radToDeg(rotationRef.current.x);
         onCameraChange({
@@ -325,8 +424,15 @@ const PanoramaViewer = forwardRef(({
     const deltaX = event.clientX - mouseRef.current.x;
     const deltaY = event.clientY - mouseRef.current.y;
 
-    // Применяем сглаживание для более плавного движения
-    const sensitivity = 0.004; // Еще больше уменьшена чувствительность для очень плавного движения
+    // Динамическая чувствительность в зависимости от зума
+    const baseSensitivity = 0.004;
+    const currentFov = cameraRef.current.fov;
+    const maxFov = 130;
+    const minFov = 30;
+    // Чем меньше FOV (больше зум), тем меньше чувствительность
+    const zoomFactor = (currentFov - minFov) / (maxFov - minFov);
+    const sensitivity = baseSensitivity * (0.2 + 0.8 * zoomFactor); // От 20% до 100% чувствительности
+    
     const rotationDeltaX = deltaX * sensitivity;
     const rotationDeltaY = deltaY * sensitivity;
 
@@ -338,8 +444,9 @@ const PanoramaViewer = forwardRef(({
 
     // Вычисляем скорость для инерции (если прошло достаточно времени)
     if (deltaTime > 0) {
-      const velocityX = rotationDeltaX / deltaTime * 12; // Уменьшено для более плавной инерции
-      const velocityY = -rotationDeltaY / deltaTime * 12;
+      const velocityMultiplier = 12; // Базовый множитель для инерции
+      const velocityX = rotationDeltaX / deltaTime * velocityMultiplier;
+      const velocityY = -rotationDeltaY / deltaTime * velocityMultiplier;
       
       // Применяем более сильное сглаживание к скорости
       const smoothing = 0.5;
@@ -384,19 +491,35 @@ const PanoramaViewer = forwardRef(({
     // В режиме заметок блокируем зум
     if (isFieldNoteModeRef.current) return;
     if (cameraRef.current) {
-      // Плавное изменение зума
-      const zoomSpeed = 2; // Еще больше уменьшена скорость зума для очень плавного зума
+      // Останавливаем текущую анимацию зума для предотвращения накопления
+      if (zoomAnimationRef.current) {
+        cancelAnimationFrame(zoomAnimationRef.current);
+        zoomAnimationRef.current = null;
+      }
+      
+      // Мгновенное изменение зума без анимации
+      const zoomSpeed = 1.5; // Скорость зума для точного контроля
       const delta = event.deltaY > 0 ? zoomSpeed : -zoomSpeed;
       
-      // Вычисляем новое значение FOV
-      const currentFov = targetFovRef.current || cameraRef.current.fov;
+      // Всегда берем ТЕКУЩЕЕ значение FOV камеры
+      const currentFov = cameraRef.current.fov;
       const newFov = Math.max(30, Math.min(130, currentFov + delta));
       
-      // Сохраняем целевое значение
+      // Применяем зум мгновенно
+      cameraRef.current.fov = newFov;
+      cameraRef.current.updateProjectionMatrix();
       targetFovRef.current = newFov;
       
-      // Запускаем плавную анимацию зума
-      animateZoom(newFov);
+      // Уведомляем о изменении зума
+              if (onCameraChange && !isProgrammaticUpdateRef.current && !isApplyingInitialCameraRef.current) {
+        const yaw = THREE.MathUtils.radToDeg(rotationRef.current.y);
+        const pitch = THREE.MathUtils.radToDeg(rotationRef.current.x);
+        onCameraChange({
+          yaw: ((yaw % 360) + 360) % 360,
+          pitch: pitch,
+          fov: newFov
+        });
+      }
     }
   };
 
@@ -410,7 +533,7 @@ const PanoramaViewer = forwardRef(({
       return;
     }
 
-    console.log('PanoramaViewer: Initializing with imageUrl:', imageUrl);
+    console.log('🖼️ PanoramaViewer: Загрузка нового изображения:', imageUrl);
     setIsLoading(true);
     setLoadError(null);
     
@@ -433,6 +556,8 @@ const PanoramaViewer = forwardRef(({
         1000
       );
       cameraRef.current = camera;
+      setIsCameraReady(true);
+      console.log('📷 Камера инициализирована и готова');
       targetFovRef.current = initialCamera.fov || 75; // Инициализируем целевой FOV
 
       // Создаем рендерер
@@ -456,7 +581,10 @@ const PanoramaViewer = forwardRef(({
         x: THREE.MathUtils.degToRad(initialCamera.pitch || 0), 
         y: THREE.MathUtils.degToRad(initialCamera.yaw || 0)
       };
-      console.log('PanoramaViewer: Setting initial camera position:', initialCamera);
+      const viewerId = className?.includes('mainViewer') ? '[MAIN]' : 
+                     className?.includes('leftSplitPanel') ? '[LEFT]' : 
+                     className?.includes('rightSplitPanel') ? '[RIGHT]' : '[UNKNOWN]';
+      console.log(`PanoramaViewer ${viewerId}: Setting initial camera position:`, JSON.stringify(initialCamera, null, 2));
       updateCameraPosition();
       
       // Запускаем рендер-лууп
@@ -616,7 +744,6 @@ const PanoramaViewer = forwardRef(({
     <div 
       className={`${styles.panoramaViewer} ${className || ''}`}
       style={{ width: '100%', height: '100%', position: 'relative' }}
-      {...props}
     >
       <div 
         ref={mountRef} 

@@ -153,6 +153,39 @@
   letter-spacing: 0.5px;
 }
 
+/* Компактные стили для режима разделения экрана */
+.compact {
+  gap: 4px;
+  border-radius: var(--radius-md);
+  padding: 6px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(8px);
+}
+
+.compactButton {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+}
+
+.compactZoom {
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(8px);
+  min-width: 48px;
+}
+
+.compactZoomValue {
+  font-size: 11px;
+  line-height: 1.1;
+}
+
+.compactZoomLabel {
+  font-size: 9px;
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
   .viewerControlsSidebar {
@@ -181,5 +214,29 @@
   
   .zoomLabel {
     font-size: 9px;
+  }
+  
+  /* Компактные стили для мобильных */
+  .compactButton {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+  
+  .compact {
+    padding: 4px;
+  }
+  
+  .compactZoom {
+    padding: 3px 5px;
+    min-width: 42px;
+  }
+  
+  .compactZoomValue {
+    font-size: 10px;
+  }
+  
+  .compactZoomLabel {
+    font-size: 8px;
   }
 } 

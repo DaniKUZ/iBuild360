@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# AI Functions (Python apps)
+src/AI func/
+
 # Build output
 dist/
 

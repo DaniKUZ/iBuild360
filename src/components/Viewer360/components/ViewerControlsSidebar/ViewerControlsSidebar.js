@@ -7,7 +7,8 @@ const ViewerControlsSidebar = ({
   onSplitScreen, 
   onZoomIn, 
   onZoomOut,
-  currentZoom = 75
+  currentZoom = 75,
+  isCompact = false
 }) => {
   const buttons = [
     {
@@ -51,11 +52,11 @@ const ViewerControlsSidebar = ({
 
   return (
     <div className={styles.viewerControlsSidebar}>
-      <div className={styles.controlsContainer}>
+      <div className={`${styles.controlsContainer} ${isCompact ? styles.compact : ''}`}>
         {buttons.map((button) => (
           <button
             key={button.id}
-            className={`${styles.controlButton} ${button.isStub ? styles.stubButton : ''}`}
+            className={`${styles.controlButton} ${button.isStub ? styles.stubButton : ''} ${isCompact ? styles.compactButton : ''}`}
             onClick={() => handleButtonClick(button)}
             disabled={
               (button.id === 'zoom-out' && currentZoom >= 130) ||
@@ -71,9 +72,9 @@ const ViewerControlsSidebar = ({
       </div>
       
       {/* Индикатор зума */}
-      <div className={styles.zoomIndicator}>
-        <span className={styles.zoomValue}>{Math.round(currentZoom)}°</span>
-        <span className={styles.zoomLabel}>FOV</span>
+      <div className={`${styles.zoomIndicator} ${isCompact ? styles.compactZoom : ''}`}>
+        <span className={`${styles.zoomValue} ${isCompact ? styles.compactZoomValue : ''}`}>{Math.round(currentZoom)}°</span>
+        <span className={`${styles.zoomLabel} ${isCompact ? styles.compactZoomLabel : ''}`}>FOV</span>
       </div>
     </div>
   );
@@ -84,7 +85,8 @@ ViewerControlsSidebar.propTypes = {
   onSplitScreen: PropTypes.func,
   onZoomIn: PropTypes.func.isRequired,
   onZoomOut: PropTypes.func.isRequired,
-  currentZoom: PropTypes.number
+  currentZoom: PropTypes.number,
+  isCompact: PropTypes.bool
 };
 
 export default ViewerControlsSidebar; 

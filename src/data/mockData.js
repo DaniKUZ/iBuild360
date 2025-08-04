@@ -18,6 +18,7 @@ export const mockProjects = [
     latitude: 55.7558,
     longitude: 37.6173,
     captures: 127,
+    projectType: "viewer360",
     fieldNotes: {
       tags: [
         'Архитектурный',
@@ -115,6 +116,7 @@ export const mockProjects = [
     latitude: 55.6415,
     longitude: 37.4858,
     captures: 73,
+    projectType: "landscaping",
     fieldNotes: {
       tags: [
         'Общий',
@@ -216,6 +218,7 @@ export const mockProjects = [
     latitude: 59.8736,
     longitude: 30.2627,
     captures: 45,
+    projectType: "landscaping",
     fieldNotes: {
       tags: [
         'Документ',

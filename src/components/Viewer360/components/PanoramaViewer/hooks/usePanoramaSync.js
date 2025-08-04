@@ -23,7 +23,7 @@ const usePanoramaSync = (mainViewerRef, comparisonViewerRef, isComparisonMode) =
   }, [isComparisonMode]);
 
   // Минимальная задержка между синхронизациями для предотвращения перегрузки
-  const SYNC_THROTTLE = 16; // ~60fps
+  const SYNC_THROTTLE = 0; // No throttling for immediate sync
 
   const syncFromMainToComparison = useCallback((cameraData) => {
     const currentIsComparisonMode = isComparisonModeRef.current;
@@ -31,22 +31,14 @@ const usePanoramaSync = (mainViewerRef, comparisonViewerRef, isComparisonMode) =
       return;
     }
 
-    const now = performance.now();
-    if (now - syncStateRef.current.lastSyncTime < SYNC_THROTTLE) {
-      return;
-    }
-
     try {
       syncStateRef.current.isMainActive = true;
       comparisonViewerRef.current.setCamera(cameraData.yaw, cameraData.pitch, cameraData.fov);
-      syncStateRef.current.lastSyncTime = now;
     } catch (error) {
       console.warn('Ошибка синхронизации с основного на сравнительный:', error);
     } finally {
-      // Сбрасываем флаг в следующем кадре для предотвращения race conditions
-      requestAnimationFrame(() => {
-        syncStateRef.current.isMainActive = false;
-      });
+      // Сбрасываем флаг немедленно для лучшей производительности
+      syncStateRef.current.isMainActive = false;
     }
   }, [comparisonViewerRef]); // Убираем isComparisonMode из зависимостей, используем ref
 
@@ -56,42 +48,24 @@ const usePanoramaSync = (mainViewerRef, comparisonViewerRef, isComparisonMode) =
       return;
     }
 
-    const now = performance.now();
-    if (now - syncStateRef.current.lastSyncTime < SYNC_THROTTLE) {
-      return;
-    }
-
     try {
       syncStateRef.current.isComparisonActive = true;
       mainViewerRef.current.setCamera(cameraData.yaw, cameraData.pitch, cameraData.fov);
-      syncStateRef.current.lastSyncTime = now;
     } catch (error) {
       console.warn('Ошибка синхронизации со сравнительного на основной:', error);
     } finally {
-      // Сбрасываем флаг в следующем кадре для предотвращения race conditions
-      requestAnimationFrame(() => {
-        syncStateRef.current.isComparisonActive = false;
-      });
+      // Сбрасываем флаг немедленно для лучшей производительности
+      syncStateRef.current.isComparisonActive = false;
     }
   }, [mainViewerRef]); // Убираем isComparisonMode из зависимостей, используем ref
 
-  // Throttled версии для более плавной синхронизации во время движения
+  // Immediate sync versions - no throttling for better responsiveness
   const throttledSyncFromMain = useCallback((cameraData) => {
-    if (mainToComparisonTimeoutRef.current) return;
-    
-    mainToComparisonTimeoutRef.current = setTimeout(() => {
-      syncFromMainToComparison(cameraData);
-      mainToComparisonTimeoutRef.current = null;
-    }, SYNC_THROTTLE);
+    syncFromMainToComparison(cameraData);
   }, [syncFromMainToComparison]);
 
   const throttledSyncFromComparison = useCallback((cameraData) => {
-    if (comparisonToMainTimeoutRef.current) return;
-    
-    comparisonToMainTimeoutRef.current = setTimeout(() => {
-      syncFromComparisonToMain(cameraData);
-      comparisonToMainTimeoutRef.current = null;
-    }, SYNC_THROTTLE);
+    syncFromComparisonToMain(cameraData);
   }, [syncFromComparisonToMain]);
 
   // Синхронизация навигационных точек

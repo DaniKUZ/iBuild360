@@ -7,6 +7,7 @@
   --viewer-sidebar-width: 60px;
   --viewer-sidebar-expanded: 220px;
   --viewer-minimap-width: 320px;
+  --viewer-minimap-width-split: 240px;
   --viewer-minimap-expanded: 80vw;
   --viewer-bottom-height: 65px;
   --viewer-preview-size: 70px;
@@ -416,9 +417,9 @@
   position: absolute;
   top: var(--spacing-lg);
   right: var(--spacing-lg);
-  width: 50px;
-  height: 50px;
-  background: var(--black-alpha-80);
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 0, 0, 0.9);
   border: none;
   border-radius: var(--radius-full);
   color: var(--white);
@@ -429,13 +430,15 @@
   justify-content: center;
   font-size: var(--font-size-xl);
   z-index: var(--z-index-dropdown);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .closeViewerBtn:hover {
-  background: var(--error-color);
-  transform: scale(1.1);
-  box-shadow: var(--shadow-md);
+  background: #dc3545;
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+  color: var(--white);
 }
 
 /* =============================================================================
@@ -1152,6 +1155,164 @@
   overflow: hidden;
 }
 
+/* Отдельный класс для мини-карты в режиме разделения экрана (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) {
+  width: var(--viewer-minimap-width-split) !important; /* Уменьшенный размер для режима split screen */
+  height: 240px !important; /* Еще более компактная высота */
+  max-height: 240px !important; /* Принудительно ограничиваем */
+  overflow: hidden !important; /* Обрезаем содержимое если не помещается */
+}
+
+/* Мини-карта в развернутом режиме - используем стандартные стили expanded */
+.minimapSplitMode.expanded {
+  /* Развернутый режим использует стандартные стили .schemesMinimap.expanded */
+}
+
+/* Заголовок мини-карты в режиме разделения экрана (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .minimapHeader {
+  display: flex !important;
+  flex-direction: row !important; /* Горизонтальная компоновка */
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: var(--spacing-xs) !important;
+  padding: 6px 8px !important; /* Минимальный padding */
+  min-height: 32px !important; /* Фиксированная минимальная высота заголовка */
+}
+
+/* Селектор в режиме разделения экрана (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .customSelect {
+  flex: 1 !important; /* Занимает доступное место, оставляя место для кнопки */
+  min-width: 0 !important;
+  margin-right: var(--spacing-xs) !important;
+}
+
+/* Кнопка селектора в режиме разделения экрана (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .selectButton {
+  padding: 4px 8px !important; /* Минимальный padding */
+  font-size: 12px !important; /* Маленький шрифт */
+  min-height: 24px !important; /* Минимальная высота кнопки */
+}
+
+/* Кнопка увеличения в режиме разделения экрана (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .minimapExpandButton {
+  width: 24px !important; /* Еще меньше */
+  height: 24px !important;
+  font-size: 11px !important;
+  flex-shrink: 0 !important; /* Не сжимается */
+}
+
+/* Контейнер карты в режиме разделения экрана (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .minimapZoomContainer {
+  height: 180px !important; /* Фиксированная высота контейнера */
+  min-height: 180px !important;
+  max-height: 180px !important;
+  overflow: hidden !important; /* Обрезаем излишки */
+}
+
+/* Контейнер карты в развернутом режиме - возвращаем полный размер */
+.minimapSplitMode.expanded .minimapZoomContainer {
+  height: 100% !important; /* Полная высота в развернутом режиме */
+  min-height: auto !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Изображение схемы в режиме разделения экрана (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .schemeMap {
+  max-width: 100% !important;
+  max-height: 160px !important; /* Принудительно ограничиваем высоту изображения */
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important; /* Сохраняем пропорции, но вписываем в размеры */
+}
+
+/* Изображение схемы в развернутом режиме - возвращаем полный размер */
+.minimapSplitMode.expanded .schemeMap {
+  max-width: 100% !important;
+  max-height: 100% !important; /* Полная высота в развернутом режиме */
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+}
+
+/* Выпадающий список схем в режиме разделения экрана (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .dropdown {
+  max-height: 200px !important; /* Компактный размер */
+  top: 32px !important; /* Меньший отступ от кнопки */
+}
+
+/* Секция поиска в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .dropdownSearch {
+  padding: 6px 8px !important; /* Минимальный padding */
+}
+
+/* Поле поиска в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .searchInput {
+  padding: 4px 8px 4px 2rem !important; /* Компактные отступы */
+  font-size: 11px !important; /* Маленький шрифт */
+  min-height: 20px !important; /* Минимальная высота */
+}
+
+/* Иконка поиска в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .searchInputWrapper i {
+  left: 6px !important; /* Меньший отступ */
+  font-size: 10px !important; /* Меньшая иконка */
+}
+
+/* Кнопка очистки поиска в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .clearSearchBtn {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 8px !important;
+  right: 6px !important;
+}
+
+/* Список схем в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .dropdownList {
+  max-height: 150px !important; /* Компактная высота списка */
+}
+
+/* Скроллбар в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .dropdownList::-webkit-scrollbar {
+  width: 4px !important; /* Тонкий скроллбар */
+}
+
+.minimapSplitMode:not(.expanded) .dropdownList::-webkit-scrollbar-thumb {
+  border-radius: 2px !important;
+}
+
+/* Элементы списка схем в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .dropdownItem {
+  padding: 6px 8px !important; /* Компактный padding */
+  font-size: 11px !important; /* Маленький шрифт */
+}
+
+/* Превью схемы в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .schemePreview {
+  width: 30px !important; /* Меньшая ширина */
+  height: 20px !important; /* Меньшая высота */
+  margin-right: 6px !important; /* Меньший отступ */
+}
+
+/* Название схемы в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .schemeName {
+  font-size: 10px !important; /* Очень маленький шрифт */
+  margin-bottom: 2px !important; /* Минимальный отступ */
+  line-height: 1.2 !important; /* Плотная строка */
+}
+
+/* Описание схемы в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .schemeDesc {
+  font-size: 9px !important; /* Крошечный шрифт */
+  line-height: 1.1 !important; /* Очень плотная строка */
+}
+
+/* Сообщение "Нет результатов" в компактном режиме (только НЕ развернутое) */
+.minimapSplitMode:not(.expanded) .noResults {
+  padding: 8px !important;
+  font-size: 10px !important;
+}
+
 .minimapOverlay {
   position: fixed !important;
   top: 0 !important;
@@ -1553,21 +1714,13 @@
 
 .routePath {
   stroke: #4f46e5;
-  stroke-width: 1.2;
+  stroke-width: 2;
   fill: none;
-  opacity: 0.9;
-  animation: dashMove 2s infinite linear;
+  opacity: 0.8;
   filter: drop-shadow(0 1px 2px rgba(79, 70, 229, 0.3));
 }
 
-@keyframes dashMove {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: 20;
-  }
-}
+
 
 .controlPoint {
   fill: #667eea;
@@ -1802,9 +1955,11 @@
   }
 
   .closeViewerBtn {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     font-size: var(--font-size-md);
+    backdrop-filter: blur(4px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
   }
 
   .panoramaSection.comparisonMode {

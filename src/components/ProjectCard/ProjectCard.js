@@ -167,6 +167,7 @@ ProjectCard.propTypes = {
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
     captures: PropTypes.number.isRequired,
+    projectType: PropTypes.oneOf(['landscaping', 'viewer360']),
     fieldNotes: PropTypes.shape({
       tags: PropTypes.array,
       statuses: PropTypes.array

@@ -60,46 +60,43 @@ const FieldNoteMarkers = ({ fieldNotes, onMarkerClick, containerRef }) => {
 
   // Обновляем позиции маркеров при изменении камеры
   useEffect(() => {
-    // Используем ref для хранения текущих позиций, чтобы избежать циклических обновлений
-    const currentPositionsRef = { current: markerPositions };
-    
     const updatePositions = () => {
       // Не обновляем, если нет заметок
       if (!fieldNotes || fieldNotes.length === 0) {
+        setMarkerPositions({});
         return;
       }
       
       const newPositions = {};
-      let hasChanges = false;
       
       fieldNotes.forEach(note => {
         const newPosition = convertWorldToScreen(note);
-        const oldPosition = currentPositionsRef.current[note.id];
-        
-        // Проверяем, изменилась ли позиция значительно (больше 1 пикселя)
-        if (!oldPosition || 
-            Math.abs(newPosition.x - oldPosition.x) > 1 || 
-            Math.abs(newPosition.y - oldPosition.y) > 1 ||
-            newPosition.visible !== oldPosition.visible) {
-          hasChanges = true;
-        }
-        
         newPositions[note.id] = newPosition;
       });
       
-      // Обновляем состояние только если есть значительные изменения
-      if (hasChanges) {
-        currentPositionsRef.current = newPositions;
-        setMarkerPositions(newPositions);
-      }
+      setMarkerPositions(newPositions);
     };
 
     updatePositions();
     
-    // Обновляем позиции при изменении камеры с меньшей частотой
-    const interval = setInterval(updatePositions, 100); // Уменьшено до 10 FPS для предотвращения перегрузки
+    // Добавляем слушатель событий обновления камеры для мгновенного позиционирования
+    let animationFrameId;
+    const handleCameraUpdate = () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      animationFrameId = requestAnimationFrame(updatePositions);
+    };
+
+    // Обновляем позиции при каждом кадре для жесткого крепления
+    const intervalId = setInterval(updatePositions, 16); // ~60 FPS для плавности
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(intervalId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [fieldNotes, containerRef]);
 
   const handleMarkerClick = (event, note) => {

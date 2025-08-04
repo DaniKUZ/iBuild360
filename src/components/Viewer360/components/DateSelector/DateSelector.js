@@ -62,10 +62,16 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
       const newDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
       
       // Проверяем доступность даты, если передана функция проверки
-      if (isDateAvailable && !isDateAvailable(newDate)) {
-        return; // Не разрешаем выбор недоступной даты
+      if (isDateAvailable) {
+        const isAvailable = isDateAvailable(newDate);
+        console.log(`📅 DateSelector: проверка даты ${newDate.toDateString()}, доступна: ${isAvailable}`);
+        if (!isAvailable) {
+          console.log(`❌ DateSelector: блокируем выбор недоступной даты ${newDate.toDateString()}`);
+          return; // Не разрешаем выбор недоступной даты
+        }
       }
       
+      console.log(`✅ DateSelector: разрешаем выбор даты ${newDate.toDateString()}`);
       setCalendarDate(newDate);
       if (onDateChange) {
         onDateChange(newDate);
@@ -107,7 +113,7 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
   const handlePreviousDay = (e) => {
     e.stopPropagation();
     if (!disabled) {
-      const prevDate = getNextAvailableDate(currentDate, -1);
+      const prevDate = getNextAvailableDate(selectedDate, -1);
       if (prevDate && onDateChange) {
         onDateChange(prevDate);
       }
@@ -117,7 +123,7 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
   const handleNextDay = (e) => {
     e.stopPropagation();
     if (!disabled) {
-      const nextDate = getNextAvailableDate(currentDate, 1);
+      const nextDate = getNextAvailableDate(selectedDate, 1);
       if (nextDate && onDateChange) {
         onDateChange(nextDate);
       }
@@ -128,7 +134,9 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
     if (!day || !isDateAvailable) return true;
     
     const dayDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
-    return isDateAvailable(dayDate);
+    const available = isDateAvailable(dayDate);
+    console.log(`📅 isDayAvailable: день ${day} (${dayDate.toDateString()}), доступен: ${available}`);
+    return available;
   };
 
   const handleDayHover = (day, event) => {
@@ -172,8 +180,7 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
     setTooltipInfo(null);
   };
 
-  const currentDate = selectedDate || new Date();
-  const dateInfo = formatDate(currentDate);
+  const dateInfo = formatDate(selectedDate || new Date());
 
   return (
     <div className={styles.dateSelector} ref={calendarRef}>
@@ -182,7 +189,7 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
         onClick={toggleCalendar}
       >
         <div 
-          className={`${styles.dateArrow} ${styles.arrowButton} ${disabled || !getNextAvailableDate(currentDate, -1) ? styles.disabled : ''}`}
+          className={`${styles.dateArrow} ${styles.arrowButton} ${disabled || !getNextAvailableDate(selectedDate, -1) ? styles.disabled : ''}`}
           onClick={handlePreviousDay}
           title="Предыдущий день"
         >
@@ -196,7 +203,7 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
           </div>
         </div>
         <div 
-          className={`${styles.dateArrow} ${styles.arrowButton} ${disabled || !getNextAvailableDate(currentDate, 1) ? styles.disabled : ''}`}
+          className={`${styles.dateArrow} ${styles.arrowButton} ${disabled || !getNextAvailableDate(selectedDate, 1) ? styles.disabled : ''}`}
           onClick={handleNextDay}
           title="Следующий день"
         >
@@ -234,9 +241,9 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
             <div className={styles.days}>
               {generateCalendar().map((day, index) => {
                 const isAvailable = isDayAvailable(day);
-                const isSelected = day === currentDate.getDate() && 
-                  calendarDate.getMonth() === currentDate.getMonth() && 
-                  calendarDate.getFullYear() === currentDate.getFullYear();
+                const isSelected = day === (selectedDate || new Date()).getDate() && 
+                  calendarDate.getMonth() === (selectedDate || new Date()).getMonth() && 
+                  calendarDate.getFullYear() === (selectedDate || new Date()).getFullYear();
                 
                 return (
                   <button
