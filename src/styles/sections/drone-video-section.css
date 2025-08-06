@@ -1,0 +1,373 @@
+/* Drone Video Section Styles */
+.drone-video-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0;
+  width: 100%;
+  max-width: none;
+}
+
+.drone-video-section .section-header {
+  background: var(--surface-color);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+
+.drone-video-section .section-header h2 {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drone-video-section .section-header h2::before {
+  content: "1";
+  background: var(--primary-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.drone-video-section .section-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Upload Zone - styled like video360 */
+.drone-video-section .upload-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: var(--background-card);
+  cursor: pointer;
+  margin-bottom: 24px;
+}
+
+.drone-video-section .upload-zone:hover {
+  border-color: var(--text-secondary);
+  background: var(--background-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.drone-video-section .upload-zone.drag-active {
+  border-color: var(--success-color);
+  background: var(--success-light);
+  transform: scale(1.02);
+}
+
+.drone-video-section .upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.drone-video-section .upload-icon {
+  font-size: 48px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.drone-video-section .upload-zone:hover .upload-icon {
+  color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.drone-video-section .upload-content h3 {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.drone-video-section .upload-content p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Uploaded Videos */
+.drone-video-section .uploaded-videos {
+  margin-top: 24px;
+  width: 100%;
+}
+
+.drone-video-section .uploaded-videos h3 {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drone-video-section .uploaded-videos h3::before {
+  content: "2";
+  background: var(--primary-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.drone-video-section .videos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Video Item */
+.drone-video-section .video-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--surface-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  position: relative;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.drone-video-section .video-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.drone-video-section .video-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drone-video-section .video-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.drone-video-section .video-placeholder {
+  color: var(--primary-color);
+  font-size: 24px;
+}
+
+.drone-video-section .video-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.drone-video-section .video-info h4 {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 4px 0;
+  word-break: break-word;
+}
+
+.drone-video-section .video-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.drone-video-section .video-meta span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  background: var(--background-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.drone-video-section .video-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+/* Edit Form */
+.drone-video-section .edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  flex: 1;
+  min-width: 0;
+}
+
+.drone-video-section .edit-input,
+.drone-video-section .edit-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--background-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.drone-video-section .edit-input:focus,
+.drone-video-section .edit-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.drone-video-section .edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Video Actions */
+.drone-video-section .video-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* Upload Progress */
+.drone-video-section .upload-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  background: var(--background-primary);
+  border-radius: 0 0 12px 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.drone-video-section .progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.drone-video-section .progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.drone-video-section .progress-text {
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-align: center;
+  display: block;
+  font-weight: 500;
+}
+
+/* Helpful Tips */
+.drone-video-section .helpful-tips {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+}
+
+.drone-video-section .helpful-tips h4 {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drone-video-section .helpful-tips h4::before {
+  content: "💡";
+  font-size: 16px;
+}
+
+.drone-video-section .helpful-tips ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.drone-video-section .helpful-tips li {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.drone-video-section .helpful-tips li:before {
+  content: '•';
+  color: var(--primary-color);
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+.drone-video-section .helpful-tips li:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .drone-video-section .video-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .drone-video-section .video-preview {
+    width: 100%;
+    height: 120px;
+  }
+  
+  .drone-video-section .video-actions {
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  
+  .drone-video-section .edit-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+}

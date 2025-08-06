@@ -16,6 +16,8 @@
 @import './sections/project-editor.css';
 @import './sections/sheets-section.css';
 @import './sections/video360-section.css';
+@import './sections/drone-video-section.css';
+@import './sections/road-video-section.css';
 @import './sections/schedule-section.css';
 @import './sections/bim-section.css';
 @import './sections/field-notes.css';

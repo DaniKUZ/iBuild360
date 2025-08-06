@@ -83,21 +83,21 @@ const ProjectCard = React.memo(({
         />
         <div className={styles.previewActions} role="group" aria-label="Действия с проектом">
           {/* Показываем только одну кнопку в зависимости от типа проекта */}
-          {(!project.projectType || project.projectType === 'landscaping') ? (
+          {(!project.projectType || project.projectType === 'roads') ? (
             <button 
               className={`action-btn ${styles.tooltipBtn}`}
               onClick={handleLandscapingClick}
-              data-tooltip="Благоустройство"
-              aria-label="Благоустройство"
+              data-tooltip="Дороги"
+              aria-label="Дороги"
             >
-              <i className="fas fa-seedling" aria-hidden="true"></i>
+              <i className="fas fa-road" aria-hidden="true"></i>
             </button>
           ) : (
             <button 
               className={`action-btn ${styles.tooltipBtn}`}
               onClick={handleView360Click}
-              data-tooltip="Просмотр 360"
-              aria-label="Просмотр 360"
+              data-tooltip="Объект"
+              aria-label="Объект"
             >
               <i className="fas fa-eye" aria-hidden="true"></i>
             </button>
@@ -167,7 +167,7 @@ ProjectCard.propTypes = {
     latitude: PropTypes.number.isRequired,
     longitude: PropTypes.number.isRequired,
     captures: PropTypes.number.isRequired,
-    projectType: PropTypes.oneOf(['landscaping', 'viewer360']),
+    projectType: PropTypes.oneOf(['roads', 'object']),
     fieldNotes: PropTypes.shape({
       tags: PropTypes.array,
       statuses: PropTypes.array

@@ -24,8 +24,8 @@ const TopNavbar = ({
 
   const tabs = [
     { id: 'projects', label: 'Проекты', active: true },
-    // Показываем вкладку благоустройства только когда это необходимо
-    ...(showLandscaping ? [{ id: 'landscaping', label: 'Благоустройство', active: false }] : []),
+    // Показываем вкладку дорог только когда это необходимо
+    ...(showLandscaping ? [{ id: 'landscaping', label: 'Дороги', active: false }] : []),
     // Показываем вкладку статистики работников только когда это необходимо
     ...(showWorkerStats ? [{ id: 'worker-stats', label: 'Статистика работников', active: false }] : []),
     // Показываем вкладку настроек проекта только когда это необходимо

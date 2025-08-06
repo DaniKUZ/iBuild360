@@ -153,12 +153,21 @@
   padding: 40px 20px;
   text-align: center;
   transition: all 0.3s ease;
-  background: var(--surface-color);
+  background: var(--background-card);
+  cursor: pointer;
+}
+
+.drag-drop-zone:hover {
+  border-color: var(--text-secondary);
+  background: var(--background-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .drag-drop-zone.active {
-  border-color: var(--primary-color);
-  background: var(--primary-light);
+  border-color: var(--success-color);
+  background: var(--success-light);
+  transform: scale(1.02);
 }
 
 .drag-drop-content {
@@ -170,8 +179,14 @@
 
 .drag-drop-icon {
   font-size: 48px;
-  color: var(--primary-color);
+  color: var(--text-secondary);
   margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.drag-drop-zone:hover .drag-drop-icon {
+  color: var(--primary-color);
+  transform: scale(1.1);
 }
 
 .drag-drop-content h4 {

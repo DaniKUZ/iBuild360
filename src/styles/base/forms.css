@@ -161,24 +161,26 @@ input[type="file"] {
 
 /* Drag and drop zone */
 .drag-drop-zone {
-  border: 2px dashed var(--border-color-hover);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-2xl) var(--spacing-xl);
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 40px 20px;
   text-align: center;
   background: var(--background-card);
-  transition: all var(--transition-normal);
+  transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .drag-drop-zone:hover {
-  border-color: var(--primary-color);
-  background: var(--background-secondary);
+  border-color: var(--text-secondary);
+  background: var(--background-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .drag-drop-zone.active {
-  border-color: var(--primary-color);
-  background: #ebf8ff;
-  border-style: solid;
+  border-color: var(--success-color);
+  background: var(--success-light);
+  transform: scale(1.02);
 }
 
 /* Responsive form styles */

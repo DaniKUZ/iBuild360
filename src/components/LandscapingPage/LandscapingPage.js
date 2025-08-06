@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../Sidebar';
 import TopNavbar from '../TopNavbar';
 import LandscapingSection from '../ProjectEditor/sections/LandscapingSection';
+import RoadVideoSection from '../ProjectEditor/sections/RoadVideoSection';
 
 const LandscapingPage = ({ projects }) => {
   const { projectId } = useParams();
@@ -108,18 +109,31 @@ const LandscapingPage = ({ projects }) => {
             <header className="page-header">
               <div className="page-title">
                 <h1>
-                  <i className="fas fa-seedling"></i>
-                  Благоустройство - {currentProject.name}
+                  {currentProject.projectType === 'roads' ? (
+                    <>
+                      <i className="fas fa-road"></i>
+                      Дороги - {currentProject.name}
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-seedling"></i>
+                      Благоустройство - {currentProject.name}
+                    </>
+                  )}
                 </h1>
                 <p className="project-address">{currentProject.address}</p>
               </div>
             </header>
             
             <div className="page-content">
-              <LandscapingSection
-                onPlanUpload={handlePlanUpload}
-                onPhotosUpload={handlePhotosUpload}
-              />
+              {currentProject.projectType === 'roads' ? (
+                <RoadVideoSection />
+              ) : (
+                <LandscapingSection
+                  onPlanUpload={handlePlanUpload}
+                  onPhotosUpload={handlePhotosUpload}
+                />
+              )}
             </div>
           </div>
         </main>

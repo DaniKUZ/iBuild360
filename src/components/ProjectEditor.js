@@ -6,6 +6,7 @@ import useImageZoom from './ProjectEditor/hooks/useImageZoom';
 import useFileUpload from './ProjectEditor/hooks/useFileUpload';
 import useFloorManagement from './ProjectEditor/hooks/useFloorManagement';
 import useVideo360Management from './ProjectEditor/hooks/useVideo360Management';
+import useDroneVideoManagement from './ProjectEditor/hooks/useDroneVideoManagement';
 // import useScheduleManagement from './ProjectEditor/hooks/useScheduleManagement';
 
 // Components
@@ -15,6 +16,7 @@ import ZonesSection from './ProjectEditor/sections/ZonesSection';
 import FieldNotesSection from './ProjectEditor/sections/FieldNotesSection';
 import BIMSection from './ProjectEditor/sections/BIMSection';
 import Video360Section from './ProjectEditor/sections/Video360Section';
+import DroneVideoSection from './ProjectEditor/sections/DroneVideoSection';
 
 import FloorModal from './ProjectEditor/modals/FloorModal';
 import FloorEditModal from './ProjectEditor/modals/FloorEditModal';
@@ -35,7 +37,12 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
     longitude: '',
     constructionStartDate: '',
     constructionEndDate: '',
-    projectType: 'landscaping' // 'landscaping' или 'viewer360'
+    projectType: 'roads', // 'roads' или 'object'
+    // Поля для дорог
+    roadLength: '',
+    roadCategory: '',
+    surveyStartDate: '',
+    surveyEndDate: ''
   });
   const [errors, setErrors] = useState({});
   const [activeSection, setActiveSection] = useState('general');
@@ -74,6 +81,7 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
   const previewZoom = useImageZoom();
   const fileUpload = useFileUpload(project?.bimFiles || []);
   const video360Management = useVideo360Management(project?.videos360 || []);
+  const droneVideoManagement = useDroneVideoManagement(project?.droneVideos || []);
   // const scheduleManagement = useScheduleManagement(project?.schedule || []);
   const floorManagement = useFloorManagement(project?.floors || [
     {
@@ -103,30 +111,30 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
         title: 'Общая информация',
         icon: 'fas fa-info-circle',
         active: true
-      },
-      {
-        id: 'schemes',
-        title: 'Планы этажей',
-        icon: 'fas fa-layer-group',
-        active: true
-      },
-      {
-        id: 'zones',
-        title: 'Зоны',
-        icon: 'fas fa-map-marked-alt',
-        active: true
-      },
-      {
-        id: 'field-notes',
-        title: 'Полевые заметки',
-        icon: 'fas fa-sticky-note',
-        active: true
       }
     ];
 
-    // Добавляем секции video360 и bim только для режима "Просмотр 360"
-    if (formData.projectType === 'viewer360') {
+    // Для типа 'Объект' добавляем стандартные секции
+    if (formData.projectType === 'object') {
       baseSections.push(
+        {
+          id: 'schemes',
+          title: 'Планы этажей',
+          icon: 'fas fa-layer-group',
+          active: true
+        },
+        {
+          id: 'zones',
+          title: 'Зоны',
+          icon: 'fas fa-map-marked-alt',
+          active: true
+        },
+        {
+          id: 'field-notes',
+          title: 'Полевые заметки',
+          icon: 'fas fa-sticky-note',
+          active: true
+        },
         {
           id: 'video360',
           title: 'Видео 360°',
@@ -137,6 +145,18 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
           id: 'bim',
           title: 'Загрузка BIM',
           icon: 'fas fa-cube',
+          active: true
+        }
+      );
+    }
+
+    // Для типа 'Дороги' добавляем только секцию загрузки видео с дронов
+    if (formData.projectType === 'roads') {
+      baseSections.push(
+        {
+          id: 'drone-video',
+          title: 'Загрузка видео с дрона',
+          icon: 'fas fa-video',
           active: true
         }
       );
@@ -155,7 +175,12 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
         longitude: project.longitude || '',
         constructionStartDate: project.constructionStartDate || '',
         constructionEndDate: project.constructionEndDate || '',
-        projectType: project.projectType || 'landscaping'
+        projectType: project.projectType || 'roads',
+        // Поля для дорог
+        roadLength: project.roadLength || '',
+        roadCategory: project.roadCategory || '',
+        surveyStartDate: project.surveyStartDate || '',
+        surveyEndDate: project.surveyEndDate || ''
       });
       setPreviewImage(project.preview || null);
     }
@@ -193,7 +218,12 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
 
     // Если меняется тип проекта и текущая секция недоступна в новом режиме
     if (name === 'projectType') {
-      if (value === 'landscaping' && (activeSection === 'video360' || activeSection === 'bim')) {
+      const unavailableSections = {
+        'roads': ['schemes', 'zones', 'field-notes', 'video360', 'bim'],
+        'object': ['drone-video']
+      };
+      
+      if (unavailableSections[value]?.includes(activeSection)) {
         setActiveSection('general');
       }
     }
@@ -245,9 +275,15 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
         constructionStartDate: formData.constructionStartDate,
         constructionEndDate: formData.constructionEndDate,
         projectType: formData.projectType,
+        // Поля для дорог
+        roadLength: formData.roadLength,
+        roadCategory: formData.roadCategory,
+        surveyStartDate: formData.surveyStartDate,
+        surveyEndDate: formData.surveyEndDate,
         preview: previewImage || project.preview,
         floors: floorManagement.floors,
         videos360: video360Management.videos,
+        droneVideos: droneVideoManagement.videos,
         schedule: project?.schedule || [],
         fieldNotes: {
           tags: fieldNotesTags,
@@ -338,6 +374,7 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
             errors={errors}
             onInputChange={handleInputChange}
             onBlur={handleBlur}
+            isEditing={!!project}
           />
         );
       case 'schemes':
@@ -403,6 +440,24 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
             formatFileSize={fileUpload.formatFileSize}
           />
         );
+      case 'drone-video':
+        return (
+          <DroneVideoSection
+            videos={droneVideoManagement.videos}
+            dragActive={droneVideoManagement.dragActive}
+            uploadProgress={droneVideoManagement.uploadProgress}
+            onDragIn={droneVideoManagement.handleDragIn}
+            onDragOut={droneVideoManagement.handleDragOut}
+            onDrag={droneVideoManagement.handleDrag}
+            onDrop={droneVideoManagement.handleDrop}
+            onFileInput={droneVideoManagement.handleFileInput}
+            onRemoveVideo={droneVideoManagement.removeVideo}
+            onUpdateVideoName={droneVideoManagement.updateVideoName}
+            onUpdateVideoDate={droneVideoManagement.updateVideoDate}
+            onUpdateVideoDescription={droneVideoManagement.updateVideoDescription}
+            formatFileSize={droneVideoManagement.formatFileSize}
+          />
+        );
       default:
         return null;
     }
@@ -433,7 +488,7 @@ function ProjectEditor({ project, onBack, onSave, isSettingsMode = false }) {
         </header>
       )}
 
-              <div className={`editor-content ${activeSection === 'zones' ? 'zones-active' : activeSection === 'field-notes' ? 'field-notes-active' : activeSection === 'video360' ? 'video360-active' : ''}`}>
+              <div className={`editor-content ${activeSection === 'zones' ? 'zones-active' : activeSection === 'field-notes' ? 'field-notes-active' : activeSection === 'video360' ? 'video360-active' : activeSection === 'drone-video' ? 'drone-video-active' : ''}`}>
         <div className="editor-form">
           {renderActiveSection()}
         </div>

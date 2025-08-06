@@ -1,6 +1,7 @@
 import buildingimg1 from './img/buildingimg1.jpeg';
 import buildingimg2 from './img/buildingimg2.jpeg';
 import buildingimg3 from './img/buildingimg3.jpeg';
+import roadImgPreview from './img/roadImgPreview.PNG';
 import schemeFloor1 from './img/schemeFloor1.png';
 import schemeFloor2 from './img/schemeFloor2.png';
 import scheme from './img/scheme.jpeg';
@@ -18,7 +19,7 @@ export const mockProjects = [
     latitude: 55.7558,
     longitude: 37.6173,
     captures: 127,
-    projectType: "viewer360",
+    projectType: "object",
     fieldNotes: {
       tags: [
         'Архитектурный',
@@ -116,7 +117,7 @@ export const mockProjects = [
     latitude: 55.6415,
     longitude: 37.4858,
     captures: 73,
-    projectType: "landscaping",
+    projectType: "roads",
     fieldNotes: {
       tags: [
         'Общий',
@@ -209,16 +210,16 @@ export const mockProjects = [
   },
   {
     id: 3,
-    name: "Офисное здание бизнес-класса",
+    name: "Автодорога М-10 Москва-СПб",
     lastUpdate: "2024-01-16",
     user: "АО «МосГорСтрой»",
     status: "В работе",
-    preview: buildingimg3,
-    address: "Московский проспект, 100, Санкт-Петербург",
+    preview: roadImgPreview,
+    address: "Автодорога М-10, 45 км, Московская область",
     latitude: 59.8736,
     longitude: 30.2627,
     captures: 45,
-    projectType: "landscaping",
+    projectType: "roads",
     fieldNotes: {
       tags: [
         'Документ',
@@ -298,6 +299,25 @@ export const mockProjects = [
         fileName: "office_layout.dwg",
         size: 3145728,
         uploadDate: "2024-01-13"
+      }
+    ],
+    droneVideos: [
+      {
+        id: 1,
+        name: "Видеосъёмка дороги М-10",
+        fileName: "roadVideo.mp4",
+        size: 157286400, // ~150MB
+        uploadDate: "2025-07-14",
+        duration: "3:18",
+        resolution: "4K (3840x2160)",
+        frameRate: 30,
+        description: "Аэросъёмка строительства автодороги М-10, участок 45-47 км",
+        thumbnail: roadImgPreview,
+        status: "processed",
+        shootingDate: "2025-07-14",
+        weather: "Ясно, +22°C",
+        pilot: "Иванов А.Н.",
+        equipment: "DJI Mavic 3 Pro"
       }
     ]
   }
