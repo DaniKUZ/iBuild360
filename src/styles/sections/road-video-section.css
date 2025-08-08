@@ -36,6 +36,13 @@
   margin: 0;
 }
 
+/* Top grid: left photo stream, right statuses */
+.road-video-section .top-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+}
+
 /* Combined Controls */
 .road-video-section .combined-controls {
   display: flex;
@@ -57,7 +64,7 @@
 .road-video-section .video-player-section {
   background: var(--surface-color);
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px 16px;
   border: 1px solid var(--border-color);
 }
 
@@ -78,11 +85,72 @@
   background: var(--background-secondary);
 }
 
+/* Боковой сайдбар управления зумом/полным экраном */
+.road-video-section .video-zoom-sidebar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: var(--z-index-tooltip);
+}
+
+.road-video-section .video-zoom-sidebar .zoom-button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.road-video-section .video-zoom-sidebar .zoom-button:hover {
+  background: var(--background-hover);
+  border-color: var(--border-color-hover);
+}
+
+.road-video-section .video-zoom-sidebar .sidebar-divider {
+  width: 100%;
+  height: 1px;
+  background: #e5e7eb;
+  margin: 12px 0;
+}
+
+.road-video-section .video-zoom-sidebar .compare-button {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border-color: #007bff;
+  box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3);
+}
+
+.road-video-section .video-zoom-sidebar .compare-button:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #007bff 100%);
+  color: white;
+  border-color: #0056b3;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  transform: translateY(-1px);
+}
+
 .road-video-section .road-frame-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
+}
+
+.road-video-section .road-frame-container.zoomed,
+.road-video-section .road-frame-container.dragging {
+  cursor: grab;
+}
+.road-video-section .road-frame-container.dragging * {
+  cursor: grabbing !important;
 }
 
 .road-video-section .road-video-placeholder {
@@ -207,15 +275,21 @@
 .road-video-section .ai-analysis-section {
   background: var(--surface-color);
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px 16px;
   border: 1px solid var(--border-color);
+}
+
+.road-video-section .ai-analysis-section.right-pane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .road-video-section .analysis-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .road-video-section .analysis-header h3 {
@@ -274,6 +348,20 @@
   overflow: hidden;
 }
 
+/* Высота списка участков с прокруткой */
+.road-video-section .right-pane .analysis-result {
+  max-height: 480px; /* видно ~3-5 элементов */
+  overflow-y: auto;
+}
+
+.road-video-section .right-pane .analysis-result::-webkit-scrollbar {
+  width: 8px;
+}
+.road-video-section .right-pane .analysis-result::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 6px;
+}
+
 .road-video-section .analysis-segments {
   display: flex;
   flex-direction: column;
@@ -297,9 +385,10 @@
 }
 
 .road-video-section .analysis-segment.active {
-  border-color: var(--primary-color);
-  background: var(--primary-light);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary-color) !important;
+  background: var(--surface-color) !important;
+  color: inherit !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
 .road-video-section .segment-header {
@@ -344,6 +433,18 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.road-video-section .segment-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.road-video-section .segment-percent {
+  font-size: 12px;
+  color: var(--text-tertiary);
 }
 
 .road-video-section .segment-status {
@@ -407,8 +508,91 @@
   margin-bottom: 0;
 }
 
+/* Bottom stats grid */
+.road-video-section .stats-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  padding: 0 4px; /* небольшая подстройка боковых паддингов */
+}
+
+.road-video-section .stats-card {
+  background: var(--surface-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 12px 16px;
+}
+
+.road-video-section .stats-card .card-header h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.road-video-section .chart-wrapper {
+  width: 100%;
+  height: 280px;
+}
+
+.road-video-section .tasks-panel {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+.road-video-section .tasks-panel .tasks-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.road-video-section .task-card {
+  background: var(--surface-color);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  padding: 12px;
+}
+
+.road-video-section .task-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.road-video-section .task-title {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.road-video-section .task-percent {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.road-video-section .mini-chart {
+  width: 100%;
+  height: 100px;
+}
+
+.road-video-section .task-percent.danger {
+  color: var(--danger-color);
+}
+
+.road-video-section .task-footer {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+  .road-video-section .top-grid {
+    display: block;
+  }
   .road-video-section .combined-controls {
     flex-direction: column;
     gap: 12px;

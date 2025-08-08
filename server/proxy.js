@@ -45,11 +45,15 @@ app.post('/api/demo/chat/completions', async (req, res) => {
 app.post('/api/openai/chat/completions', async (req, res) => {
   try {
     const fetch = (await import('node-fetch')).default;
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    if (!OPENAI_API_KEY) {
+      return res.status(500).json({ error: 'Missing OPENAI_API_KEY in environment' });
+    }
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer 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`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(req.body)
@@ -82,6 +86,65 @@ app.post('/api/openai/chat/completions', async (req, res) => {
     res.status(500).json({ 
       error: 'Internal server error: ' + error.message 
     });
+  }
+});
+
+// Agent360 proxy for local development (expects process.env.OPENAI_API_KEY)
+app.post('/api/agent360/chat/completions', async (req, res) => {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    const AGENT360_MODEL_ID = process.env.AGENT360_MODEL_ID || 'gpt-4o-mini';
+
+    if (!OPENAI_API_KEY) {
+      return res.status(500).json({ error: 'Missing OPENAI_API_KEY in environment' });
+    }
+
+    const { site_id: siteId = 'UNKNOWN', images = [], model } = req.body || {};
+    if (!Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ error: 'No images provided' });
+    }
+
+    const content = [
+      { type: 'text', text: `Объект: ${siteId}. Сравни 'до' и 'после' и верни JSON по нашей схеме.` }
+    ];
+
+    for (const img of images) {
+      const imageUrl = img?.image_url;
+      const role = img?.role || 'current';
+      const takenAt = img?.taken_at || '';
+      const notes = img?.notes || '';
+      if (!imageUrl) continue;
+      content.push({ type: 'image_url', image_url: { url: imageUrl } });
+      let meta = `role=${role} taken_at=${takenAt}`;
+      if (notes) meta += ` notes=${notes}`;
+      content.push({ type: 'text', text: meta });
+    }
+
+    const body = {
+      model: model || AGENT360_MODEL_ID,
+      messages: [{ role: 'user', content }],
+      temperature: 0.1,
+      max_tokens: 2000
+    };
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    const text = await response.text();
+    if (!response.ok) {
+      return res.status(response.status).send(text);
+    }
+    res.type('application/json').send(text);
+  } catch (error) {
+    console.error('Agent360 Proxy Error:', error);
+    res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
 });
 

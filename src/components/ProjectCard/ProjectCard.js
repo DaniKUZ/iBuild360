@@ -64,16 +64,6 @@ const ProjectCard = React.memo(({
     <article className={styles.projectCard} role="gridcell">
       <div 
         className={styles.projectPreview} 
-        onClick={handleView360Click}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleView360Click();
-          }
-        }}
-        aria-label={`Открыть просмотр 360 для проекта ${project.name}`}
       >
         <img 
           src={project.preview} 

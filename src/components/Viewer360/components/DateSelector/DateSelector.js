@@ -8,12 +8,22 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
   const [hoveredDay, setHoveredDay] = useState(null);
   const [tooltipInfo, setTooltipInfo] = useState(null);
   const calendarRef = useRef(null);
+  
+  // Синхронизируем внутреннее состояние с пропом selectedDate
+  useEffect(() => {
+    if (selectedDate) {
+      setCalendarDate(selectedDate);
+    }
+  }, [selectedDate]);
 
   // Закрытие календаря при клике вне его области
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (calendarRef.current && !calendarRef.current.contains(event.target)) {
         setShowCalendar(false);
+        // Скрываем тултип при закрытии календаря
+        setTooltipInfo(null);
+        setHoveredDay(null);
       }
     };
 
@@ -24,6 +34,14 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+  }, [showCalendar]);
+
+  // Скрываем тултип при закрытии календаря
+  useEffect(() => {
+    if (!showCalendar) {
+      setTooltipInfo(null);
+      setHoveredDay(null);
+    }
   }, [showCalendar]);
 
   const formatDate = (date) => {
@@ -64,18 +82,30 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
       // Проверяем доступность даты, если передана функция проверки
       if (isDateAvailable) {
         const isAvailable = isDateAvailable(newDate);
-        console.log(`📅 DateSelector: проверка даты ${newDate.toDateString()}, доступна: ${isAvailable}`);
+        // console.log(`📅 DateSelector: проверка даты ${newDate.toDateString()}, доступна: ${isAvailable}`);
         if (!isAvailable) {
-          console.log(`❌ DateSelector: блокируем выбор недоступной даты ${newDate.toDateString()}`);
+          // console.log(`❌ DateSelector: блокируем выбор недоступной даты ${newDate.toDateString()}`);
           return; // Не разрешаем выбор недоступной даты
         }
       }
       
-      console.log(`✅ DateSelector: разрешаем выбор даты ${newDate.toDateString()}`);
-      setCalendarDate(newDate);
-      if (onDateChange) {
-        onDateChange(newDate);
+      // Проверяем, что выбираем действительно новую дату
+      const currentSelectedDate = selectedDate;
+      const isSameDate = currentSelectedDate && 
+        currentSelectedDate.getFullYear() === newDate.getFullYear() &&
+        currentSelectedDate.getMonth() === newDate.getMonth() &&
+        currentSelectedDate.getDate() === newDate.getDate();
+      
+      // console.log(`✅ DateSelector: выбор даты ${newDate.toDateString()}, та же дата: ${isSameDate}`);
+      
+      // Обновляем календарную дату только при реальном изменении
+      if (!isSameDate) {
+        setCalendarDate(newDate);
+        if (onDateChange) {
+          onDateChange(newDate);
+        }
       }
+      
       setShowCalendar(false);
     }
   };
@@ -131,11 +161,12 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
   };
 
   const isDayAvailable = (day) => {
-    if (!day || !isDateAvailable) return true;
+    if (!day) return false; // Пустые дни недоступны
+    if (!isDateAvailable) return true; // Если нет функции проверки, все дни доступны (для обратной совместимости)
     
     const dayDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
     const available = isDateAvailable(dayDate);
-    console.log(`📅 isDayAvailable: день ${day} (${dayDate.toDateString()}), доступен: ${available}`);
+    // console.log(`📅 isDayAvailable: день ${day} (${dayDate.toDateString()}), доступен: ${available}`);
     return available;
   };
 
@@ -153,7 +184,9 @@ const DateSelector = ({ selectedDate, onDateChange, disabled = false, availableD
       // Определяем контент тултипа в зависимости от типа
       let tooltipContent = "есть захват"; // по умолчанию
       
-      if (tooltipType === 'workers' && getWorkersCount) {
+      if (tooltipType === 'video') {
+        tooltipContent = "есть видео";
+      } else if (tooltipType === 'workers' && getWorkersCount) {
         const workersCount = getWorkersCount(dayDate);
         if (workersCount === 1) {
           tooltipContent = "1 работник";
@@ -294,7 +327,7 @@ DateSelector.propTypes = {
   isDateAvailable: PropTypes.func,
   getWorkersCount: PropTypes.func,
   dropdownPosition: PropTypes.oneOf(['top', 'bottom']),
-  tooltipType: PropTypes.oneOf(['capture', 'workers'])
+  tooltipType: PropTypes.oneOf(['capture', 'workers', 'video'])
 };
 
 export default DateSelector; 

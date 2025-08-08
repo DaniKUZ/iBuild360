@@ -62,24 +62,13 @@ const useAIComparison = () => {
 
       const imageDataArray = await Promise.all(imageDataPromises);
 
-      const systemMessage = "Ты - строительный аналитик.";
-      const userPrompt = (
-        "Перед тобой две фотографии со строительной площадки, снятые с одинаковых ракурсов. " +
-        "Определи, какой прогресс сделан в строительных работах и выдай свой анализ. " +
-        "Анализируй фото максимально детально и точно, вывод напиши не очень объемный " +
-        "(вывод должен содержать, какие работы были завершены в промежутке между двумя фото)."
-      );
-
-      const messages = [
-        { "role": "system", "content": systemMessage },
-        { 
-          "role": "user", 
-          "content": [
-            { "type": "text", "text": userPrompt },
-            { "type": "image_url", "image_url": { "url": `data:image/jpeg;base64,${imageDataArray[0]}` } },
-            { "type": "image_url", "image_url": { "url": `data:image/jpeg;base64,${imageDataArray[1]}` } }
-          ]
-        }
+      // Подготовим payload для Агент 360 API (user content массив из text + image_url)
+      const payload = [
+        { type: 'text', text: 'Сравни \'до\' и \'после\' и верни JSON по нашей схеме.' },
+        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageDataArray[0]}` } },
+        { type: 'text', text: `role=before taken_at=${new Date(aiComparisonImages[0]?.date || images[0].date).toISOString().slice(0,10)}` },
+        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageDataArray[1]}` } },
+        { type: 'text', text: `role=after taken_at=${new Date(aiComparisonImages[1]?.date || images[1].date).toISOString().slice(0,10)}` }
       ];
 
       // Если демо-режим, используем локальную заглушку
@@ -110,21 +99,21 @@ const useAIComparison = () => {
         return;
       }
 
-      // Для реального API
-      let apiUrl = API_CONFIG.OPENAI_API_URL;
+      // Для реального API шлем на серверный Агент360 прокси
+      let apiUrl = API_CONFIG.AGENT360_API_URL;
       let headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_CONFIG.OPENAI_API_KEY}`
+        'Content-Type': 'application/json'
       };
 
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({
-          model: "gpt-4o",
-          messages: messages,
-          max_tokens: 400,
-          temperature: 0.2
+          site_id: API_CONFIG.SITE_ID,
+          images: [
+            { role: 'before', taken_at: new Date(images[0].date).toISOString().slice(0,10), image_url: `data:image/jpeg;base64,${imageDataArray[0]}` },
+            { role: 'after', taken_at: new Date(images[1].date).toISOString().slice(0,10), image_url: `data:image/jpeg;base64,${imageDataArray[1]}` }
+          ]
         })
       });
 
@@ -134,7 +123,15 @@ const useAIComparison = () => {
       }
 
       const data = await response.json();
-      const analysisText = data.choices[0].message.content.trim();
+      // Ожидаем, что агент вернет текст в choices[0].message.content или JSON строкой
+      let analysisText = '';
+      if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        analysisText = String(data.choices[0].message.content).trim();
+      } else if (typeof data === 'string') {
+        analysisText = data;
+      } else {
+        analysisText = JSON.stringify(data);
+      }
       
       setAIAnalysisResult(analysisText);
     } catch (error) {

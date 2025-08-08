@@ -14,12 +14,10 @@ const VideoControls = ({
   disabled = false 
 }) => {
   const formatShootingTime = (timeString) => {
-    // Если передано время в формате HH:MM, возвращаем как есть
     if (timeString && typeof timeString === 'string') {
       return timeString;
     }
-    // Иначе возвращаем время по умолчанию
-    return '14:30';
+    return null;
   };
 
   const handlePlayPauseClick = () => {
@@ -85,10 +83,12 @@ const VideoControls = ({
       </div>
 
       {/* Время съемки */}
-      <div className={styles.timeDisplay}>
-        <i className="fas fa-clock" style={{ marginRight: '6px', fontSize: '12px' }}></i>
-        <span className={styles.shootingTime}>{formatShootingTime(shootingTime)}</span>
-      </div>
+      {formatShootingTime(shootingTime) && (
+        <div className={styles.timeDisplay}>
+          <i className="fas fa-clock" style={{ marginRight: '6px', fontSize: '12px' }}></i>
+          <span className={styles.shootingTime}>{formatShootingTime(shootingTime)}</span>
+        </div>
+      )}
     </div>
   );
 };
@@ -107,7 +107,7 @@ VideoControls.propTypes = {
 
 VideoControls.defaultProps = {
   isPlaying: false,
-  shootingTime: '14:30',
+  shootingTime: undefined,
   disabled: false
 };
 

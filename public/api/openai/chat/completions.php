@@ -24,8 +24,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // OpenAI API configuration
-define('OPENAI_API_KEY', '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');
-define('OPENAI_API_URL', 'https://api.openai.com/v1/chat/completions');
+// Загружаем секреты из /var/www/ibuild360/.env.php (или относительного пути в репо)
+$envPath = __DIR__ . '/../../../../.env.php';
+if (file_exists($envPath)) {
+    require_once $envPath;
+}
+
+if (!defined('OPENAI_API_KEY')) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Server misconfigured: OPENAI_API_KEY is not set']);
+    exit;
+}
+
+$OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 try {
     // Get request body
@@ -52,7 +63,7 @@ try {
     // Prepare cURL request
     $ch = curl_init();
     curl_setopt_array($ch, [
-        CURLOPT_URL => OPENAI_API_URL,
+        CURLOPT_URL => $OPENAI_API_URL,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => $input,
