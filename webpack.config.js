@@ -1,9 +1,20 @@
 const path = require('path');
+const fs = require('fs');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const webpack = require('webpack');
-require('dotenv').config();
+
+// Load environment variables, preferring .env.local if it exists
+(() => {
+  const dotenv = require('dotenv');
+  const envLocalPath = path.resolve(__dirname, '.env.local');
+  if (fs.existsSync(envLocalPath)) {
+    dotenv.config({ path: envLocalPath });
+  } else {
+    dotenv.config();
+  }
+})();
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
@@ -43,7 +54,14 @@ module.exports = (env, argv) => {
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.REACT_APP_OPENAI_API_KEY': JSON.stringify(process.env.REACT_APP_OPENAI_API_KEY),
+      'process.env.REACT_APP_OPENAI_API_KEY': JSON.stringify(process.env.REACT_APP_OPENAI_API_KEY || ''),
+      'process.env.REACT_APP_YANDEX_MAPS_API_KEY': JSON.stringify(process.env.REACT_APP_YANDEX_MAPS_API_KEY || ''),
+      'process.env.VITE_YANDEX_MAPS_API_KEY': JSON.stringify(process.env.VITE_YANDEX_MAPS_API_KEY || ''),
+      // Provide a compatible import.meta.env for code paths that check it
+      'import.meta.env': JSON.stringify({
+        VITE_YANDEX_MAPS_API_KEY: process.env.VITE_YANDEX_MAPS_API_KEY || process.env.REACT_APP_YANDEX_MAPS_API_KEY || '' ,
+        REACT_APP_YANDEX_MAPS_API_KEY: process.env.REACT_APP_YANDEX_MAPS_API_KEY || ''
+      }),
     }),
     new HtmlWebpackPlugin({
       template: './public/index.html',

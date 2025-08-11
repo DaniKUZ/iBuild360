@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import DateSelector from '../../Viewer360/components/DateSelector/DateSelector';
 import VideoControls from '../../Viewer360/components/VideoControls/VideoControls';
 import DateComparisonModal from './DateComparisonModal';
+import YandexMiniMap from '../components/YandexMiniMap';
 import {
   ResponsiveContainer,
   LineChart,
@@ -272,11 +273,49 @@ function RoadVideoSection() {
   const [zoom, setZoom] = useState(1); // визуальный масштаб (плавная анимация)
   const [targetZoom, setTargetZoom] = useState(1); // целевой масштаб
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Включаем мини‑карту по умолчанию, если ключ доступен в окружении
+  const resolveMapsKey = () => {
+    try {
+      if (typeof import.meta !== 'undefined' && import.meta.env) {
+        if (import.meta.env.VITE_YANDEX_MAPS_API_KEY || import.meta.env.REACT_APP_YANDEX_MAPS_API_KEY) return true;
+      }
+    } catch (_) {}
+    try {
+      if (typeof process !== 'undefined' && process.env) {
+        if (process.env.REACT_APP_YANDEX_MAPS_API_KEY || process.env.VITE_YANDEX_MAPS_API_KEY) return true;
+      }
+    } catch (_) {}
+    try {
+      if (typeof window !== 'undefined') {
+        if (window.REACT_APP_YANDEX_MAPS_API_KEY || window.VITE_YANDEX_MAPS_API_KEY) return true;
+      }
+    } catch (_) {}
+    return false;
+  };
+  const [isMiniMapEnabled, setIsMiniMapEnabled] = useState(() => resolveMapsKey());
+  const [isZooming, setIsZooming] = useState(false);
+  const wheelEndTimerRef = useRef(null);
   const [pan, setPan] = useState({ x: 0, y: 0 }); // визуальная позиция
   const [targetPan, setTargetPan] = useState({ x: 0, y: 0 }); // целевая позиция
   const [isPanning, setIsPanning] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0 });
   const lastPointerRef = useRef({ x: 0, y: 0 });
+
+  // Trapezoid navigation state
+  const [isMouseInsideFrame, setIsMouseInsideFrame] = useState(false);
+  const [isTrapezoidVisible, setIsTrapezoidVisible] = useState(false);
+  const [trapezoidClipPath, setTrapezoidClipPath] = useState('');
+  const trapezoidDataRef = useRef({ yInActive: 1, cursorYRatio: 1 });
+  const [showTrapezoidHint, setShowTrapezoidHint] = useState(true);
+  const trapezoidRef = useRef(null);
+  const trapezoidClipPendingRef = useRef(false);
+  const lastClipRef = useRef('');
+
+  // Frame transition overlay state
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionFromUrl, setTransitionFromUrl] = useState(null);
+  const [transitionToUrl, setTransitionToUrl] = useState(null);
+  const transitionTimerRef = useRef(null);
 
   // Получаем текущее количество кадров
   const currentFrameCount = useMemo(() => getFrameCountForDate(selectedDate), [selectedDate]);
@@ -318,6 +357,11 @@ function RoadVideoSection() {
   const handleWheel = useCallback((e) => {
     if (e.cancelable) e.preventDefault();
     e.stopPropagation();
+    setIsZooming(true);
+    if (wheelEndTimerRef.current) {
+      clearTimeout(wheelEndTimerRef.current);
+    }
+    wheelEndTimerRef.current = setTimeout(() => setIsZooming(false), 120);
     const container = frameContainerRef.current;
     if (!container) return;
     const rect = container.getBoundingClientRect();
@@ -326,7 +370,7 @@ function RoadVideoSection() {
     const dx = (e.clientX ?? (e.pageX - window.scrollX)) - cx;
     const dy = (e.clientY ?? (e.pageY - window.scrollY)) - cy;
     const direction = e.deltaY > 0 ? -1 : 1; // вверх увеличить, вниз уменьшить
-    const step = 0.2 * direction;
+    const step = 0.1 * direction; // более плавный шаг
     const newZoom = Math.max(1, Math.min(3, parseFloat((zoom + step).toFixed(2))));
     const scaleDelta = newZoom / zoom - 1;
     setTargetPan((prev) => clampPan(prev.x - dx * scaleDelta, prev.y - dy * scaleDelta, newZoom));
@@ -358,6 +402,162 @@ function RoadVideoSection() {
     setTargetPan(next);
   }, [isPanning, clampPan]);
 
+  // Update trapezoid geometry on pointer move
+  const updateTrapezoid = useCallback((e) => {
+    const container = frameContainerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+
+    const clientX = e.clientX ?? (e.pageX - window.scrollX);
+    const clientY = e.clientY ?? (e.pageY - window.scrollY);
+    const x = clientX - rect.left;
+    const y = clientY - rect.top; // from top
+
+    // Track inside state
+    const inside = x >= 0 && x <= width && y >= 0 && y <= height;
+    setIsMouseInsideFrame(inside);
+    if (!inside) {
+      setIsTrapezoidVisible(false);
+      return;
+    }
+
+    // Hide when zoomed or during panning/zooming or on last frame
+    const isLastFrame = currentFrame >= currentFrameCount - 1;
+    if (zoom > 1 || isPanning || isZooming || isLastFrame) {
+      setIsTrapezoidVisible(false);
+      return;
+    }
+
+    const cursorYRatio = y / height; // 0 top .. 1 bottom
+    // Active only in bottom 75% of height
+    if (cursorYRatio < 0.25) {
+      setIsTrapezoidVisible(false);
+      return;
+    }
+
+    // Normalize within active band (0 at top boundary, 1 at bottom)
+    const yInActive = Math.max(0, Math.min(1, (cursorYRatio - 0.25) / 0.75));
+    trapezoidDataRef.current = { yInActive, cursorYRatio };
+
+    // Geometry parameters: centered around cursor position vertically, clamped to active zone
+    const ACTIVE_TOP_BOUNDARY = height * 0.25;
+    const requestedHalfHeight = height * 0.1; // ~20% of height total thickness
+    const maxHalfUp = Math.max(0, y - ACTIVE_TOP_BOUNDARY);
+    const maxHalfDown = Math.max(0, height - y);
+    const halfHeight = Math.max(6, Math.min(requestedHalfHeight, maxHalfUp, maxHalfDown));
+    const TOP_Y = Math.max(ACTIVE_TOP_BOUNDARY, y - halfHeight);
+    const BOTTOM_Y = Math.min(height, y + halfHeight);
+
+    // Widths narrow overall and narrow more when cursor higher
+    const MIN_BOTTOM_WIDTH_RATIO = 0.30;
+    const MAX_BOTTOM_WIDTH_RATIO = 0.5;
+    const MIN_TOP_WIDTH_RATIO = 0.16;
+    const MAX_TOP_WIDTH_RATIO = 0.44;
+    // yInActive: 0 near top boundary (narrow), 1 near bottom (wider)
+    const bottomWidthRatio = MIN_BOTTOM_WIDTH_RATIO + (MAX_BOTTOM_WIDTH_RATIO - MIN_BOTTOM_WIDTH_RATIO) * yInActive;
+    const topWidthRatioBase = MIN_TOP_WIDTH_RATIO + (MAX_TOP_WIDTH_RATIO - MIN_TOP_WIDTH_RATIO) * yInActive;
+    const topWidthRatio = Math.min(topWidthRatioBase, bottomWidthRatio * 0.92);
+
+    // Desired widths (bounded by container via halves below)
+    let desiredBottomWidth = width * bottomWidthRatio;
+    let desiredTopWidth = width * topWidthRatio;
+
+    // Clamp widths to remain inside container around cursor X
+    const maxBottomHalf = Math.min(desiredBottomWidth / 2, x, width - x);
+    const maxTopHalf = Math.min(desiredTopWidth / 2, x, width - x);
+    const bottomHalf = Math.max(8, maxBottomHalf);
+    const topHalf = Math.max(6, maxTopHalf);
+
+    const bottomLeftX = x - bottomHalf;
+    const bottomRightX = x + bottomHalf;
+    const topLeftX = x - topHalf;
+    const topRightX = x + topHalf;
+
+    const clip = `polygon(${topLeftX}px ${TOP_Y}px, ${topRightX}px ${TOP_Y}px, ${bottomRightX}px ${BOTTOM_Y}px, ${bottomLeftX}px ${BOTTOM_Y}px)`;
+    // Apply clip-path via rAF to avoid re-render jank
+    if (clip !== lastClipRef.current) {
+      lastClipRef.current = clip;
+      if (!trapezoidClipPendingRef.current) {
+        trapezoidClipPendingRef.current = true;
+        requestAnimationFrame(() => {
+          trapezoidClipPendingRef.current = false;
+          if (trapezoidRef.current) {
+            trapezoidRef.current.style.clipPath = lastClipRef.current;
+          }
+        });
+      }
+    }
+    setIsTrapezoidVisible(true);
+  }, [zoom, isPanning, isZooming, currentFrame, currentFrameCount]);
+
+  const handleContainerMouseMove = useCallback((e) => {
+    updateTrapezoid(e);
+    onMouseMove(e);
+  }, [updateTrapezoid, onMouseMove]);
+
+  const handleContainerMouseLeave = useCallback(() => {
+    setIsMouseInsideFrame(false);
+    setIsTrapezoidVisible(false);
+  }, []);
+
+  // Trapezoid click: +1 or +2 frames with transition
+  const handleTrapezoidClick = useCallback(() => {
+    if (zoom > 1 || isPanning || isZooming || isTransitioning) return;
+    if (currentFrame >= currentFrameCount - 1) return; // hidden on last frame
+    const { yInActive } = trapezoidDataRef.current;
+    // Steps by height bands (top = more steps, bottom = fewer):
+    // top (0-0.5) => 3, middle (0.5-0.65) => 2, bottom (0.65-1) => 1
+    let steps = 3;
+    if (yInActive >= 0.5) steps = 2;
+    if (yInActive >= 0.65) steps = 1;
+    const targetIndex = Math.min(currentFrameCount - 1, currentFrame + steps);
+    if (targetIndex === currentFrame) return;
+
+    // Prepare animated transition
+    try { if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current); } catch (_) {}
+    setTransitionFromUrl(frames[currentFrame]?.imageUrl);
+    setTransitionToUrl(frames[targetIndex]?.imageUrl);
+    setIsTransitioning(true);
+
+    transitionTimerRef.current = setTimeout(() => {
+      setCurrentFrame(targetIndex);
+      setIsTransitioning(false);
+      setTransitionFromUrl(null);
+      setTransitionToUrl(null);
+      setShowTrapezoidHint(false);
+    }, 1000);
+  }, [zoom, isPanning, isZooming, currentFrameCount, currentFrame, frames]);
+
+  // Hide trapezoid immediately on zoom/pan state changes
+  useEffect(() => {
+    if (zoom > 1 || isPanning || isZooming) {
+      setIsTrapezoidVisible(false);
+    }
+  }, [zoom, isPanning, isZooming]);
+
+  // Hide trapezoid when on last frame
+  useEffect(() => {
+    if (currentFrame >= currentFrameCount - 1) {
+      setIsTrapezoidVisible(false);
+    }
+  }, [currentFrame, currentFrameCount]);
+
+  // If frame changes externally during transition, clear overlay to avoid artifacts
+  useEffect(() => {
+    if (isTransitioning) {
+      setIsTransitioning(false);
+      setTransitionFromUrl(null);
+      setTransitionToUrl(null);
+    }
+  }, [currentFrame]);
+
+  // Cleanup transition timer on unmount
+  useEffect(() => () => {
+    try { if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current); } catch(_) {}
+  }, []);
+
   const endPan = useCallback(() => setIsPanning(false), []);
 
   // Fullscreen handlers
@@ -383,26 +583,15 @@ function RoadVideoSection() {
     return () => document.removeEventListener('fullscreenchange', onFsChange);
   }, []);
 
-  // Плавная анимация к целевым значениям zoom/pan (lerp)
+  // Обновление позиции/масштаба без бесконечного requestAnimationFrame
+  // Плавность обеспечивается CSS-переходом в style у <img>
   useEffect(() => {
-    let rafId;
-    const animate = () => {
-      setZoom((z) => {
-        const diff = targetZoom - z;
-        if (Math.abs(diff) < 0.002) return targetZoom;
-        return z + diff * 0.18; // плавность
-      });
-      setPan((p) => {
-        const dx = targetPan.x - p.x;
-        const dy = targetPan.y - p.y;
-        if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return targetPan;
-        return { x: p.x + dx * 0.18, y: p.y + dy * 0.18 };
-      });
-      rafId = requestAnimationFrame(animate);
-    };
-    rafId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(rafId);
-  }, [targetZoom, targetPan]);
+    setZoom(targetZoom);
+  }, [targetZoom]);
+
+  useEffect(() => {
+    setPan(targetPan);
+  }, [targetPan]);
 
   const goToNextFrame = useCallback(() => {
     setCurrentFrame(prev => Math.min(currentFrameCount - 1, prev + 1));
@@ -557,8 +746,16 @@ function RoadVideoSection() {
   }, []);
 
   // Обработчик открытия модального окна сравнения
-  const handleOpenCompareModal = useCallback(() => {
-    setShowCompareModal(true);
+  const handleOpenCompareModal = useCallback(async () => {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch (e) {
+      // no-op
+    } finally {
+      setShowCompareModal(true);
+    }
   }, []);
 
   // Обработчик закрытия модального окна сравнения
@@ -586,9 +783,9 @@ function RoadVideoSection() {
               ref={frameContainerRef}
               onWheel={handleWheel}
               onMouseDown={onMouseDown}
-              onMouseMove={onMouseMove}
+              onMouseMove={handleContainerMouseMove}
               onMouseUp={endPan}
-              onMouseLeave={endPan}
+              onMouseLeave={(e) => { endPan(); handleContainerMouseLeave(e); }}
             >
               <img
                 key={`frame-${currentFrame}`}
@@ -596,12 +793,40 @@ function RoadVideoSection() {
                 alt={`Кадр дороги ${currentFrame + 1} - ${frames[currentFrame]?.description}`}
                 className="road-frame-image"
                 draggable={false}
-                style={{ transition: isPanning ? 'none' : 'transform 0.25s ease-out', transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center center' }}
+                style={{ transition: (isPanning || isZooming) ? 'none' : 'transform 0.2s ease-out', transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center center' }}
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'flex';
                 }}
               />
+
+              {/* Animated frame transition overlay */}
+              {isTransitioning && (
+                <div className="frame-transition-overlay" aria-hidden>
+                  <img src={transitionFromUrl} alt="from" className="transition-image from" />
+                  <img src={transitionToUrl} alt="to" className="transition-image to" />
+                </div>
+              )}
+
+              {/* Dynamic trapezoid navigation overlay (hidden when zoomed) */}
+              {isTrapezoidVisible && (
+                <div className={`trapezoid-nav ${showTrapezoidHint ? 'hint' : ''}`}>
+                  <div
+                    className="trapezoid-shape"
+                    ref={trapezoidRef}
+                    style={{ clipPath: trapezoidClipPath, opacity: isMouseInsideFrame ? 1 : 0 }}
+                    onClick={handleTrapezoidClick}
+                    role="presentation"
+                  />
+                </div>
+              )}
+              {/* Мини-карта Яндекс сверху справа */}
+              {/* Форсируем рендер мини‑карты поверх всего, включая полноэкранный режим */}
+              {isMiniMapEnabled ? (
+                <div className="mini-map-overlay">
+                  <YandexMiniMap zoom={13} center={[49.283705, 55.87445]} enabled={true} usePortal={isFullscreen} refreshKey={`${currentFrame}-${selectedDate?.toDateString?.()}`}/>
+                </div>
+              ) : null}
               <div className="road-video-placeholder" style={{ display: 'none' }}>
                 <div className="placeholder-content">
                   <i className="fas fa-video placeholder-icon"></i>
@@ -610,19 +835,27 @@ function RoadVideoSection() {
                 </div>
               </div>
 
-              {/* Боковой сайдбар зума/полного экрана */}
-              <div className="video-zoom-sidebar" aria-label="Управление масштабом">
-                <button className="zoom-button" onClick={handleZoomIn} title="Увеличить"><i className="fas fa-plus"></i></button>
-                <button className="zoom-button" onClick={handleZoomOut} title="Уменьшить"><i className="fas fa-minus"></i></button>
-                <button className="zoom-button" onClick={handleZoomReset} title="Сбросить масштаб"><i className="fas fa-compress-arrows-alt"></i></button>
-                <button className="zoom-button" onClick={toggleFullscreen} title={isFullscreen ? 'Выйти из полного экрана' : 'На весь экран'}>
-                  <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
-                </button>
-                <div className="sidebar-divider"></div>
-                <button className="zoom-button compare-button" onClick={handleOpenCompareModal} title="AI Сравнение дат">
-                  <i className="fas fa-magic-wand-sparkles"></i>
-                </button>
-              </div>
+              {/* Нижняя панель управления в полноэкранном режиме */}
+              {isFullscreen && (
+                <div className="frame-bottom-controls" aria-label="Управление просмотром (полный экран)">
+                  <button className="zoom-button" onClick={handleZoomOut} title="Уменьшить">
+                    <i className="fas fa-minus"></i>
+                  </button>
+                  <button className="zoom-button" onClick={handleZoomIn} title="Увеличить">
+                    <i className="fas fa-plus"></i>
+                  </button>
+                  <button className="zoom-button" onClick={handleZoomReset} title="Сбросить масштаб">
+                    <i className="fas fa-compress-arrows-alt"></i>
+                  </button>
+                  <div className="controls-divider"></div>
+                  <button className="zoom-button" onClick={toggleFullscreen} title={isFullscreen ? 'Выйти из полного экрана' : 'На весь экран'}>
+                    <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
+                  </button>
+                  <button className="zoom-button compare-button" onClick={handleOpenCompareModal} title="AI Сравнение дат">
+                    <i className="fas fa-magic-wand-sparkles"></i>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Overlay с информацией */}
@@ -660,6 +893,34 @@ function RoadVideoSection() {
                 onNextFrame={goToNextFrame}
                 onLastFrame={goToLastFrame}
               />
+            </div>
+
+            {/* Кнопки зума/сравнения/полного экрана снизу */}
+            <div className="view-controls" aria-label="Управление просмотром">
+              <button className="zoom-button" onClick={handleZoomOut} title="Уменьшить">
+                <i className="fas fa-minus"></i>
+              </button>
+              <button className="zoom-button" onClick={handleZoomIn} title="Увеличить">
+                <i className="fas fa-plus"></i>
+              </button>
+              <button className="zoom-button" onClick={handleZoomReset} title="Сбросить масштаб">
+                <i className="fas fa-compress-arrows-alt"></i>
+              </button>
+              <div className="controls-divider"></div>
+              <button className="zoom-button" onClick={toggleFullscreen} title={isFullscreen ? 'Выйти из полного экрана' : 'На весь экран'}>
+                <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
+              </button>
+              <button className="zoom-button compare-button" onClick={handleOpenCompareModal} title="AI Сравнение дат">
+                <i className="fas fa-magic-wand-sparkles"></i>
+              </button>
+              <button
+                className={`zoom-button map-toggle-button ${isMiniMapEnabled ? 'active' : ''}`}
+                onClick={() => setIsMiniMapEnabled((v) => !v)}
+                title={isMiniMapEnabled ? 'Скрыть мини‑карту' : 'Показать мини‑карту'}
+                aria-pressed={isMiniMapEnabled}
+              >
+                <i className="fas fa-map"></i>
+              </button>
             </div>
           </div>
 

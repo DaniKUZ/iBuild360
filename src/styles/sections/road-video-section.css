@@ -85,16 +85,146 @@
   background: var(--background-secondary);
 }
 
-/* Боковой сайдбар управления зумом/полным экраном */
-.road-video-section .video-zoom-sidebar {
+/* Trapezoid navigation overlay */
+.road-video-section .trapezoid-nav {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* enable pointer only on shape */
+}
+
+.road-video-section .trapezoid-nav .trapezoid-shape {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 40% at 50% 60%, rgba(59,130,246,0.24), rgba(59,130,246,0.1) 60%, rgba(59,130,246,0.06) 85%, rgba(59,130,246,0.0) 100%),
+              linear-gradient(to bottom, rgba(37,99,235,0.06), rgba(37,99,235,0.2));
+  outline: 2px solid rgba(59,130,246,0.55);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.15) inset, 0 0 18px rgba(59,130,246,0.35);
+  transition: opacity 120ms ease; /* clip-path updated via JS rAF */
+  pointer-events: auto;
+  cursor: default;
+}
+
+/* Hide when zoomed via container state handled in JS; also keep a smooth fade */
+.road-video-section .trapezoid-nav .trapezoid-shape:hover {
+  outline-color: rgba(255,255,255,0.9);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.25) inset, 0 0 22px rgba(59,130,246,0.55);
+  background: radial-gradient(58% 36% at 50% 60%, rgba(99,102,241,0.28), rgba(99,102,241,0.12) 60%, rgba(59,130,246,0.06) 85%, rgba(59,130,246,0.0) 100%),
+              linear-gradient(to bottom, rgba(99,102,241,0.1), rgba(59,130,246,0.28));
+}
+
+/* Subtle first-time hint pulse */
+.road-video-section .trapezoid-nav.hint .trapezoid-shape {
+  animation: trapezoidPulse 1.8s ease-in-out 0.2s 2;
+}
+
+@keyframes trapezoidPulse {
+  0% { outline-color: rgba(59,130,246,0.25); filter: drop-shadow(0 0 6px rgba(59,130,246,0.2)); }
+  50% { outline-color: rgba(59,130,246,0.55); filter: drop-shadow(0 0 14px rgba(59,130,246,0.4)); }
+  100% { outline-color: rgba(59,130,246,0.25); filter: drop-shadow(0 0 6px rgba(59,130,246,0.2)); }
+}
+
+/* Frame transition animation overlay */
+.road-video-section .frame-transition-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 20;
+}
+
+.road-video-section .frame-transition-overlay .transition-image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.road-video-section .frame-transition-overlay .transition-image.from {
+  transform: translateZ(0) scale(1) perspective(1300px) translateY(0) rotateX(0deg);
+  filter: none;
+  opacity: 1;
+  animation: driveOut 1200ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.road-video-section .frame-transition-overlay .transition-image.to {
+  transform: translateZ(0) scale(1.06) perspective(1300px) translateY(0.6%) rotateX(1.2deg);
+  filter: none;
+  opacity: 0.0;
+  animation: driveIn 1200ms cubic-bezier(0.22, 1, 0.36, 1) 300ms forwards;
+}
+
+@keyframes driveOut {
+  0% { opacity: 1; transform: scale(1) perspective(1300px) translateY(0) rotateX(0deg); }
+  60% { opacity: 1; transform: scale(1.18) perspective(1300px) translateY(0.2%) rotateX(1deg); }
+  100% { opacity: 0; transform: scale(1.22) perspective(1300px) translateY(0.4%) rotateX(1.6deg); }
+}
+
+@keyframes driveIn {
+  0% { opacity: 0; transform: scale(1.06) perspective(1300px) translateY(0.6%) rotateX(1.2deg); }
+  70% { opacity: 1; transform: scale(1.02) perspective(1300px) translateY(0.2%) rotateX(0.4deg); }
+  100% { opacity: 1; transform: scale(1) perspective(1300px) translateY(0) rotateX(0deg); }
+}
+
+/* Мини-карта Яндекс: оверлей справа сверху */
+.road-video-section .mini-map-overlay {
   position: absolute;
   top: 12px;
   right: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: var(--z-index-tooltip);
+  z-index: 10000; /* поверх любых оверлеев/градиентов в ФС */
+  pointer-events: auto;
 }
+
+.road-video-section .yandex-mini-map {
+  width: 220px;
+  height: 160px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Портальный контейнер для ФС-режима */
+.mini-map-portal {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10000;
+  pointer-events: none; /* чтобы host не перехватывал события */
+}
+.mini-map-portal > .yandex-mini-map {
+  pointer-events: auto; /* кликабельна только сама карта */
+}
+
+.road-video-section .yandex-mini-map__container {
+  width: 100%;
+  height: 100%;
+}
+
+/* простой маркер для v3 */
+.road-video-section .yandex-mini-map__marker {
+  width: 10px;
+  height: 10px;
+  background: #2563eb;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(37, 99, 235, 0.5);
+}
+
+.road-video-section .yandex-mini-map__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Боковой сайдбар управления зумом/полным экраном */
+/* Удаляем правый сайдбар, кнопки перенесены вниз */
+.road-video-section .video-zoom-sidebar { display: none; }
 
 .road-video-section .video-zoom-sidebar .zoom-button {
   width: 36px;
@@ -136,6 +266,60 @@
   border-color: #0056b3;
   box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
   transform: translateY(-1px);
+}
+
+/* Нижняя панель управления просмотром */
+.road-video-section .combined-controls {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.road-video-section .combined-controls .view-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.road-video-section .combined-controls .view-controls .zoom-button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.road-video-section .combined-controls .view-controls .zoom-button:hover {
+  background: var(--background-hover);
+  border-color: var(--border-color-hover);
+}
+
+.road-video-section .combined-controls .view-controls .map-toggle-button {
+  position: relative;
+}
+.road-video-section .combined-controls .view-controls .map-toggle-button.active {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  border-color: rgba(37, 99, 235, 0.8);
+}
+.road-video-section .combined-controls .view-controls .map-toggle-button.active i {
+  color: #fff !important;
+}
+
+.road-video-section .combined-controls .view-controls .controls-divider {
+  width: 1px;
+  height: 24px;
+  background: #e5e7eb;
+  margin: 0 4px;
 }
 
 .road-video-section .road-frame-image {
@@ -199,6 +383,51 @@
   pointer-events: none;
 }
 
+/* Нижняя панель управления в полноэкранном режиме (внутри контейнера кадра) */
+.road-video-section .frame-bottom-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(17, 24, 39, 0.6);
+  padding: 8px 10px;
+  border-radius: 10px;
+  z-index: 100; /* поверх оверлея */
+}
+
+.road-video-section .frame-bottom-controls .zoom-button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.road-video-section .frame-bottom-controls .zoom-button:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.road-video-section .frame-bottom-controls .controls-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.35);
+  margin: 0 4px;
+}
+
+/* Делаем иконку волшебной палочки белой во всех контекстах */
+.road-video-section .compare-button i.fa-magic-wand-sparkles { color: #fff !important; }
+
 .road-video-section .frame-info {
   position: absolute;
   top: 16px;
@@ -240,11 +469,13 @@
   background: var(--border-color);
   outline: none;
   cursor: pointer;
+  appearance: none;
   -webkit-appearance: none;
 }
 
 .road-video-section .progress-slider::-webkit-slider-thumb {
   appearance: none;
+  -webkit-appearance: none;
   width: 18px;
   height: 18px;
   border-radius: 50%;
