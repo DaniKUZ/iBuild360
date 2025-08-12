@@ -9,6 +9,7 @@ import { getUserData } from '../../utils/userManager';
 
 // Ленивая загрузка компонентов
 const ProjectGrid = lazy(() => import('../ProjectGrid'));
+const SmartLabSection = lazy(() => import('../SmartLabSection/SmartLabSection'));
 
 const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
   const navigate = useNavigate();
@@ -99,9 +100,9 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
   }, [navigate]);
 
   const handleLandscaping = useCallback((projectId) => {
-    console.log('Открыть благоустройство для проекта:', projectId);
-    // Переходим на отдельную страницу благоустройства
-    navigate(`/landscaping/${projectId}`);
+    console.log('Открыть дорогу для проекта:', projectId);
+    // Переходим на отдельную страницу дорог (новый маршрут)
+    navigate(`/roads/${projectId}`);
   }, [navigate]);
 
   const handleAddProject = useCallback(() => {
@@ -120,6 +121,8 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
       setActiveSubItem(null);
     } else if (itemId === 'admin') {
       setActiveSubItem('team-management');
+    } else if (itemId === 'lab') {
+      setActiveSubItem('lab-active');
     }
   }, []);
 
@@ -177,7 +180,7 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
     }
 
     if (activeMenuItem === 'projects') {
-      const sectionTitle = activeSubItem === 'active-projects' ? 'Активные проекты' : 'Закрытые проекты';
+      const sectionTitle = activeSubItem === 'active-projects' ? 'Активные проекты' : 'Завершенные проекты';
       return (
         <>
           <section className="projects-section">
@@ -226,6 +229,16 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
             </Suspense>
           </ErrorBoundary>
         </>
+      );
+    }
+
+    if (activeMenuItem === 'lab') {
+      return (
+        <ErrorBoundary>
+          <Suspense fallback={<div className="loading" role="status" aria-live="polite">Загрузка...</div>}>
+            <SmartLabSection activeSubItem={activeSubItem} />
+          </Suspense>
+        </ErrorBoundary>
       );
     }
 

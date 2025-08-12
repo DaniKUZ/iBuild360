@@ -1,0 +1,394 @@
+.smartlab {
+  padding: 28px;
+}
+
+.smartlab__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.smartlab__title {
+  margin: 0;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.smartlab__title-icon {
+  color: #2563eb;
+}
+
+.smartlab__subtitle {
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.smartlab__create {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* визуально ближе к макету */
+.smartlab__create {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.smartlab__create:hover {
+  background: #1d4ed8;
+}
+
+.smartlab__content {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+
+.smartlab__main-panel {
+  padding: 20px;
+}
+
+.smartlab__table-title {
+  color: #6b7280;
+  margin-bottom: 12px;
+}
+
+.smartlab__card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.smartlab__card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.smartlab__card-num {
+  font-weight: 600;
+}
+
+.smartlab__chip {
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 12px;
+}
+
+.smartlab__gost {
+  margin-left: auto;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.smartlab__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.smartlab__row {
+  display: grid;
+  gap: 16px;
+}
+
+.smartlab__row--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.smartlab__row--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.smartlab__grid--notes {
+  grid-template-columns: 1fr;
+  margin-top: 12px;
+}
+
+.smartlab__field {}
+
+.smartlab__label {
+  color: #6b7280;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.smartlab__input {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.smartlab__input--short {
+  width: 80px;
+  justify-content: center;
+}
+
+.smartlab__measure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.smartlab__unit {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.smartlab__input--with-steps {
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.smartlab__step-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 6px;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.smartlab__step-value {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.smartlab__right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.smartlab__panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.smartlab__panel-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.smartlab__panel-subtitle {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: -4px;
+  margin-bottom: 10px;
+}
+
+/* Для блока шагов: первый пункт начинается на одной линии с заголовком */
+.smartlab__panel--steps {
+  display: flex;
+  flex-direction: column;
+}
+
+
+.smartlab__panel--steps .smartlab__steps {
+  margin-top: 0;
+}
+
+.smartlab__steps {
+  margin: 0;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.smartlab__steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+}
+
+.smartlab__steps li.is-done {
+  color: inherit;
+}
+
+.smartlab__steps li.is-active {
+  color: inherit;
+}
+
+.smartlab__steps li.is-active strong {
+  font-weight: 500;
+}
+
+.step-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 13px;
+}
+
+/* Активный шаг: светло-серо-синий фон */
+.smartlab__steps li.is-active .step-circle {
+  background: #e8f0fe;
+  border-color: #bfdbfe;
+  color: #1e3a8a;
+}
+
+/* Выполненный шаг: галочка зелёная, фон светло-зелёный */
+.step-circle--done {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+  font-weight: 700;
+}
+
+.smartlab__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  font-size: 12px;
+  border-radius: 9999px;
+  padding: 2px 8px;
+  background: #f3f4f6;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tag--ok {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.tag__icon {
+  font-size: 12px;
+}
+
+.smartlab__progress {
+  position: relative;
+  height: 10px;
+  background: #f3f4f6;
+  border-radius: 9999px;
+  margin-top: 6px;
+}
+
+.smartlab__progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #2563eb;
+  border-radius: inherit;
+}
+
+.smartlab__progress-text {
+  margin-top: 0;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+
+/* процент теперь не используется, оставил на случай возврата дизайна */
+
+.smartlab__sample-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.smartlab__sample-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.smartlab__sample-btn::before {
+  content: "[";
+  margin-right: 2px;
+  color: #9ca3af;
+}
+
+.smartlab__sample-btn::after {
+  content: "]";
+  margin-left: 2px;
+  color: #9ca3af;
+}
+
+.smartlab__sample-btn.is-active {
+  border-color: #2563eb;
+  background: #e8f0fe;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+
+/* footer таблицы и пагинация */
+.smartlab__table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.smartlab__records {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.smartlab__pagination {
+  display: flex;
+  gap: 6px;
+}
+
+.smartlab__pager-btn {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 6px;
+  color: #374151;
+}
+
+.smartlab__pager-btn.is-current {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+@media (max-width: 1024px) {
+  .smartlab__content {
+    grid-template-columns: 1fr;
+  }
+}
+
+

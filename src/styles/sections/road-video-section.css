@@ -39,7 +39,7 @@
 /* Top grid: left photo stream, right statuses */
 .road-video-section .top-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: 1.8fr 1fr;
   gap: 16px;
 }
 
@@ -79,49 +79,56 @@
 .road-video-section .road-frame-container {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: 560px;
   border-radius: 8px;
   overflow: hidden;
   background: var(--background-secondary);
 }
 
-/* Trapezoid navigation overlay */
-.road-video-section .trapezoid-nav {
+/* SVG overlay с редактируемым ROI прямоугольником */
+.road-video-section .road-rect-overlay {
   position: absolute;
   inset: 0;
-  pointer-events: none; /* enable pointer only on shape */
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* колесо/пан идут контейнеру; ручки/контур сами включают события точечно */
 }
 
-.road-video-section .trapezoid-nav .trapezoid-shape {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 40% at 50% 60%, rgba(59,130,246,0.24), rgba(59,130,246,0.1) 60%, rgba(59,130,246,0.06) 85%, rgba(59,130,246,0.0) 100%),
-              linear-gradient(to bottom, rgba(37,99,235,0.06), rgba(37,99,235,0.2));
-  outline: 2px solid rgba(59,130,246,0.55);
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.15) inset, 0 0 18px rgba(59,130,246,0.35);
-  transition: opacity 120ms ease; /* clip-path updated via JS rAF */
+.road-video-section .roi-rect {
+  fill: rgba(59, 130, 246, 0.18);
+  stroke: rgba(59, 130, 246, 0.85);
+  stroke-width: 0.6;
+  filter: drop-shadow(0 0 2px rgba(59,130,246,0.35));
+  vector-effect: non-scaling-stroke;
+  pointer-events: auto; /* ловим hover только на контуре */
+}
+.road-video-section .roi-rect.hidden { opacity: 0.001; } /* почти невидима, но ловит hover */
+.road-video-section .roi-rect.visible { opacity: 1; transition: opacity 120ms ease; }
+.road-video-section .roi-rect:hover { fill: rgba(99, 102, 241, 0.22); }
+
+.road-video-section .roi-handle {
   pointer-events: auto;
-  cursor: default;
+  fill: #ffffff;
+  stroke: rgba(59, 130, 246, 0.95);
+  stroke-width: 0.5;
+  cursor: nwse-resize;
+  vector-effect: non-scaling-stroke;
 }
+.road-video-section .roi-handle.tr { cursor: nesw-resize; }
+.road-video-section .roi-handle.bl { cursor: nesw-resize; }
+.road-video-section .roi-handle.br { cursor: nwse-resize; }
+.road-video-section .roi-handle:hover { fill: #dbeafe; }
 
-/* Hide when zoomed via container state handled in JS; also keep a smooth fade */
-.road-video-section .trapezoid-nav .trapezoid-shape:hover {
-  outline-color: rgba(255,255,255,0.9);
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.25) inset, 0 0 22px rgba(59,130,246,0.55);
-  background: radial-gradient(58% 36% at 50% 60%, rgba(99,102,241,0.28), rgba(99,102,241,0.12) 60%, rgba(59,130,246,0.06) 85%, rgba(59,130,246,0.0) 100%),
-              linear-gradient(to bottom, rgba(99,102,241,0.1), rgba(59,130,246,0.28));
+.road-video-section .roi-label {
+  font-size: 2.8px;
+  fill: #ffffff;
+  paint-order: stroke;
+  stroke: rgba(0,0,0,0.65);
+  stroke-width: 0.35px;
+  pointer-events: none; /* не блокируем ручки под подписью */
 }
-
-/* Subtle first-time hint pulse */
-.road-video-section .trapezoid-nav.hint .trapezoid-shape {
-  animation: trapezoidPulse 1.8s ease-in-out 0.2s 2;
-}
-
-@keyframes trapezoidPulse {
-  0% { outline-color: rgba(59,130,246,0.25); filter: drop-shadow(0 0 6px rgba(59,130,246,0.2)); }
-  50% { outline-color: rgba(59,130,246,0.55); filter: drop-shadow(0 0 14px rgba(59,130,246,0.4)); }
-  100% { outline-color: rgba(59,130,246,0.25); filter: drop-shadow(0 0 6px rgba(59,130,246,0.2)); }
-}
+.road-video-section .roi-label.hidden { opacity: 0; }
+.road-video-section .roi-label.visible { opacity: 1; transition: opacity 120ms ease; }
 
 /* Frame transition animation overlay */
 .road-video-section .frame-transition-overlay {
@@ -176,8 +183,8 @@
 }
 
 .road-video-section .yandex-mini-map {
-  width: 220px;
-  height: 160px;
+  width: 154px;  /* уменьшено ~на 30% для не-ФС */
+  height: 112px; /* уменьшено ~на 30% для не-ФС */
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -195,6 +202,8 @@
 }
 .mini-map-portal > .yandex-mini-map {
   pointer-events: auto; /* кликабельна только сама карта */
+  width: 220px;  /* полноэкранный размер (был исходный) */
+  height: 160px; /* полноэкранный размер (был исходный) */
 }
 
 .road-video-section .yandex-mini-map__container {
@@ -327,6 +336,27 @@
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
+}
+
+/* В полноэкранном режиме показываем изображение целиком */
+.road-video-section .road-frame-container:fullscreen,
+.road-video-section .road-frame-container:-webkit-full-screen {
+  border-radius: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+.road-video-section .road-frame-container:fullscreen .road-frame-image,
+.road-video-section .road-frame-container:-webkit-full-screen .road-frame-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* сохраняем соотношение, без искажений */
+  border-radius: 0;
+}
+
+/* Центрируем изображение по обеим осям, чтобы не "уезжало" к краям */
+.road-video-section .road-frame-container img.road-frame-image {
+  object-position: center center;
 }
 
 .road-video-section .road-frame-container.zoomed,
@@ -511,9 +541,10 @@
 }
 
 .road-video-section .ai-analysis-section.right-pane {
-  height: 100%;
+  height: 675px; /* фиксируем высоту, чтобы список внутри прокручивался */
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .road-video-section .analysis-header {
@@ -581,7 +612,9 @@
 
 /* Высота списка участков с прокруткой */
 .road-video-section .right-pane .analysis-result {
-  max-height: 480px; /* видно ~3-5 элементов */
+  /* Прокрутка карточек внутри правой панели */
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -690,6 +723,53 @@
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.4;
+}
+
+/* Per-item details with status highlighting */
+.road-video-section .segment-details {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+  display: grid;
+  gap: 6px;
+}
+
+.road-video-section .detail-item {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.road-video-section .detail-icon {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.road-video-section .detail-task {
+  color: var(--text-primary);
+}
+
+.road-video-section .detail-status {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.road-video-section .detail-item.completed .detail-icon,
+.road-video-section .detail-status.completed {
+  color: var(--success-color, #22c55e);
+}
+
+.road-video-section .detail-item.in-progress .detail-icon,
+.road-video-section .detail-status.in-progress {
+  color: var(--warning-color, #f59e0b);
+}
+
+.road-video-section .detail-item.neutral .detail-icon,
+.road-video-section .detail-status.neutral {
+  color: var(--text-secondary);
 }
 
 /* Helpful Tips */

@@ -13,8 +13,18 @@ const Sidebar = React.memo(({ activeItem, onItemClick, onSubItemClick, activeSub
       label: 'Проекты',
       subItems: [
         { id: 'active-projects', icon: 'fas fa-play-circle', label: 'Активные проекты', count: 2 },
-        { id: 'closed-projects', icon: 'fas fa-check-circle', label: 'Закрытые', count: 1 }
+        { id: 'closed-projects', icon: 'fas fa-check-circle', label: 'Завершенные проекты', count: 1 }
       ]
+    },
+    {
+      id: 'lab',
+      icon: 'fas fa-vials',
+      label: 'Лаборатория',
+      subItems: [
+        { id: 'lab-protocols', icon: 'fas fa-clipboard-list', label: 'Протоколы', count: null },
+        { id: 'lab-active', icon: 'fas fa-play-circle', label: 'Активные испытания', count: null },
+        { id: 'lab-history', icon: 'fas fa-history', label: 'История', count: null },
+      ],
     },
     { 
       id: 'shared', 

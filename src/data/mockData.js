@@ -210,12 +210,12 @@ export const mockProjects = [
   },
   {
     id: 3,
-    name: "Автодорога М-10 Москва-СПб",
-    lastUpdate: "2024-01-16",
+    name: "Автодорога М-7 Волга",
+    lastUpdate: "2025-03-26",
     user: "АО «МосГорСтрой»",
     status: "В работе",
     preview: roadImgPreview,
-    address: "Автодорога М-10, 45 км, Московская область",
+    address: "Автодорога М-7, участок",
     latitude: 59.8736,
     longitude: 30.2627,
     captures: 45,
@@ -304,18 +304,18 @@ export const mockProjects = [
     droneVideos: [
       {
         id: 1,
-        name: "Видеосъёмка дороги М-10",
+        name: "Видеосъёмка дороги М-7",
         fileName: "roadVideo.mp4",
         size: 157286400, // ~150MB
-        uploadDate: "2025-07-14",
+        uploadDate: "2025-03-26",
         duration: "3:18",
         resolution: "4K (3840x2160)",
         frameRate: 30,
-        description: "Аэросъёмка строительства автодороги М-10, участок 45-47 км",
+        description: "Аэросъёмка строительства автодороги М-7",
         thumbnail: roadImgPreview,
         status: "processed",
-        shootingDate: "2025-07-14",
-        weather: "Ясно, +22°C",
+        shootingDate: "2025-03-26",
+        weather: "Ясно, +3°C",
         pilot: "Иванов А.Н.",
         equipment: "DJI Mavic 3 Pro"
       }

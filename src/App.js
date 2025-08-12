@@ -96,9 +96,9 @@ function App() {
             element={<WorkerStatsPage />} 
           />
           
-          {/* Благоустройство */}
+          {/* Дороги (бывшее благоустройство) */}
           <Route 
-            path="/landscaping/:projectId" 
+            path="/roads/:projectId" 
             element={
               <LandscapingPage 
                 projects={projects}

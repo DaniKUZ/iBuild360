@@ -140,8 +140,8 @@ module.exports = (env, argv) => {
     open: true,
     historyApiFallback: true,
   },
-  resolve: {
-    extensions: ['.js', '.jsx'],
-  },
+    resolve: {
+      extensions: ['.js', '.jsx'],
+    },
   };
 }; 
