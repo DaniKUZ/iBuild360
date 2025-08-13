@@ -1,4 +1,12 @@
 // API Configuration
+
+// Полифилл для process в браузере
+if (typeof process === 'undefined') {
+  window.process = {
+    env: {}
+  };
+}
+
 const isProduction = window.location.hostname === 'build.napoleonit.ru' || window.location.hostname === '193.8.184.254';
 
 export const API_CONFIG = {
@@ -18,7 +26,12 @@ export const API_CONFIG = {
   // Ключ в браузер не кладем
   OPENAI_API_KEY: '',
 
-  // Демо используем только вне продакшена
-  USE_DEMO: !isProduction,
-  USE_CORS_PROXY: false
+  // Демо режим отключаем для использования реального API
+  USE_DEMO: false,
+  USE_CORS_PROXY: false,
+
+  // Webhook configuration для получения изображений (из переменных окружения)
+  WEBHOOK_URL: process.env.REACT_APP_N8N_WEBHOOK_URL || '',
+  WEBHOOK_AUTH_HEADER: process.env.REACT_APP_N8N_AUTH_HEADER || 'N8N',
+  WEBHOOK_AUTH_KEY: process.env.REACT_APP_N8N_AUTH_KEY || ''
 };

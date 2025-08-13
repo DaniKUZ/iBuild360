@@ -89,61 +89,79 @@ app.post('/api/openai/chat/completions', async (req, res) => {
   }
 });
 
-// Agent360 proxy for local development (expects process.env.OPENAI_API_KEY)
+// Agent360 proxy for n8n webhook
 app.post('/api/agent360/chat/completions', async (req, res) => {
   try {
-    const fetch = (await import('node-fetch')).default;
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    const AGENT360_MODEL_ID = process.env.AGENT360_MODEL_ID || 'gpt-4o-mini';
+    const fetch = require('node-fetch');
+    
+    // n8n webhook configuration (из переменных окружения)
+    const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+    const N8N_AUTH_HEADER = process.env.N8N_AUTH_HEADER || 'N8N';
+    const N8N_AUTH_KEY = process.env.N8N_AUTH_KEY;
 
-    if (!OPENAI_API_KEY) {
-      return res.status(500).json({ error: 'Missing OPENAI_API_KEY in environment' });
+    if (!N8N_WEBHOOK_URL || !N8N_AUTH_KEY) {
+      return res.status(500).json({ 
+        error: 'Server misconfigured: Missing N8N_WEBHOOK_URL or N8N_AUTH_KEY environment variables' 
+      });
     }
 
-    const { site_id: siteId = 'UNKNOWN', images = [], model } = req.body || {};
+    const { site_id: siteId = 'UNKNOWN', images = [] } = req.body || {};
     if (!Array.isArray(images) || images.length === 0) {
       return res.status(400).json({ error: 'No images provided' });
     }
 
-    const content = [
-      { type: 'text', text: `Объект: ${siteId}. Сравни 'до' и 'после' и верни JSON по нашей схеме.` }
-    ];
+    console.log(`📡 Прокси: перенаправляем запрос для объекта ${siteId} с ${images.length} изображениями в n8n...`);
 
-    for (const img of images) {
-      const imageUrl = img?.image_url;
-      const role = img?.role || 'current';
-      const takenAt = img?.taken_at || '';
-      const notes = img?.notes || '';
-      if (!imageUrl) continue;
-      content.push({ type: 'image_url', image_url: { url: imageUrl } });
-      let meta = `role=${role} taken_at=${takenAt}`;
-      if (notes) meta += ` notes=${notes}`;
-      content.push({ type: 'text', text: meta });
-    }
-
-    const body = {
-      model: model || AGENT360_MODEL_ID,
-      messages: [{ role: 'user', content }],
-      temperature: 0.1,
-      max_tokens: 2000
-    };
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
+    // Передаём данные через URL parameters (GET запрос)
+    const params = new URLSearchParams();
+    params.append('site_id', siteId);
+    params.append(N8N_AUTH_HEADER, N8N_AUTH_KEY);
+    
+    // Добавляем изображения как параметры
+    images.forEach((img, index) => {
+      params.append(`image_${index}_role`, img.role || 'current');
+      params.append(`image_${index}_taken_at`, img.taken_at || '');
+      params.append(`image_${index}_url`, img.image_url || '');
+      if (img.notes) params.append(`image_${index}_notes`, img.notes);
+    });
+    
+    const webhookUrlWithParams = `${N8N_WEBHOOK_URL}?${params.toString()}`;
+    
+    console.log('🔗 Отправляем GET запрос на n8n webhook');
+    console.log('📦 Параметров:', params.toString().length, 'chars');
+    console.log('🖼️ Изображений:', images.length);
+    
+    const response = await fetch(webhookUrlWithParams, {
+      method: 'GET',
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
+        [N8N_AUTH_HEADER]: N8N_AUTH_KEY
+      }
     });
 
-    const text = await response.text();
     if (!response.ok) {
-      return res.status(response.status).send(text);
+      const errorText = await response.text();
+      console.error('n8n Webhook Error:', response.status, errorText);
+      
+      let userFriendlyMessage = `n8n webhook error: ${response.status}`;
+      
+      if (response.status === 403) {
+        userFriendlyMessage = 'Ошибка авторизации n8n webhook. Проверьте ключ авторизации.';
+      } else if (response.status === 404) {
+        userFriendlyMessage = 'n8n webhook не найден. Проверьте URL webhook.';
+      }
+      
+      return res.status(response.status).json({ 
+        error: userFriendlyMessage,
+        details: errorText
+      });
     }
-    res.type('application/json').send(text);
+
+    const data = await response.json();
+    console.log('✅ Получен ответ от n8n агента');
+    
+    res.json(data);
   } catch (error) {
-    console.error('Agent360 Proxy Error:', error);
+    console.error('Agent360 n8n Proxy Error:', error);
     res.status(500).json({ error: 'Internal server error: ' + error.message });
   }
 });

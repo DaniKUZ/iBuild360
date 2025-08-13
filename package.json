@@ -9,10 +9,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack serve --mode=development",
     "proxy": "node server/proxy.js",
-    "dev": "concurrently \"npm run proxy\" \"npm start\"",
+    "dev": "concurrently \"npm start\" \"cd server && npm start\"",
     "build": "webpack --mode=production",
     "analyze": "webpack --mode=production --profile --json > stats.json && npx webpack-bundle-analyzer stats.json",
-    "analyze-size": "npm run build && node analyze-bundle.js"
+    "analyze-size": "npm run build && node analyze-bundle.js",
+    "start:all": "concurrently \"npm start\" \"cd server && npm start\""
   },
   "keywords": [],
   "author": "",

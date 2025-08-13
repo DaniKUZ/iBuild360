@@ -23,21 +23,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Подтянуть секреты
-$envPath = __DIR__ . '/../../../../.env.php';
-if (file_exists($envPath)) {
-    require_once $envPath;
-}
+// .env.php файл больше не нужен для n8n webhook
+// Всё настроено в коде
 
-// Ожидаем константы OPENAI_API_KEY и (опционально) AGENT360_MODEL_ID в .env.php
-if (!defined('OPENAI_API_KEY')) {
+// Используем n8n webhook вместо OpenAI API (из переменных окружения)
+$N8N_WEBHOOK_URL = $_ENV['N8N_WEBHOOK_URL'] ?? '';
+$N8N_AUTH_HEADER = $_ENV['N8N_AUTH_HEADER'] ?? 'N8N';
+$N8N_AUTH_KEY = $_ENV['N8N_AUTH_KEY'] ?? '';
+
+// Проверяем что все необходимые переменные заданы
+if (empty($N8N_WEBHOOK_URL) || empty($N8N_AUTH_KEY)) {
     http_response_code(500);
-    echo json_encode(['error' => 'Server misconfigured: OPENAI_API_KEY is not set']);
+    echo json_encode(['error' => 'Server misconfigured: Missing N8N_WEBHOOK_URL or N8N_AUTH_KEY environment variables']);
     exit;
 }
-
-$OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-$MODEL_ID = defined('AGENT360_MODEL_ID') ? AGENT360_MODEL_ID : null; // например: gpt-<ID_Агента_360>
 
 try {
     $raw = file_get_contents('php://input');
@@ -64,60 +63,27 @@ try {
         throw new Exception('No images provided');
     }
 
-    // Формируем content для Chat Completions по паттерну Агент 360
-    $content = [];
-    $content[] = [
-        'type' => 'text',
-        'text' => "Объект: {$siteId}. Сравни 'до' и 'после' и верни JSON по нашей схеме."
-    ];
-
-    foreach ($images as $img) {
-        $imageUrl = isset($img['image_url']) ? $img['image_url'] : null;
-        $role = isset($img['role']) ? $img['role'] : 'current';
-        $takenAt = isset($img['taken_at']) ? $img['taken_at'] : '';
-        $notes = isset($img['notes']) ? $img['notes'] : '';
-
-        if (!$imageUrl) {
-            continue;
-        }
-
-        // Приводим к формату Chat Completions (image_url)
-        $content[] = [
-            'type' => 'image_url',
-            'image_url' => [ 'url' => $imageUrl ]
-        ];
-
-        $meta = "role={$role} taken_at={$takenAt}";
-        if ($notes !== '') {
-            $meta .= " notes=" . $notes;
-        }
-        $content[] = [ 'type' => 'text', 'text' => $meta ];
-    }
-
-    $messages = [ [ 'role' => 'user', 'content' => $content ] ];
-
+    // Для n8n просто передаём данные как есть
     $body = [
-        'model' => $overrideModel ? $overrideModel : ($MODEL_ID ?: 'gpt-4o-mini'),
-        'messages' => $messages,
-        'temperature' => 0.1,
-        'max_tokens' => 2000
+        'site_id' => $siteId,
+        'images' => $images
     ];
 
-    // Запрос к OpenAI
+    // Запрос к n8n webhook
     $ch = curl_init();
     curl_setopt_array($ch, [
-        CURLOPT_URL => $OPENAI_API_URL,
+        CURLOPT_URL => $N8N_WEBHOOK_URL,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
-            'Authorization: Bearer ' . OPENAI_API_KEY
+            $N8N_AUTH_HEADER . ': ' . $N8N_AUTH_KEY
         ],
         CURLOPT_TIMEOUT => 120,
         CURLOPT_CONNECTTIMEOUT => 30,
         CURLOPT_SSL_VERIFYPEER => true,
-        CURLOPT_USERAGENT => 'iBuild360-Agent360-Proxy/1.0'
+        CURLOPT_USERAGENT => 'iBuild360-N8N-Proxy/1.0'
     ]);
 
     $response = curl_exec($ch);

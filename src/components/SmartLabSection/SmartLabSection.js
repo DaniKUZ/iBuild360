@@ -8,7 +8,7 @@ import './SmartLabSection.css';
  * Пока статический макет, стилизованный под предоставленный скриншот.
  */
 const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
-  const title = 'Протокол испытания';
+  const title = 'Smart Lab Assistant';
 
   // Примерные данные образцов (как карточки «Протокол испытаний»)
   const [samples, setSamples] = useState([
@@ -35,11 +35,14 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
           <div className="smartlab__panel smartlab__main-panel">
             <header className="smartlab__header">
               <div className="smartlab__header-left">
-                <h1 className="smartlab__title">
-                  <i className="smartlab__title-icon fas fa-file-alt" aria-hidden="true"></i>
-                  {title}
-                </h1>
-                <div className="smartlab__subtitle">Таблица результатов испытаний (по сетям)</div>
+                <div className="smartlab__title-row">
+                  <h1 className="smartlab__title">
+                    <i className="smartlab__title-icon fas fa-file-alt" aria-hidden="true"></i>
+                    {title}
+                  </h1>
+                  <div className="smartlab__gost-header">ГОСТ P 58401.1-2019</div>
+                </div>
+                <div className="smartlab__subtitle">Определение объемной плотности. Пункт 9.1. Метод А. Образцы уплотненные на установке Машалла</div>
               </div>
               <div className="smartlab__header-right">
                 <button className="smartlab__create" onClick={handleCreateProtocol}>
@@ -54,7 +57,6 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
                 <div className="smartlab__card-head">
                   <div className="smartlab__card-num">№ {idx + 1}</div>
                   <div className="smartlab__chip">{s.name}</div>
-                  <div className="smartlab__gost">ГОСТ P 58401.1-2019</div>
                 </div>
 
                 <div className="smartlab__row smartlab__row--2">
@@ -68,38 +70,31 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
                   </div>
                 </div>
 
-                <div className="smartlab__row smartlab__row--3">
-                  <div className="smartlab__field">
-                    <div className="smartlab__label">1-е взвешивание</div>
-                    <div className="smartlab__measure">
-                      <div className="smartlab__input smartlab__input--short">—</div>
-                      <span className="smartlab__unit">г</span>
-                    </div>
+                <div className="smartlab__measurements">
+                  <div className="smartlab__measurements-header">
+                    <h3 className="smartlab__measurements-title">Измерения</h3>
                   </div>
-                  <div className="smartlab__field">
-                    <div className="smartlab__label">2-е взвешивание</div>
-                    <div className="smartlab__measure">
-                      <div className="smartlab__input smartlab__input--short">—</div>
-                      <span className="smartlab__unit">г</span>
+                  <div className="smartlab__measurements-grid">
+                    <div className="smartlab__measurement-item">
+                      <div className="smartlab__measurement-label">Масса сухого образца на воздухе, г</div>
+                      <div className="smartlab__measurement-value"></div>
                     </div>
-                  </div>
-                  <div className="smartlab__field">
-                    <div className="smartlab__label">Средняя масса</div>
-                    <div className="smartlab__measure">
-                      <div className="smartlab__input smartlab__input--short">—</div>
-                      <span className="smartlab__unit">г</span>
+                    <div className="smartlab__measurement-item">
+                      <div className="smartlab__measurement-label">Масса образца на воздухе после выдерживания его в воде в течение (4 ± 1) мин, г</div>
+                      <div className="smartlab__measurement-value"></div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="smartlab__grid smartlab__grid--notes">
-                  <div className="smartlab__field">
-                    <div className="smartlab__label">Примечания</div>
-                    <div className="smartlab__input">Без замечаний</div>
+                    <div className="smartlab__measurement-item">
+                      <div className="smartlab__measurement-label">Масса образца в воде после выдерживания его в воде в течение (4 ± 1) мин, г</div>
+                      <div className="smartlab__measurement-value"></div>
+                    </div>
+                    <div className="smartlab__measurement-item">
+                      <div className="smartlab__measurement-label">Объемная плотность асфальтобетонновой смеси, г/см³</div>
+                      <div className="smartlab__measurement-value"></div>
+                    </div>
                   </div>
                 </div>
               </article>
-            ))}
+            )            )}
 
             <div className="smartlab__table-footer">
               <div className="smartlab__records">{`Записи с 1 по ${samples.length} из ${samples.length} записей`}</div>
@@ -177,6 +172,24 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
             </div>
           </div>
         </aside>
+      </div>
+
+      <div className="smartlab__bottom-results">
+        <div className="smartlab__results">
+          <div className="smartlab__results-header">
+            <h3 className="smartlab__results-title">Фактический результат испытаний</h3>
+          </div>
+          <div className="smartlab__results-grid">
+            <div className="smartlab__result-item">
+              <div className="smartlab__result-label">Среднее арифметическое, г/см³</div>
+              <div className="smartlab__result-value"></div>
+            </div>
+            <div className="smartlab__result-item">
+              <div className="smartlab__result-label">Разница результатов (до 0,01 г/см³)</div>
+              <div className="smartlab__result-value"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

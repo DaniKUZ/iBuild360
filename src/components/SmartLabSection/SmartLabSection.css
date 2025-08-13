@@ -9,12 +9,27 @@
   margin-bottom: 24px;
 }
 
+.smartlab__title-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .smartlab__title {
   margin: 0;
   font-size: 22px;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.smartlab__gost-header {
+  background: #f3f4f6;
+  color: #6b7280;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .smartlab__title-icon {
@@ -50,6 +65,18 @@
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 24px;
+  margin-bottom: 24px;
+}
+
+.smartlab__bottom-results {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+}
+
+.smartlab__bottom-results .smartlab__results {
+  grid-column: 1;
 }
 
 .smartlab__main-panel {
@@ -113,12 +140,14 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
+.smartlab__row--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .smartlab__grid--notes {
   grid-template-columns: 1fr;
   margin-top: 12px;
 }
-
-.smartlab__field {}
 
 .smartlab__label {
   color: #6b7280;
@@ -150,6 +179,130 @@
 .smartlab__unit {
   color: #6b7280;
   font-size: 12px;
+}
+
+/* Блок измерений */
+.smartlab__measurements {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.smartlab__measurements-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.smartlab__measurements-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.smartlab__measurements-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.smartlab__measurement-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.smartlab__measurement-label {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  font-weight: 500;
+  height: 56px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.smartlab__measurement-value {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  height: 40px;
+  padding: 0 12px;
+}
+
+/* Блок фактических результатов */
+.smartlab__results {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 16px;
+}
+
+.smartlab__results-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.smartlab__results-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.smartlab__results-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.smartlab__result-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.smartlab__result-label {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  font-weight: 500;
+  height: 40px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.smartlab__result-value {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  height: 40px;
+  padding: 0 12px;
+}
+
+/* Адаптивность для блока измерений */
+@media (max-width: 1200px) {
+  .smartlab__measurements-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .smartlab__measurements-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .smartlab__measurements {
+    padding: 16px;
+  }
+  
+
 }
 
 .smartlab__input--with-steps {
@@ -388,6 +541,18 @@
 @media (max-width: 1024px) {
   .smartlab__content {
     grid-template-columns: 1fr;
+  }
+  
+  .smartlab__bottom-results {
+    margin-top: 16px;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .smartlab__results-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 

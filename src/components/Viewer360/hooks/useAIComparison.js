@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { API_CONFIG } from '../../../config/api';
+import { analyzeImagesFromWebhook } from '../../../utils/webhookUtils';
 
 /**
  * Хук для управления AI сравнением изображений
@@ -11,7 +12,26 @@ const useAIComparison = () => {
   const [aiAnalysisResult, setAIAnalysisResult] = useState(null);
   const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
 
-  // Функция для анализа изображений с помощью OpenAI API
+  // Функция для анализа изображений через webhook (альтернативная)
+  const analyzeImagesWithWebhook = async (beforeDate, afterDate, siteId = API_CONFIG.SITE_ID) => {
+    if (!beforeDate || !afterDate) return;
+
+    setIsAIAnalyzing(true);
+    setAIAnalysisResult(null);
+
+    try {
+      console.log('Анализ изображений через webhook...');
+      const analysisText = await analyzeImagesFromWebhook(siteId, beforeDate, afterDate);
+      setAIAnalysisResult(analysisText);
+    } catch (error) {
+      console.error('Ошибка при анализе через webhook:', error);
+      setAIAnalysisResult(`Произошла ошибка при анализе изображений через webhook: ${error.message}`);
+    } finally {
+      setIsAIAnalyzing(false);
+    }
+  };
+
+  // Функция для анализа изображений с помощью OpenAI API (локальные изображения)
   const analyzeImagesWithAI = async (images) => {
     if (images.length !== 2) return;
 
@@ -30,8 +50,8 @@ const useAIComparison = () => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Уменьшаем до максимум 800px по большей стороне
-            const maxSize = 800;
+            // Сильно уменьшаем для экономии места в URL (GET запрос)
+            const maxSize = 200;
             let { width, height } = img;
             
             if (width > height) {
@@ -52,8 +72,8 @@ const useAIComparison = () => {
             // Рисуем уменьшенное изображение
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Конвертируем в base64 с качеством 0.7
-            const base64data = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+            // Конвертируем в base64 с низким качеством для экономии места в URL
+            const base64data = canvas.toDataURL('image/jpeg', 0.3).split(',')[1];
             resolve(base64data);
           };
           img.src = URL.createObjectURL(blob);
@@ -62,59 +82,41 @@ const useAIComparison = () => {
 
       const imageDataArray = await Promise.all(imageDataPromises);
 
-      // Подготовим payload для Агент 360 API (user content массив из text + image_url)
-      const payload = [
-        { type: 'text', text: 'Сравни \'до\' и \'после\' и верни JSON по нашей схеме.' },
-        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageDataArray[0]}` } },
-        { type: 'text', text: `role=before taken_at=${new Date(aiComparisonImages[0]?.date || images[0].date).toISOString().slice(0,10)}` },
-        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${imageDataArray[1]}` } },
-        { type: 'text', text: `role=after taken_at=${new Date(aiComparisonImages[1]?.date || images[1].date).toISOString().slice(0,10)}` }
-      ];
+      // Формируем данные для нашего серверного прокси в формате Агент 360
+      const requestPayload = {
+        site_id: API_CONFIG.SITE_ID,
+        images: [
+          {
+            role: 'before',
+            taken_at: new Date(images[0].date).toISOString().slice(0, 10),
+            image_url: `data:image/jpeg;base64,${imageDataArray[0]}`
+          },
+          {
+            role: 'after', 
+            taken_at: new Date(images[1].date).toISOString().slice(0, 10),
+            image_url: `data:image/jpeg;base64,${imageDataArray[1]}`
+          }
+        ]
+      };
 
       // Если демо-режим, используем локальную заглушку
+      // Отключаем демо-режим - теперь используем реальный API
       if (API_CONFIG.USE_DEMO) {
-        // Имитируем задержку анализа
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        const demoResult = `🏗️ АНАЛИЗ СТРОИТЕЛЬНОГО ПРОГРЕССА:
-
-📊 За период между фотографиями выполнены следующие работы:
-
-✅ ЗАВЕРШЕННЫЕ РАБОТЫ:
-• Установлена внутренняя перегородка в левой части помещения  
-• Выполнена штукатурка стен в центральной зоне
-• Проложена электропроводка по потолку
-• Установлены оконные рамы
-
-🔄 НАЧАТЫЕ РАБОТЫ:
-• Подготовка пола под финишное покрытие
-• Монтаж системы вентиляции
-
-📈 ПРОГРЕСС: Примерно 65% работ по данному участку завершены.
-
-⚠️ ДЕМО-РЕЖИМ: Для получения реального AI анализа необходимо настроить сервер с поддержкой OpenAI API.`;
-
-        setAIAnalysisResult(demoResult);
-        setIsAIAnalyzing(false);
-        return;
+        console.warn('Demo mode is disabled. Using real API.');
       }
 
-      // Для реального API шлем на серверный Агент360 прокси
+      // Используем серверный прокси для обхода CORS
       let apiUrl = API_CONFIG.AGENT360_API_URL;
       let headers = {
         'Content-Type': 'application/json'
       };
 
+      console.log('Отправляем запрос через серверный прокси в n8n агент:', requestPayload);
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify({
-          site_id: API_CONFIG.SITE_ID,
-          images: [
-            { role: 'before', taken_at: new Date(images[0].date).toISOString().slice(0,10), image_url: `data:image/jpeg;base64,${imageDataArray[0]}` },
-            { role: 'after', taken_at: new Date(images[1].date).toISOString().slice(0,10), image_url: `data:image/jpeg;base64,${imageDataArray[1]}` }
-          ]
-        })
+        body: JSON.stringify(requestPayload)
       });
 
       if (!response.ok) {
@@ -123,14 +125,56 @@ const useAIComparison = () => {
       }
 
       const data = await response.json();
-      // Ожидаем, что агент вернет текст в choices[0].message.content или JSON строкой
+      console.log('Ответ от n8n агента:', data);
+      
+      // n8n может возвращать данные в разных форматах
       let analysisText = '';
+      
+      // Проверяем различные возможные форматы ответа от n8n
       if (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+        // Формат OpenAI API
         analysisText = String(data.choices[0].message.content).trim();
+      } else if (data && data.response) {
+        // Прямой ответ в поле response
+        analysisText = String(data.response).trim();
+      } else if (data && data.result) {
+        // Ответ в поле result
+        analysisText = String(data.result).trim();
+      } else if (data && data.analysis) {
+        // Ответ в поле analysis
+        analysisText = String(data.analysis).trim();
       } else if (typeof data === 'string') {
-        analysisText = data;
+        // Простая строка
+        analysisText = data.trim();
+      } else if (data && data.message === 'Workflow was started') {
+        // n8n запустил workflow но еще не вернул результат
+        analysisText = `🚀 Workflow запущен в n8n! 
+
+⏳ Агент начал анализ изображений...
+
+📊 Переданные данные:
+• Объект: ${API_CONFIG.SITE_ID}
+• Изображений: 2
+• Даты: ${new Date(images[0].date).toLocaleDateString('ru-RU')} → ${new Date(images[1].date).toLocaleDateString('ru-RU')}
+
+⚠️ n8n агент может работать асинхронно. Если результат не появляется, попросите коллегу проверить:
+1. Настроен ли workflow для возврата результата
+2. Работает ли AI анализ в n8n
+3. Нужно ли время для обработки запроса
+
+🔧 Технические детали: ${JSON.stringify(data)}`;
       } else {
-        analysisText = JSON.stringify(data);
+        // Fallback - преобразуем весь объект в строку
+        analysisText = `🤖 Получен ответ от n8n агента:
+
+${JSON.stringify(data, null, 2)}
+
+⚠️ Это не похоже на результат анализа. Возможные причины:
+1. Workflow еще обрабатывает запрос
+2. Нужна настройка возврата результата в n8n
+3. Агент настроен для асинхронной работы
+
+💡 Попросите коллегу проверить настройки workflow в n8n.`;
       }
       
       setAIAnalysisResult(analysisText);
@@ -179,6 +223,7 @@ const useAIComparison = () => {
     
     // Функции
     analyzeImagesWithAI,
+    analyzeImagesWithWebhook,
     handleAddToAIComparison,
     handleCloseAIComparison,
     
