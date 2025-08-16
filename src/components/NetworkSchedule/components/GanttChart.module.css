@@ -1,0 +1,435 @@
+/* GanttChart Styles */
+.ganttChart {
+  background: var(--background-card, #ffffff);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color, #e1e5e9);
+  overflow: hidden;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color, #e1e5e9);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #1a1a1a);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.title i {
+  color: var(--primary-color, #3b82f6);
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+}
+
+.legendColor {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.legendColor.completed {
+  background: #16a34a;
+}
+
+.legendColor.inProgress {
+  background: #3b82f6;
+}
+
+.legendColor.planned {
+  background: #94a3b8;
+}
+
+.legendColor.critical {
+  background: #dc2626;
+  position: relative;
+}
+
+.legendColor.critical::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #fef2f2;
+  border-radius: 50%;
+}
+
+/* Chart Container */
+.chartContainer {
+  position: relative;
+  overflow-x: auto;
+  min-height: 400px;
+}
+
+/* Time Scale */
+.timeScale {
+  position: relative;
+  height: 40px;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color, #e1e5e9);
+}
+
+.timeMarks {
+  position: relative;
+  height: 100%;
+}
+
+.timeMark {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timeMarkLine {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color, #e1e5e9);
+}
+
+.timeMarkLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 0.25rem;
+  white-space: nowrap;
+}
+
+/* Phases Container */
+.phasesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.phaseRow {
+  display: grid;
+  grid-template-columns: 200px 1fr 80px;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.phaseRow:hover {
+  background: var(--background-secondary, #f8f9fa);
+}
+
+.phaseRow.selected {
+  background: var(--background-secondary, #f8f9fa);
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Phase Label */
+.phaseLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.phaseName {
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.phaseName i {
+  color: #dc2626;
+  font-size: 0.75rem;
+}
+
+.phaseInfo {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.phaseDuration {
+  font-size: 0.75rem;
+  color: var(--text-muted, #94a3b8);
+}
+
+.phaseStatus {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.phaseStatus.завершено {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.phaseStatus.впроцессе {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.phaseStatus.запланировано {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Phase Timeline */
+.phaseTimeline {
+  position: relative;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.phaseBar {
+  position: relative;
+  height: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.phaseBar.завершено {
+  background: #16a34a;
+}
+
+.phaseBar.впроцессе {
+  background: #3b82f6;
+}
+
+.phaseBar.запланировано {
+  background: #94a3b8;
+}
+
+.phaseBar.critical {
+  background: #dc2626;
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.3);
+}
+
+.progressBar {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.progressBar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+/* Phase Tooltip */
+.phaseTooltip {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.phaseBar:hover .phaseTooltip {
+  opacity: 1;
+  visibility: visible;
+  top: -80px;
+}
+
+.tooltipContent {
+  background: var(--text-primary, #1a1a1a);
+  color: white;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tooltipContent::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--text-primary, #1a1a1a);
+}
+
+.criticalIndicator {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+/* Phase Dates */
+.phaseDates {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 0.25rem;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.startDate,
+.endDate {
+  background: var(--background-card, #ffffff);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-color, #e1e5e9);
+}
+
+/* Phase Progress */
+.phaseProgress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.progressValue {
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.875rem;
+}
+
+.progressIndicator {
+  width: 60px;
+  height: 4px;
+  background: var(--background-secondary, #f1f5f9);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--primary-color, #3b82f6);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+/* Current Date Line */
+.currentDateLine {
+  position: absolute;
+  top: 60px;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.currentDateMarker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ef4444;
+  opacity: 0.8;
+}
+
+.currentDateMarker::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+}
+
+.currentDateLabel {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ef4444;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .phaseRow {
+    grid-template-columns: 180px 1fr 70px;
+    gap: 0.75rem;
+  }
+  
+  .legend {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .chartHeader {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .legend {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .phaseRow {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .phaseTimeline {
+    order: 3;
+  }
+  
+  .phaseProgress {
+    order: 2;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+

@@ -1,6 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const { randomUUID } = require('crypto');
+const path = require('path');
+const dotenv = require('dotenv');
+// Try loading env from server/.env first, then fallback to project root .env
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+if (!process.env.N8N_WEBHOOK_URL) {
+  dotenv.config({ path: path.resolve(__dirname, '../.env') });
+}
 
 const app = express();
 const PORT = 3001;
@@ -8,6 +15,225 @@ const PORT = 3001;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// -------------------------------
+// LIMS mock API (in-memory) for local development
+// -------------------------------
+const limsDb = {
+  sessions: new Map(), // sessionId -> session state (shape близкий к lab.md)
+  readings: new Map()  // readingId -> { id, sessionId, sampleId, kind, value_g, confirmed, rejected }
+};
+
+function buildInitialSteps(sampleOrder) {
+  const steps = [{ code: 'greeting', done: true }];
+  sampleOrder.forEach((sid) => {
+    steps.push({ code: 'take_sample', sampleId: sid, done: false });
+    steps.push({ code: 'say_mass_and_confirm', sampleId: sid, done: false });
+  });
+  steps.push({ code: 'compute_results', done: false });
+  steps.push({ code: 'finish', done: false });
+  return steps;
+}
+
+function recomputeProgressAndStep(session) {
+  const samples = session.samples || [];
+  const samplesDone = samples.filter((s) => s.density != null).length;
+  session.progress.samplesDone = samplesDone;
+  session.progress.samplesTotal = samples.length;
+
+  // steps done flags
+  session.progress.steps = session.progress.steps.map((st) => {
+    if (st.code === 'greeting') return { ...st, done: true };
+    if (st.code === 'take_sample') {
+      const sample = samples.find((x) => x.id === st.sampleId);
+      const m = sample?.masses || {};
+      const anyConfirmed = [m.m1, m.m2, m.m3].some((v) => v != null);
+      return { ...st, done: Boolean(anyConfirmed) };
+    }
+    if (st.code === 'say_mass_and_confirm') {
+      const sample = samples.find((x) => x.id === st.sampleId);
+      const m = sample?.masses || {};
+      const allConfirmed = [m.m1, m.m2, m.m3].every((v) => v != null);
+      return { ...st, done: Boolean(allConfirmed) };
+    }
+    if (st.code === 'compute_results') return { ...st, done: Boolean(session.finalComputed) };
+    if (st.code === 'finish') return { ...st, done: session.status === 'finished' };
+    return st;
+  });
+
+  // current step
+  // 1) first sample without density
+  const firstWithoutDensity = samples.find((s) => s.density == null);
+  if (firstWithoutDensity) {
+    const m = firstWithoutDensity.masses || {};
+    const confirmedCount = [m.m1, m.m2, m.m3].filter((v) => v != null).length;
+    if (confirmedCount === 0) {
+      session.step = { code: 'take_sample', sampleId: firstWithoutDensity.id };
+    } else if (confirmedCount < 3) {
+      session.step = { code: 'say_mass_and_confirm', sampleId: firstWithoutDensity.id };
+    } else {
+      // ожидает compute-density отдельным вызовом
+      session.step = { code: 'say_mass_and_confirm', sampleId: firstWithoutDensity.id };
+    }
+    return;
+  }
+
+  if (!session.finalComputed) {
+    session.step = { code: 'compute_results' };
+    return;
+  }
+
+  session.step = { code: 'finish' };
+}
+
+function findSample(session, sampleId) {
+  return session.samples.find((s) => String(s.id) === String(sampleId));
+}
+
+function tryComputeSampleStatus(sample) {
+  const m = sample.masses;
+  const confirmed = [m.m1, m.m2, m.m3].filter((v) => v != null).length;
+  if (confirmed === 0) sample.status = 'pending';
+  else if (confirmed < 3) sample.status = 'in_progress';
+  else if (confirmed === 3 && sample.density == null) sample.status = 'ready_for_density_calc';
+  else if (sample.density != null) sample.status = 'done';
+}
+
+app.post('/api/lims/sessions', (req, res) => {
+  try {
+    const { operatorName, sampleOrder } = req.body || {};
+    if (!operatorName || !Array.isArray(sampleOrder) || sampleOrder.length === 0) {
+      return res.status(400).json({ message: 'operatorName и sampleOrder обязательны' });
+    }
+    const sessionId = 'S-' + randomUUID();
+    const samples = sampleOrder.map((id) => ({
+      id,
+      masses: { m1: null, m2: null, m3: null },
+      density: null,
+      status: 'pending'
+    }));
+    const session = {
+      sessionId,
+      step: { code: 'greeting' },
+      samples,
+      progress: { samplesDone: 0, samplesTotal: sampleOrder.length, steps: buildInitialSteps(sampleOrder) },
+      final: null,
+      status: 'active',
+      startedAt: new Date().toISOString(),
+      finalComputed: false,
+      operatorName
+    };
+    limsDb.sessions.set(sessionId, session);
+    recomputeProgressAndStep(session);
+    return res.json(session);
+  } catch (e) {
+    return res.status(500).json({ message: e.message });
+  }
+});
+
+app.get('/api/lims/sessions/:sid', (req, res) => {
+  const sid = req.params.sid;
+  const session = limsDb.sessions.get(sid);
+  if (!session) return res.status(404).json({ message: 'Сессия не найдена' });
+  recomputeProgressAndStep(session);
+  return res.json(session);
+});
+
+app.post('/api/lims/sessions/:sid/samples/:sampleId/mass-readings', (req, res) => {
+  const sid = req.params.sid;
+  const sampleId = req.params.sampleId;
+  const { kind, value_g } = req.body || {};
+  const session = limsDb.sessions.get(sid);
+  if (!session) return res.status(404).json({ message: 'Сессия не найдена' });
+  const sample = findSample(session, sampleId);
+  if (!sample) return res.status(404).json({ message: 'Образец не найден' });
+  if (!['m1', 'm2', 'm3'].includes(kind)) return res.status(400).json({ message: 'Некорректный kind' });
+  const num = Number(value_g);
+  if (!Number.isFinite(num) || num <= 0) return res.status(422).json({ message: 'Неверный формат массы' });
+  if (sample.masses[kind] != null) return res.status(409).json({ message: 'Масса уже подтверждена' });
+  const readingId = 'R-' + randomUUID();
+  const reading = { id: readingId, sessionId: sid, sampleId, kind, value_g: num, confirmed: false, rejected: false, createdAt: new Date().toISOString() };
+  limsDb.readings.set(readingId, reading);
+  return res.json({ readingId, echo: `Записано: ${num} г. Подтвердите (да/нет).`, requiresConfirmation: true, sampleId: Number(sampleId), kind });
+});
+
+app.post('/api/lims/sessions/:sid/samples/:sampleId/mass-readings/:rid/confirm', (req, res) => {
+  const sid = req.params.sid;
+  const sampleId = req.params.sampleId;
+  const rid = req.params.rid;
+  const { confirm } = req.body || {};
+  const session = limsDb.sessions.get(sid);
+  if (!session) return res.status(404).json({ message: 'Сессия не найдена' });
+  const sample = findSample(session, sampleId);
+  if (!sample) return res.status(404).json({ message: 'Образец не найден' });
+  const reading = limsDb.readings.get(rid);
+  if (!reading || reading.sessionId !== sid || String(reading.sampleId) !== String(sampleId)) {
+    return res.status(404).json({ message: 'Показание не найдено' });
+  }
+  if (reading.confirmed || reading.rejected) return res.status(409).json({ message: 'Показание уже обработано' });
+
+  if (confirm) {
+    reading.confirmed = true;
+    sample.masses[reading.kind] = Number(reading.value_g);
+    tryComputeSampleStatus(sample);
+  } else {
+    reading.rejected = true;
+  }
+
+  recomputeProgressAndStep(session);
+  return res.json({
+    sampleId: Number(sampleId),
+    masses: { ...sample.masses },
+    density: sample.density,
+    status: sample.status,
+    confirmed: Boolean(confirm),
+    readingId: rid
+  });
+});
+
+app.post('/api/lims/sessions/:sid/samples/:sampleId/compute-density', (req, res) => {
+  const sid = req.params.sid;
+  const sampleId = req.params.sampleId;
+  const session = limsDb.sessions.get(sid);
+  if (!session) return res.status(404).json({ message: 'Сессия не найдена' });
+  const sample = findSample(session, sampleId);
+  if (!sample) return res.status(404).json({ message: 'Образец не найден' });
+  const { m1, m2, m3 } = sample.masses;
+  if ([m1, m2, m3].some((v) => v == null)) return res.status(422).json({ message: 'Недостаточно данных' });
+  if (sample.density != null) return res.status(409).json({ message: 'Плотность уже рассчитана' });
+
+  // Простейшая формула-заглушка (пример). Уточняется у бэкенда.
+  const density = Number((m1 / Math.max(0.0001, (m2 - m3))).toFixed(3));
+  sample.density = density;
+  sample.status = 'done';
+  recomputeProgressAndStep(session);
+  return res.json({ sampleId: Number(sampleId), density, unit: 'г/см³', status: sample.status, progress: session.progress });
+});
+
+app.post('/api/lims/sessions/:sid/compute-final-results', (req, res) => {
+  const sid = req.params.sid;
+  const session = limsDb.sessions.get(sid);
+  if (!session) return res.status(404).json({ message: 'Сессия не найдена' });
+  const densities = session.samples.map((s) => s.density).filter((v) => v != null);
+  if (densities.length !== session.samples.length) return res.status(422).json({ message: 'Не у всех образцов есть плотность' });
+  if (session.finalComputed) return res.status(409).json({ message: 'Финал уже рассчитан' });
+
+  const sum = densities.reduce((a, b) => a + b, 0);
+  const avgDensity = Number((sum / densities.length).toFixed(3));
+  const delta = Number((Math.max(...densities) - Math.min(...densities)).toFixed(3));
+  session.final = { avgDensity, delta };
+  session.finalComputed = true;
+  session.status = 'finished';
+  session.finishedAt = new Date().toISOString();
+  recomputeProgressAndStep(session);
+  return res.json({
+    status: session.status,
+    finishedAt: session.finishedAt,
+    final: session.final,
+    unit: 'г/см³',
+    progress: { ...session.progress, compute_results: true }
+  });
+});
 
 // Demo endpoint for testing (when OpenAI is not available)
 app.post('/api/demo/chat/completions', async (req, res) => {
@@ -96,12 +322,12 @@ app.post('/api/agent360/chat/completions', async (req, res) => {
     
     // n8n webhook configuration (из переменных окружения)
     const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
-    const N8N_AUTH_HEADER = process.env.N8N_AUTH_HEADER || 'N8N';
+    const N8N_AUTH_HEADER = process.env.N8N_AUTH_HEADER;
     const N8N_AUTH_KEY = process.env.N8N_AUTH_KEY;
 
-    if (!N8N_WEBHOOK_URL || !N8N_AUTH_KEY) {
+    if (!N8N_WEBHOOK_URL) {
       return res.status(500).json({ 
-        error: 'Server misconfigured: Missing N8N_WEBHOOK_URL or N8N_AUTH_KEY environment variables' 
+        error: 'Server misconfigured: Missing N8N_WEBHOOK_URL environment variable' 
       });
     }
 
@@ -112,35 +338,50 @@ app.post('/api/agent360/chat/completions', async (req, res) => {
 
     console.log(`📡 Прокси: перенаправляем запрос для объекта ${siteId} с ${images.length} изображениями в n8n...`);
 
-    // Передаём данные через URL parameters (GET запрос)
-    const params = new URLSearchParams();
-    params.append('site_id', siteId);
-    params.append(N8N_AUTH_HEADER, N8N_AUTH_KEY);
-    
-    // Добавляем изображения как параметры
+    // Готовим multipart/form-data с бинарными изображениями,
+    // чтобы n8n Webhook сразу получил binary.image_*
+    const FormData = require('form-data');
+    const form = new FormData();
+    form.append('site_id', siteId);
+
+    let totalBytes = 0;
     images.forEach((img, index) => {
-      params.append(`image_${index}_role`, img.role || 'current');
-      params.append(`image_${index}_taken_at`, img.taken_at || '');
-      params.append(`image_${index}_url`, img.image_url || '');
-      if (img.notes) params.append(`image_${index}_notes`, img.notes);
+      const dataUrl = String(img.image_url || '');
+      const base64 = dataUrl.includes(',') ? dataUrl.split(',').pop() : dataUrl;
+      const buffer = Buffer.from(base64, 'base64');
+      totalBytes += buffer.length;
+      form.append(`image_${index}`, buffer, {
+        filename: `image_${index}.jpg`,
+        contentType: 'image/jpeg'
+      });
+      form.append(`image_${index}_role`, img.role || 'current');
+      form.append(`image_${index}_taken_at`, img.taken_at || '');
+      if (img.notes) form.append(`image_${index}_notes`, img.notes);
     });
-    
-    const webhookUrlWithParams = `${N8N_WEBHOOK_URL}?${params.toString()}`;
-    
-    console.log('🔗 Отправляем GET запрос на n8n webhook');
-    console.log('📦 Параметров:', params.toString().length, 'chars');
+
+    console.log('🔗 Отправляем POST запрос на n8n webhook (multipart/form-data)');
+    console.log('📦 Байтов бинарных данных:', totalBytes);
     console.log('🖼️ Изображений:', images.length);
-    
-    const response = await fetch(webhookUrlWithParams, {
-      method: 'GET',
-      headers: {
-        [N8N_AUTH_HEADER]: N8N_AUTH_KEY
-      }
+    console.log('🌐 URL:', N8N_WEBHOOK_URL);
+    console.log('🔑 Auth header enabled:', Boolean(N8N_AUTH_HEADER && N8N_AUTH_KEY));
+
+    const headers = form.getHeaders();
+    if (N8N_AUTH_HEADER && N8N_AUTH_KEY) {
+      headers[N8N_AUTH_HEADER] = N8N_AUTH_KEY;
+    }
+
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers,
+      body: form
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('n8n Webhook Error:', response.status, errorText);
+      console.error('❌ n8n Webhook Error:', response.status, response.statusText);
+      console.error('📄 Response body:', errorText);
+      console.error('🔗 Request URL:', N8N_WEBHOOK_URL);
+      console.error('🔑 Auth header enabled:', Boolean(N8N_AUTH_HEADER && N8N_AUTH_KEY));
       
       let userFriendlyMessage = `n8n webhook error: ${response.status}`;
       
@@ -148,6 +389,8 @@ app.post('/api/agent360/chat/completions', async (req, res) => {
         userFriendlyMessage = 'Ошибка авторизации n8n webhook. Проверьте ключ авторизации.';
       } else if (response.status === 404) {
         userFriendlyMessage = 'n8n webhook не найден. Проверьте URL webhook.';
+      } else if (response.status === 500) {
+        userFriendlyMessage = 'Внутренняя ошибка n8n workflow. Проверьте настройки workflow в n8n.';
       }
       
       return res.status(response.status).json({ 
@@ -156,9 +399,16 @@ app.post('/api/agent360/chat/completions', async (req, res) => {
       });
     }
 
-    const data = await response.json();
+    // Универсальный разбор: читаем как текст, затем пытаемся JSON.parse
+    const rawText = await response.text();
+    let data;
+    try {
+      data = rawText ? JSON.parse(rawText) : { analysis: '' };
+    } catch (_) {
+      const cleaned = (rawText || '').replace(/^\s*=\s*/, '').trim();
+      data = { analysis: cleaned };
+    }
     console.log('✅ Получен ответ от n8n агента');
-    
     res.json(data);
   } catch (error) {
     console.error('Agent360 n8n Proxy Error:', error);

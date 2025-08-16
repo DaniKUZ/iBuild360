@@ -27,6 +27,10 @@ import {
   useImageUtilities,
   useNavigationHandlers
 } from './hooks';
+import useAIAssistant from './hooks/useAIAssistant';
+import AIAssistantButton from './components/AIAssistantButton/AIAssistantButton';
+import AIAssistantModal from './components/AIAssistantModal/AIAssistantModal';
+import NetworkSchedule from '../NetworkSchedule/NetworkSchedule';
 import ViewerModeRenderer from './layout/ViewerModeRenderer';
 import ViewerModals from './layout/ViewerModals';
   import ViewerSidebars from './layout/ViewerSidebars';
@@ -56,6 +60,7 @@ const Viewer360Container = ({ project, onBack }) => {
   const eventHandlers = useEventHandlers();
   const imageUtilities = useImageUtilities(viewerState, imageManagement, splitScreenState);
   const navigationHandlers = useNavigationHandlers(viewerState, imageManagement, splitScreenState, imageUtilities, mainViewerRef, leftPanelViewerRef, rightPanelViewerRef);
+  const aiAssistant = useAIAssistant();
 
 
 
@@ -178,6 +183,7 @@ const Viewer360Container = ({ project, onBack }) => {
     { id: 'home', icon: 'fas fa-home', label: 'Дом', action: onBack },
     { id: 'images', icon: 'fas fa-image', label: 'Изображение', isActive: true },
     { id: 'schemes', icon: 'fas fa-layer-group', label: 'Планы этажей' },
+    { id: 'network-schedule', icon: 'fas fa-project-diagram', label: 'Сетевой план' },
     { id: 'field-notes', icon: 'fas fa-sticky-note', label: 'Полевые заметки' },
     { id: 'ai-comparison', icon: 'fas fa-brain', label: 'AI сравнение' },
     { id: 'timelapses', icon: 'fas fa-clock', label: 'Таймлапсы' },
@@ -302,6 +308,12 @@ const Viewer360Container = ({ project, onBack }) => {
       // Пункт "Схемы" - показываем панель просмотра схем
               viewerState.setCurrentSidebarSection('schemes');
       viewerState.setViewMode('schemes');
+    } else if (item.id === 'network-schedule') {
+      // Пункт "Сетевой план" - открываем основную секцию контента, не отдельный сайдбар
+      viewerState.setCurrentSidebarSection('network-schedule');
+      viewerState.setViewMode('network-schedule');
+      // Скрыть миникарту при открытии сетевого плана
+      if (viewerState.isMinimapVisible) viewerState.setIsMinimapVisible(false);
     } else if (item.id === 'field-notes') {
       // Пункт "Полевые заметки" - показываем сайдбар полевых заметок
       viewerState.setCurrentSidebarSection('field-notes');
@@ -628,6 +640,18 @@ const Viewer360Container = ({ project, onBack }) => {
     // Здесь будет логика добавления участника к проекту
     // Можно обновить проект или отправить запрос на сервер
     alert(`Участник ${participantData.email} успешно добавлен к проекту`);
+  };
+
+  // Обработчики для AI ассистента
+  const handleAIAssistantToggle = () => {
+    aiAssistant.setIsAssistantVisible(!aiAssistant.isAssistantVisible);
+  };
+
+  const handleAIQuickQuestion = (question) => {
+    if (!aiAssistant.isAssistantVisible) {
+      aiAssistant.setIsAssistantVisible(true);
+    }
+    aiAssistant.handleTextInput(question);
   };
 
   const handleShare = () => {
@@ -1577,6 +1601,37 @@ onCloseRightPanel={navigationHandlers.handleCloseRightPanel}
           onDroneFilesUpload={handleDroneFilesUpload}
         />
 
+        {/* AI Ассистент */}
+        <AIAssistantButton
+          onClick={handleAIAssistantToggle}
+          isActive={aiAssistant.isAssistantVisible}
+          isListening={aiAssistant.isListening}
+          isSpeaking={aiAssistant.isSpeaking}
+          isProcessing={aiAssistant.isProcessing}
+          hasUnreadMessages={false}
+        />
+
+        <AIAssistantModal
+          isVisible={aiAssistant.isAssistantVisible}
+          onClose={() => aiAssistant.setIsAssistantVisible(false)}
+          chatMode={aiAssistant.chatMode}
+          onChatModeToggle={aiAssistant.setChatMode}
+          messages={aiAssistant.messages}
+          inputValue={aiAssistant.inputValue}
+          onInputChange={aiAssistant.setInputValue}
+          onSendMessage={aiAssistant.handleTextInput}
+          isListening={aiAssistant.isListening}
+          isSpeaking={aiAssistant.isSpeaking}
+          isProcessing={aiAssistant.isProcessing}
+          isTyping={aiAssistant.isTyping}
+          onToggleListening={aiAssistant.toggleListening}
+          onStopSpeaking={aiAssistant.stopSpeaking}
+          speechSupported={aiAssistant.speechSupported}
+          onClearChat={aiAssistant.clearChat}
+          quickQuestions={aiAssistant.quickQuestions}
+          projectContext={aiAssistant.projectContext}
+          messagesEndRef={aiAssistant.messagesEndRef}
+        />
 
       </div>
     </div>

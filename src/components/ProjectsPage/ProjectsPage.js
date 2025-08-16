@@ -112,6 +112,13 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
 
   const handleMenuItemClick = useCallback((itemId) => {
     console.log('Выбран пункт меню:', itemId);
+    
+    // Навигация к сетевому плану
+    if (itemId === 'network-schedule') {
+      navigate('/network-schedule');
+      return;
+    }
+    
     setActiveMenuItem(itemId);
     
     // Устанавливаем подпункт по умолчанию для каждого раздела
@@ -124,7 +131,7 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
     } else if (itemId === 'lab') {
       setActiveSubItem('lab-active');
     }
-  }, []);
+  }, [navigate]);
 
   const handleSubItemClick = useCallback((subItemId) => {
     console.log('Выбран подпункт меню:', subItemId);

@@ -50,8 +50,8 @@ const useAIComparison = () => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
-            // Сильно уменьшаем для экономии места в URL (GET запрос)
-            const maxSize = 200;
+            // Увеличиваем размер для лучшего анализа (POST запрос)
+            const maxSize = 800;
             let { width, height } = img;
             
             if (width > height) {
@@ -72,8 +72,8 @@ const useAIComparison = () => {
             // Рисуем уменьшенное изображение
             ctx.drawImage(img, 0, 0, width, height);
             
-            // Конвертируем в base64 с низким качеством для экономии места в URL
-            const base64data = canvas.toDataURL('image/jpeg', 0.3).split(',')[1];
+            // Конвертируем в base64 с хорошим качеством для анализа
+            const base64data = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
             resolve(base64data);
           };
           img.src = URL.createObjectURL(blob);

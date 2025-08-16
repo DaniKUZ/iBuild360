@@ -10,12 +10,17 @@ import Viewer360Page from './components/Viewer360Page';
 import WorkerStatsPage from './components/WorkerStatsPage';
 import SettingsPage from './components/SettingsPage';
 import LandscapingPage from './components/LandscapingPage';
+import NetworkSchedulePage from './components/NetworkSchedulePage/NetworkSchedulePage';
 import { mockProjects } from './data/mockData';
 import './styles/main.css';
 
 function App() {
   // Состояние проектов на уровне приложения
   const [projects, setProjects] = useState(mockProjects);
+  
+  // Состояние для сайдбара
+  const [activeItem, setActiveItem] = useState('projects');
+  const [activeSubItem, setActiveSubItem] = useState('active-projects');
 
   // Функция для добавления нового проекта
   const handleSaveNewProject = useCallback((newProject) => {
@@ -33,6 +38,20 @@ function App() {
   const getProjectById = useCallback((projectId) => {
     return projects.find(p => p.id === parseInt(projectId));
   }, [projects]);
+
+  // Обработчики для сайдбара
+  const handleItemClick = useCallback((itemId) => {
+    setActiveItem(itemId);
+    if (itemId !== 'network-schedule') {
+      setActiveSubItem(null);
+    } else {
+      setActiveSubItem('current-schedule');
+    }
+  }, []);
+
+  const handleSubItemClick = useCallback((subItemId) => {
+    setActiveSubItem(subItemId);
+  }, []);
 
   return (
     <Router>
@@ -102,6 +121,20 @@ function App() {
             element={
               <LandscapingPage 
                 projects={projects}
+              />
+            } 
+          />
+          
+          {/* Сетевой план */}
+          <Route 
+            path="/network-schedule" 
+            element={
+              <NetworkSchedulePage 
+                activeItem={activeItem}
+                activeSubItem={activeSubItem}
+                onItemClick={handleItemClick}
+                onSubItemClick={handleSubItemClick}
+                onBack={() => window.history.back()}
               />
             } 
           />

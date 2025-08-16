@@ -1,0 +1,33 @@
+/* Network Schedule Page Styles */
+.networkSchedulePage {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.mainContent {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.contentArea {
+  flex: 1;
+  overflow: auto;
+  background: var(--background-primary, #f8f9fa);
+  padding: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .networkSchedulePage {
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .contentArea {
+    padding: 0;
+  }
+}
+

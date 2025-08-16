@@ -4,6 +4,7 @@ import PanoramaViewer from '../components/PanoramaViewer/PanoramaViewer';
 import SchemesView from '../components/SchemesView';
 import Generic360Viewer from '../components/Generic360Viewer';
 import SplitScreenViewer from '../components/SplitScreenViewer';
+import NetworkSchedule from '../../NetworkSchedule/NetworkSchedule';
 
 /**
  * Компонент для рендера различных режимов просмотра Viewer360
@@ -245,6 +246,15 @@ const ViewerModeRenderer = ({
     </div>
   );
   
+  // Рендер сетевого плана
+  const renderNetworkSchedule = () => (
+    <div className={styles.panoramaSection}>
+      <div className={styles.panoramaWrapper}>
+        <NetworkSchedule activeSubItem="current-schedule" />
+      </div>
+    </div>
+  );
+  
   // Основной рендер на основе режима
   switch (viewMode) {
     case 'viewer':
@@ -255,6 +265,9 @@ const ViewerModeRenderer = ({
       
     case 'schemes':
       return renderSchemes();
+      
+    case 'network-schedule':
+      return renderNetworkSchedule();
       
     default:
       return renderGeneric360();

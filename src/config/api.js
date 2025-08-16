@@ -20,6 +20,12 @@ export const API_CONFIG = {
     ? '/api/agent360/chat/completions'
     : 'http://localhost:3001/api/agent360/chat/completions',
 
+  // LIMS (лабораторные испытания) — базовый URL
+  // Уточнить у бэкенда реальный префикс. По умолчанию шлём через локальный прокси в деве
+  LIMS_API_URL: isProduction
+    ? '/api/lims'
+    : 'http://localhost:3001/api/lims',
+
   // Идентификатор объекта по умолчанию
   SITE_ID: 'TI-001',
 

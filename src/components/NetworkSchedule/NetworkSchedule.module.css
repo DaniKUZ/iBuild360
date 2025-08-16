@@ -1,0 +1,354 @@
+/* NetworkSchedule Main Styles */
+.networkSchedule {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--background-primary, #f8f9fa);
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: var(--background-card, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e1e5e9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary, #1a1a1a);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.title i {
+  color: var(--primary-color, #3b82f6);
+}
+
+.projectInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.projectName {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+}
+
+.projectId {
+  font-size: 0.875rem;
+  color: var(--text-muted, #94a3b8);
+  background: var(--background-secondary, #f1f5f9);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+/* Status Indicators */
+.statusIndicators {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.statusBadge.good {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusBadge.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusBadge.critical {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.progressInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.progressText {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+  font-weight: 500;
+}
+
+.progressBar {
+  width: 120px;
+  height: 8px;
+  background: var(--background-secondary, #f1f5f9);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progressPercent {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+  min-width: 40px;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem 2rem;
+}
+
+.scheduleContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Phase Details Panel */
+.phaseDetails {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 400px;
+  background: var(--background-card, #ffffff);
+  border-left: 1px solid var(--border-color, #e1e5e9);
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.phaseDetailsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color, #e1e5e9);
+  background: var(--background-secondary, #f8f9fa);
+}
+
+.phaseDetailsHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.closeDetails {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted, #94a3b8);
+  transition: all 0.2s ease;
+}
+
+.closeDetails:hover {
+  background: var(--background-secondary, #f1f5f9);
+  color: var(--text-secondary, #64748b);
+}
+
+.phaseDetailsContent {
+  flex: 1;
+  padding: 1.5rem;
+  overflow: auto;
+}
+
+.phaseInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.phaseInfoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--background-secondary, #f8f9fa);
+  border-radius: 0.5rem;
+}
+
+.label {
+  font-weight: 500;
+  color: var(--text-secondary, #64748b);
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status.завершено {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status.впроцессе {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status.запланировано {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.progress {
+  font-weight: 600;
+  color: var(--primary-color, #3b82f6);
+}
+
+.criticalPathBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+/* Tasks Section */
+.tasksSection {
+  margin-bottom: 2rem;
+}
+
+.tasksSection h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.tasksList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.taskItem {
+  padding: 0.75rem;
+  background: var(--background-secondary, #f8f9fa);
+  border-radius: 0.375rem;
+  margin-bottom: 0.5rem;
+  border-left: 3px solid var(--primary-color, #3b82f6);
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+}
+
+/* Issues Section */
+.issuesSection {
+  margin-bottom: 2rem;
+}
+
+.issuesSection h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+}
+
+.issueItem {
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.issueType {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #dc2626;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.issueDescription {
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.issueImpact {
+  color: var(--text-primary, #1a1a1a);
+  font-size: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .phaseDetails {
+    width: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .statusIndicators {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .phaseDetails {
+    width: 100%;
+    left: 0;
+  }
+  
+  .content {
+    padding: 1rem;
+  }
+}
+
