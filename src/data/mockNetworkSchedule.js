@@ -4,10 +4,10 @@ export const MOCK_NETWORK_SCHEDULE = {
     id: 'TI-001',
     name: 'ЖК Новая Москва',
     contractor: 'ООО СтройИнвест',
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
+    startDate: '2025-01-01',
+    endDate: '2025-12-31',
     totalDuration: 365,
-    completedDays: 95,
+    completedDays: 228,
     status: 'В процессе'
   },
 
@@ -15,8 +15,8 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       id: 'prep',
       name: 'Подготовительные работы',
-      startDate: '2024-01-01',
-      endDate: '2024-01-20',
+      startDate: '2025-01-01',
+      endDate: '2025-01-20',
       duration: 20,
       progress: 100,
       status: 'Завершено',
@@ -31,8 +31,8 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       id: 'earthworks',
       name: 'Земляные работы',
-      startDate: '2024-01-21',
-      endDate: '2024-02-15',
+      startDate: '2025-01-21',
+      endDate: '2025-02-15',
       duration: 25,
       progress: 100,
       status: 'Завершено',
@@ -46,11 +46,11 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       id: 'foundation',
       name: 'Фундаментные работы',
-      startDate: '2024-02-16',
-      endDate: '2024-03-30',
-      duration: 43,
-      progress: 85,
-      status: 'В процессе',
+      startDate: '2025-02-16',
+      endDate: '2025-04-15',
+      duration: 58,
+      progress: 100,
+      status: 'Завершено',
       criticalPath: true,
       tasks: [
         'Устройство подбетонки',
@@ -60,19 +60,19 @@ export const MOCK_NETWORK_SCHEDULE = {
       ],
       issues: [
         {
-          type: 'delay',
-          description: 'Задержка поставки арматуры на 3 дня',
-          impact: 'Отставание от графика на 3 дня'
+          type: 'resolved',
+          description: 'Задержка поставки арматуры была устранена',
+          impact: 'Работы завершены в срок'
         }
       ]
     },
     {
       id: 'structure',
       name: 'Возведение каркаса',
-      startDate: '2024-03-31',
-      endDate: '2024-07-15',
-      duration: 106,
-      progress: 45,
+      startDate: '2025-04-16',
+      endDate: '2025-08-20',
+      duration: 126,
+      progress: 92,
       status: 'В процессе',
       criticalPath: true,
       tasks: [
@@ -84,10 +84,10 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       id: 'walls',
       name: 'Кладочные работы',
-      startDate: '2024-05-01',
-      endDate: '2024-09-30',
-      duration: 152,
-      progress: 25,
+      startDate: '2025-06-01',
+      endDate: '2025-10-15',
+      duration: 136,
+      progress: 55,
       status: 'В процессе',
       criticalPath: false,
       tasks: [
@@ -99,9 +99,9 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       id: 'roofing',
       name: 'Кровельные работы',
-      startDate: '2024-07-16',
-      endDate: '2024-09-15',
-      duration: 61,
+      startDate: '2025-08-21',
+      endDate: '2025-10-30',
+      duration: 70,
       progress: 0,
       status: 'Запланировано',
       criticalPath: true,
@@ -114,10 +114,10 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       id: 'communications',
       name: 'Инженерные коммуникации',
-      startDate: '2024-06-01',
-      endDate: '2024-11-30',
-      duration: 182,
-      progress: 15,
+      startDate: '2025-08-01',
+      endDate: '2025-12-15',
+      duration: 136,
+      progress: 12,
       status: 'В процессе',
       criticalPath: false,
       tasks: [
@@ -129,9 +129,9 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       id: 'finishing',
       name: 'Отделочные работы',
-      startDate: '2024-10-01',
-      endDate: '2024-12-20',
-      duration: 80,
+      startDate: '2025-11-01',
+      endDate: '2026-01-31',
+      duration: 91,
       progress: 0,
       status: 'Запланировано',
       criticalPath: false,
@@ -148,36 +148,35 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       id: 'ms1',
       name: 'Завершение земляных работ',
-      date: '2024-02-15',
+      date: '2025-02-15',
       status: 'Достигнуто',
       achieved: true
     },
     {
       id: 'ms2',
       name: 'Завершение фундамента',
-      date: '2024-03-30',
-      status: 'Под угрозой срыва',
-      achieved: false,
-      risk: 'high'
+      date: '2025-04-15',
+      status: 'Достигнуто',
+      achieved: true
     },
     {
       id: 'ms3',
       name: 'Возведение каркаса до 5 этажа',
-      date: '2024-06-30',
-      status: 'В процессе',
+      date: '2025-08-20',
+      status: 'Почти завершено',
       achieved: false
     },
     {
       id: 'ms4',
       name: 'Завершение кровельных работ',
-      date: '2024-09-15',
+      date: '2025-10-30',
       status: 'Запланировано',
       achieved: false
     },
     {
       id: 'ms5',
       name: 'Готовность к сдаче',
-      date: '2024-12-20',
+      date: '2026-01-31',
       status: 'Запланировано',
       achieved: false
     }
@@ -211,18 +210,18 @@ export const MOCK_NETWORK_SCHEDULE = {
   },
 
   currentStatus: {
-    summary: 'Проект находится на стадии фундаментных работ с небольшим отставанием',
-    overallProgress: 26,
+    summary: 'Проект находится на стадии завершения каркаса и кладочных работ, согласно графику',
+    overallProgress: 62,
     schedule: {
-      status: 'Отставание',
-      delay: 3,
-      delayUnit: 'дня'
+      status: 'В срок',
+      delay: 0,
+      delayUnit: 'дней'
     },
     budget: {
       planned: 125000000,
-      spent: 32500000,
-      remaining: 92500000,
-      utilizationPercent: 26
+      spent: 77500000,
+      remaining: 47500000,
+      utilizationPercent: 62
     },
     risks: [
       {
@@ -240,24 +239,24 @@ export const MOCK_NETWORK_SCHEDULE = {
 
   recentUpdates: [
     {
-      date: '2024-04-05',
+      date: '2025-08-15',
       type: 'progress',
-      message: 'Завершена установка арматурного каркаса фундамента секции А'
+      message: 'Завершен монтаж каркаса 5-го этажа, прогресс каркаса 92%'
     },
     {
-      date: '2024-04-04',
-      type: 'issue',
-      message: 'Выявлены нарушения в геометрии котлована, требуется корректировка'
-    },
-    {
-      date: '2024-04-03',
+      date: '2025-08-10',
       type: 'milestone',
-      message: 'Получено разрешение на возведение каркаса'
+      message: 'Начаты работы по монтажу инженерных коммуникаций'
     },
     {
-      date: '2024-04-02',
+      date: '2025-08-05',
       type: 'delivery',
-      message: 'Поставлена партия бетона марки М300 - 180 м³'
+      message: 'Поставка кирпича для кладочных работ - 15000 шт.'
+    },
+    {
+      date: '2025-07-28',
+      type: 'progress',
+      message: 'Завершена кладка наружных стен 1-3 этажей'
     }
   ]
 };

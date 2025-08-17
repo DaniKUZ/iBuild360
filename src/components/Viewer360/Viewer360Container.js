@@ -642,9 +642,20 @@ const Viewer360Container = ({ project, onBack }) => {
     alert(`Участник ${participantData.email} успешно добавлен к проекту`);
   };
 
+  // Состояние позиции AI ассистента
+  const [aiButtonPosition, setAiButtonPosition] = useState({ bottom: 250, right: 30 });
+
   // Обработчики для AI ассистента
   const handleAIAssistantToggle = () => {
     aiAssistant.setIsAssistantVisible(!aiAssistant.isAssistantVisible);
+  };
+
+  const handleAIButtonPositionChange = (newPosition) => {
+    setAiButtonPosition(newPosition);
+  };
+
+  const handleChatPositionChange = (newPosition) => {
+    setAiButtonPosition(newPosition);
   };
 
   const handleAIQuickQuestion = (question) => {
@@ -1594,28 +1605,37 @@ onCloseRightPanel={navigationHandlers.handleCloseRightPanel}
           aiAnalysisResult={aiComparisonState.aiAnalysisResult}
           isAIAnalyzing={aiComparisonState.isAIAnalyzing}
           isTimelapsesSectionVisible={uiState.isTimelapsesSectionVisible}
-            onCreateVideo={handleCreateVideo}
+          onCreateVideo={handleCreateVideo}
           onCloseTimelapsesSection={handleCloseTimelapsesSection}
           isDroneShotsSectionVisible={uiState.isDroneShotsSectionVisible}
           onCloseDroneShotsSection={handleCloseDroneShotsSection}
           onDroneFilesUpload={handleDroneFilesUpload}
+          isNetworkScheduleSidebarVisible={viewerState.viewMode === 'network-schedule'}
         />
 
         {/* AI Ассистент */}
-        <AIAssistantButton
-          onClick={handleAIAssistantToggle}
-          isActive={aiAssistant.isAssistantVisible}
-          isListening={aiAssistant.isListening}
-          isSpeaking={aiAssistant.isSpeaking}
-          isProcessing={aiAssistant.isProcessing}
-          hasUnreadMessages={false}
-        />
+        {!aiAssistant.isAssistantVisible && (
+          <AIAssistantButton
+            onClick={handleAIAssistantToggle}
+            isActive={aiAssistant.isAssistantVisible}
+            isListening={aiAssistant.isListening}
+            isSpeaking={aiAssistant.isSpeaking}
+            isProcessing={aiAssistant.isProcessing}
+            hasUnreadMessages={false}
+            onPositionChange={handleAIButtonPositionChange}
+            externalPosition={aiButtonPosition}
+          />
+        )}
 
         <AIAssistantModal
           isVisible={aiAssistant.isAssistantVisible}
           onClose={() => aiAssistant.setIsAssistantVisible(false)}
           chatMode={aiAssistant.chatMode}
+          initialPosition={aiButtonPosition}
+          onPositionChange={handleChatPositionChange}
           onChatModeToggle={aiAssistant.setChatMode}
+          setDirectChatMode={aiAssistant.setDirectChatMode}
+          onStartNewChat={aiAssistant.startNewChat}
           messages={aiAssistant.messages}
           inputValue={aiAssistant.inputValue}
           onInputChange={aiAssistant.setInputValue}
@@ -1631,6 +1651,8 @@ onCloseRightPanel={navigationHandlers.handleCloseRightPanel}
           quickQuestions={aiAssistant.quickQuestions}
           projectContext={aiAssistant.projectContext}
           messagesEndRef={aiAssistant.messagesEndRef}
+          chatHistory={aiAssistant.chatHistory}
+          onLoadChat={aiAssistant.loadChat}
         />
 
       </div>

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import ChatMode from './components/ChatMode';
 import VoiceMode from './components/VoiceMode';
+import ChatHistory from './components/ChatHistory';
 import styles from './AIAssistantModal.module.css';
 
 const AIAssistantModal = ({
@@ -9,6 +10,8 @@ const AIAssistantModal = ({
   onClose,
   chatMode,
   onChatModeToggle,
+  setDirectChatMode,
+  onStartNewChat,
   messages,
   inputValue,
   onInputChange,
@@ -23,10 +26,29 @@ const AIAssistantModal = ({
   onClearChat,
   quickQuestions,
   projectContext,
-  messagesEndRef
+  messagesEndRef,
+  chatHistory,
+  onLoadChat,
+  initialPosition,
+  onPositionChange
 }) => {
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [position, setPosition] = useState({ bottom: 200, right: 30 });
+  const [position, setPosition] = useState(initialPosition || { bottom: 250, right: 30 });
+
+  // Обновляем позицию при изменении initialPosition
+  React.useEffect(() => {
+    if (initialPosition) {
+      // Проверяем границы экрана и корректируем позицию
+      const modalHeight = 620; // примерная высота модального окна
+      const modalWidth = 420; // примерная ширина модального окна
+      
+      const correctedPosition = {
+        right: Math.max(20, Math.min(window.innerWidth - modalWidth, initialPosition.right)),
+        bottom: Math.max(20, Math.min(window.innerHeight - modalHeight, initialPosition.bottom))
+      };
+      
+      setPosition(correctedPosition);
+    }
+  }, [initialPosition]);
   const [isDragging, setIsDragging] = useState(false);
   const modalRef = useRef(null);
   const lastPosition = useRef({ x: 0, y: 0 });
@@ -49,12 +71,19 @@ const AIAssistantModal = ({
 
     setPosition(prev => {
       const newRight = Math.max(20, Math.min(window.innerWidth - 420, prev.right - deltaX));
-      const newBottom = Math.max(20, Math.min(window.innerHeight - 620, prev.bottom + deltaY));
+      const newBottom = Math.max(20, Math.min(window.innerHeight - 620, prev.bottom - deltaY));
       
-      return {
+      const newPosition = {
         right: newRight,
         bottom: newBottom
       };
+      
+      // Передаем новую позицию родительскому компоненту (отложенно чтобы избежать setState во время рендеринга)
+      if (onPositionChange) {
+        setTimeout(() => onPositionChange(newPosition), 0);
+      }
+      
+      return newPosition;
     });
 
     lastPosition.current = { x: e.clientX, y: e.clientY };
@@ -82,28 +111,36 @@ const AIAssistantModal = ({
       if (modalRef.current && !modalRef.current.contains(event.target)) {
         // Don't close if clicking on the AI button
         if (!event.target.closest('[class*="aiAssistantButton"]')) {
+          // Передаем текущую позицию при закрытии (отложенно чтобы избежать setState во время рендеринга)
+          if (onPositionChange) {
+            setTimeout(() => onPositionChange(position), 0);
+          }
           onClose();
         }
       }
     };
 
-    if (isVisible && !isMinimized) {
+    if (isVisible) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [isVisible, isMinimized, onClose]);
+  }, [isVisible, onClose, position, onPositionChange]);
 
   // Handle escape key
   useEffect(() => {
     const handleEscape = (event) => {
       if (event.key === 'Escape' && isVisible) {
+        // Передаем текущую позицию при закрытии (отложенно чтобы избежать setState во время рендеринга)
+        if (onPositionChange) {
+          setTimeout(() => onPositionChange(position), 0);
+        }
         onClose();
       }
     };
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [isVisible, onClose]);
+  }, [isVisible, onClose, position, onPositionChange]);
 
   if (!isVisible) return null;
 
@@ -119,10 +156,10 @@ const AIAssistantModal = ({
   };
 
   return (
-    <div className={`${styles.modalOverlay} ${isMinimized ? styles.minimized : ''}`}>
+    <div className={styles.modalOverlay}>
       <div 
         ref={modalRef}
-        className={`${styles.modal} ${isMinimized ? styles.minimizedModal : ''}`}
+        className={styles.modal}
         style={{
           bottom: `${position.bottom}px`,
           right: `${position.right}px`,
@@ -131,63 +168,83 @@ const AIAssistantModal = ({
       >
         {/* Header */}
         <div className={styles.header} onMouseDown={handleMouseDown}>
-          <div className={styles.headerLeft}>
-            <div className={styles.assistantAvatar}>
-              <i className={`fas fa-robot ${isProcessing ? styles.processing : ''}`}></i>
-            </div>
-            <div className={styles.assistantInfo}>
-              <h3 className={styles.assistantName}>AI Ассистент прораба</h3>
-              <div className={styles.assistantStatus}>
-                {isProcessing ? 'Думаю...' :
-                 isListening ? 'Слушаю...' :
-                 isSpeaking ? 'Говорю...' :
-                 'Онлайн'}
+          <div className={styles.headerTop}>
+            <div className={styles.headerLeft}>
+              <div className={styles.assistantAvatar}>
+                <i className={`fas fa-robot ${isProcessing ? styles.processing : ''}`}></i>
               </div>
+              <div className={styles.assistantInfo}>
+                <h3 className={styles.assistantName}>AI Ассистент прораба</h3>
+                <div className={styles.assistantStatus}>
+                  {isProcessing ? 'Думаю...' :
+                   isListening ? 'Слушаю...' :
+                   isSpeaking ? 'Говорю...' :
+                   'Онлайн'}
+                </div>
+              </div>
+            </div>
+            
+            <div className={styles.headerActions}>
+              {/* New Chat */}
+              <button
+                className={styles.newChatButton}
+                onClick={onStartNewChat}
+                title="Начать новый чат"
+              >
+                <i className="fas fa-plus"></i>
+              </button>
+              
+              {/* Close */}
+              <button
+                className={styles.closeButton}
+                onClick={() => {
+                  // Передаем текущую позицию при закрытии (отложенно чтобы избежать setState во время рендеринга)
+                  if (onPositionChange) {
+                    setTimeout(() => onPositionChange(position), 0);
+                  }
+                  onClose();
+                }}
+                title="Закрыть"
+              >
+                <i className="fas fa-times"></i>
+              </button>
             </div>
           </div>
           
-          <div className={styles.headerActions}>
-            {/* Mode Toggle */}
-            <button
-              className={`${styles.modeToggle} ${chatMode === 'voice' ? styles.voiceMode : styles.chatMode}`}
-              onClick={onChatModeToggle}
-              title={`Переключить на ${chatMode === 'chat' ? 'голосовой' : 'текстовый'} режим`}
-              disabled={!speechSupported && chatMode === 'chat'}
-            >
-              <i className={chatMode === 'chat' ? 'fas fa-microphone' : 'fas fa-keyboard'}></i>
-            </button>
-            
-            {/* Minimize/Restore */}
-            <button
-              className={styles.minimizeButton}
-              onClick={() => setIsMinimized(!isMinimized)}
-              title={isMinimized ? 'Развернуть' : 'Свернуть'}
-            >
-              <i className={isMinimized ? 'fas fa-window-maximize' : 'fas fa-window-minimize'}></i>
-            </button>
-            
-            {/* Clear Chat */}
-            <button
-              className={styles.clearButton}
-              onClick={onClearChat}
-              title="Очистить чат"
-            >
-              <i className="fas fa-trash-alt"></i>
-            </button>
-            
-            {/* Close */}
-            <button
-              className={styles.closeButton}
-              onClick={onClose}
-              title="Закрыть"
-            >
-              <i className="fas fa-times"></i>
-            </button>
+          <div className={styles.headerBottom}>
+            {/* Mode Tabs */}
+            <div className={styles.modeTabs}>
+              <button
+                className={`${styles.modeTab} ${chatMode === 'chat' ? styles.active : ''}`}
+                onClick={() => setDirectChatMode('chat')}
+                title="Текстовый чат"
+              >
+                <i className="fas fa-comments"></i>
+                <span>Чат</span>
+              </button>
+              
+              <button
+                className={`${styles.modeTab} ${chatMode === 'voice' ? styles.active : ''}`}
+                onClick={() => setDirectChatMode('voice')}
+                title="Голосовое общение"
+                disabled={!speechSupported}
+              >
+                <i className="fas fa-microphone"></i>
+                <span>Голос</span>
+              </button>
+              
+              <button
+                className={`${styles.modeTab} ${chatMode === 'history' ? styles.active : ''}`}
+                onClick={() => setDirectChatMode('history')}
+                title="История разговоров"
+              >
+                <i className="fas fa-history"></i>
+                <span>История</span>
+              </button>
+            </div>
           </div>
         </div>
         
-        {!isMinimized && (
-          <>
             {/* Project Status Bar */}
             <div className={styles.projectStatus}>
               <div className={styles.statusIcon}>
@@ -216,20 +273,24 @@ const AIAssistantModal = ({
                   quickQuestions={quickQuestions}
                   onQuickQuestion={handleQuickQuestion}
                 />
-              ) : (
+              ) : chatMode === 'voice' ? (
                 <VoiceMode
-                  messages={messages}
                   isListening={isListening}
                   isSpeaking={isSpeaking}
                   isProcessing={isProcessing}
                   onToggleListening={onToggleListening}
                   onStopSpeaking={onStopSpeaking}
                   speechSupported={speechSupported}
-                  messagesEndRef={messagesEndRef}
-                  quickQuestions={quickQuestions}
-                  onQuickQuestion={handleQuickQuestion}
                 />
-              )}
+              ) : chatMode === 'history' ? (
+                <ChatHistory
+                  messages={messages}
+                  messagesEndRef={messagesEndRef}
+                  onClearChat={onClearChat}
+                  chatHistory={chatHistory}
+                  onLoadChat={onLoadChat}
+                />
+              ) : null}
             </div>
             
             {/* Footer */}
@@ -254,21 +315,8 @@ const AIAssistantModal = ({
                 </div>
               </div>
             </div>
-          </>
-        )}
         
-        {/* Minimized Content */}
-        {isMinimized && (
-          <div className={styles.minimizedContent}>
-            <div className={styles.minimizedTitle}>AI Ассистент</div>
-            <div className={styles.minimizedStatus}>
-              {isProcessing ? 'Думаю...' :
-               isListening ? 'Слушаю...' :
-               isSpeaking ? 'Говорю...' :
-               'Готов к работе'}
-            </div>
-          </div>
-        )}
+
       </div>
     </div>
   );
@@ -277,8 +325,12 @@ const AIAssistantModal = ({
 AIAssistantModal.propTypes = {
   isVisible: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
+  initialPosition: PropTypes.object,
+  onPositionChange: PropTypes.func,
   chatMode: PropTypes.string.isRequired,
   onChatModeToggle: PropTypes.func.isRequired,
+  setDirectChatMode: PropTypes.func.isRequired,
+  onStartNewChat: PropTypes.func.isRequired,
   messages: PropTypes.array.isRequired,
   inputValue: PropTypes.string.isRequired,
   onInputChange: PropTypes.func.isRequired,
@@ -293,7 +345,9 @@ AIAssistantModal.propTypes = {
   onClearChat: PropTypes.func.isRequired,
   quickQuestions: PropTypes.array.isRequired,
   projectContext: PropTypes.object,
-  messagesEndRef: PropTypes.object.isRequired
+  messagesEndRef: PropTypes.object.isRequired,
+  chatHistory: PropTypes.array,
+  onLoadChat: PropTypes.func
 };
 
 export default AIAssistantModal;

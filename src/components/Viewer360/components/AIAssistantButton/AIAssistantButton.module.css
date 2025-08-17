@@ -1,9 +1,9 @@
 /* AI Assistant Button Styles */
 .aiAssistantButton {
   position: fixed;
-  bottom: 120px;
+  bottom: 250px;
   right: 30px;
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: flex-end;

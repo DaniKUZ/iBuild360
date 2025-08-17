@@ -8,7 +8,7 @@ import { MOCK_NETWORK_SCHEDULE, getProjectStatus, getScheduleInsights } from '..
 const useAIAssistant = () => {
   // Основные состояния
   const [isAssistantVisible, setIsAssistantVisible] = useState(false);
-  const [chatMode, setChatMode] = useState('chat'); // 'chat' | 'voice'
+  const [chatMode, setChatMode] = useState('chat'); // 'chat' | 'voice' | 'history'
   const [messages, setMessages] = useState([
     {
       id: '1',
@@ -32,11 +32,22 @@ const useAIAssistant = () => {
   const recognitionRef = useRef(null);
   const synthesisRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const chatModeRef = useRef(chatMode);
+
+  // Обновляем ref при изменении chatMode
+  useEffect(() => {
+    chatModeRef.current = chatMode;
+    console.log('chatMode updated to:', chatMode);
+  }, [chatMode]);
 
   // Проверка поддержки голосовых технологий
   useEffect(() => {
     const speechRecognitionSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const speechSynthesisSupported = 'speechSynthesis' in window;
+    
+    console.log('Speech Recognition supported:', speechRecognitionSupported);
+    console.log('Speech Synthesis supported:', speechSynthesisSupported);
+    
     setSpeechSupported(speechRecognitionSupported && speechSynthesisSupported);
     
     if (speechRecognitionSupported) {
@@ -49,6 +60,7 @@ const useAIAssistant = () => {
       
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
+        console.log('Speech recognition result:', transcript);
         handleVoiceInput(transcript);
       };
       
@@ -62,7 +74,7 @@ const useAIAssistant = () => {
         setIsListening(false);
       };
     }
-  }, []);
+  }, [handleVoiceInput]);
 
   // Автоскролл к последнему сообщению
   useEffect(() => {
@@ -104,8 +116,12 @@ const useAIAssistant = () => {
   };
 
   // Функция для обработки AI запроса
-  const processAIRequest = async (userMessage) => {
+  const processAIRequest = useCallback(async (userMessage) => {
     setIsProcessing(true);
+    
+    // Искусственная задержка для имитации работы нейросети (1.5-3 секунды)
+    const delay = Math.random() * 1500 + 1500; // от 1.5 до 3 секунд
+    await new Promise(resolve => setTimeout(resolve, delay));
     
     try {
       const context = generateScheduleContext();
@@ -135,6 +151,7 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
 Отвечай на русском языке, используй строительную терминологию. Будь конкретным и полезным.`;
 
       const requestPayload = {
+        model: 'gpt-3.5-turbo',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage }
@@ -144,7 +161,7 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
       };
 
       // Отправляем запрос к AI API
-      const response = await fetch(API_CONFIG.AGENT360_API_URL, {
+      const response = await fetch(API_CONFIG.OPENAI_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -153,7 +170,9 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
       });
 
       if (!response.ok) {
-        throw new Error(`AI API error: ${response.status}`);
+        console.warn(`AI API error: ${response.status}. Switching to mock responses.`);
+        // При ошибке API (например, отсутствует ключ) используем mock ответы
+        return generateMockResponse(userMessage);
       }
 
       const data = await response.json();
@@ -179,7 +198,7 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, []);
 
   // Функция для генерации mock ответов (fallback)
   const generateMockResponse = (userMessage) => {
@@ -214,7 +233,9 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
   };
 
   // Обработка голосового ввода
-  const handleVoiceInput = async (transcript) => {
+  const handleVoiceInput = useCallback(async (transcript) => {
+    const currentChatMode = chatModeRef.current;
+    console.log('handleVoiceInput called with chatMode from ref:', currentChatMode);
     setIsListening(false);
     
     if (!transcript.trim()) return;
@@ -229,10 +250,17 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     const assistantMessage = addMessage('assistant', aiResponse);
     
     // Озвучиваем ответ в голосовом режиме
-    if (chatMode === 'voice' && speechSupported) {
-      speakText(aiResponse);
+    console.log('Current chatMode from ref:', currentChatMode);
+    if (currentChatMode === 'voice') {
+      console.log('Voice mode detected, scheduling speech...');
+      setTimeout(() => {
+        console.log('About to call speakText with response:', aiResponse);
+        speakText(aiResponse);
+      }, 500);
+    } else {
+      console.log('Not in voice mode, skipping speech');
     }
-  };
+  }, [addMessage, processAIRequest, speakText]);
 
   // Обработка текстового ввода
   const handleTextInput = async (text) => {
@@ -252,28 +280,52 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     
     // Добавляем ответ AI
     addMessage('assistant', aiResponse);
+    
+    // Озвучиваем ответ, если включен голосовой режим
+    if (chatMode === 'voice') {
+      setTimeout(() => {
+        speakText(aiResponse);
+      }, 500);
+    }
   };
 
   // Функция для озвучивания текста
-  const speakText = (text) => {
-    if (!speechSupported || !('speechSynthesis' in window)) return;
+  const speakText = useCallback((text) => {
+    console.log('speakText called with:', text);
+    console.log('speechSupported:', speechSupported);
+    console.log('speechSynthesis available:', 'speechSynthesis' in window);
+    
+    if (!('speechSynthesis' in window)) {
+      console.warn('Speech Synthesis не поддерживается браузером');
+      return;
+    }
     
     // Останавливаем предыдущее воспроизведение
     window.speechSynthesis.cancel();
     
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ru-RU';
-    utterance.rate = 0.9;
+    utterance.rate = 2;
     utterance.pitch = 1;
     utterance.volume = 0.8;
     
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onstart = () => {
+      console.log('Speech synthesis started');
+      setIsSpeaking(true);
+    };
+    utterance.onend = () => {
+      console.log('Speech synthesis ended');
+      setIsSpeaking(false);
+    };
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+      setIsSpeaking(false);
+    };
     
+    console.log('Starting speech synthesis...');
     window.speechSynthesis.speak(utterance);
     synthesisRef.current = utterance;
-  };
+  }, [speechSupported]);
 
   // Начать/остановить прослушивание
   const toggleListening = () => {
@@ -299,12 +351,26 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     }
   };
 
-  // Переключение режима чата
+  // Переключение режима чата (циклично: chat -> voice -> history -> chat)
   const toggleChatMode = () => {
-    const newMode = chatMode === 'chat' ? 'voice' : 'chat';
+    let newMode;
+    switch (chatMode) {
+      case 'chat':
+        newMode = 'voice';
+        break;
+      case 'voice':
+        newMode = 'history';
+        break;
+      case 'history':
+        newMode = 'chat';
+        break;
+      default:
+        newMode = 'chat';
+    }
+    
     setChatMode(newMode);
     
-    if (newMode === 'chat') {
+    if (newMode !== 'voice') {
       stopSpeaking();
       if (isListening) {
         toggleListening();
@@ -312,17 +378,85 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     }
   };
 
-  // Очистка чата
-  const clearChat = () => {
+  // Прямое переключение на конкретный режим
+  const setDirectChatMode = (mode) => {
+    setChatMode(mode);
+    
+    if (mode !== 'voice') {
+      stopSpeaking();
+      if (isListening) {
+        toggleListening();
+      }
+    }
+  };
+
+  // История чатов (в памяти, обнуляется при перезагрузке)
+  const [chatHistory, setChatHistory] = useState([]);
+
+  // Сохранение истории (только в памяти)
+  const saveChatHistory = useCallback((history) => {
+    setChatHistory(history);
+  }, []);
+
+  // Новый чат - сохраняет текущий в историю и создает новый
+  const startNewChat = useCallback(() => {
+    if (messages.length > 1) { // Если есть сообщения кроме приветственного
+      const currentChat = {
+        id: Date.now().toString(),
+        title: messages[1]?.content?.substring(0, 50) + '...' || 'Новый разговор',
+        messages: messages,
+        createdAt: new Date(),
+        lastActivity: new Date()
+      };
+      
+      const newHistory = [currentChat, ...chatHistory];
+      saveChatHistory(newHistory);
+    }
+
+    // Создаем новый чат
     setMessages([
       {
         id: Date.now().toString(),
         type: 'assistant',
-        content: 'Чат очищен. Чем могу помочь?',
+        content: 'Привет! Я ваш AI ассистент по сетевому плану строительства. Могу рассказать о статусе проекта, критическом пути, вехах и ответить на ваши вопросы. Как дела на объекте?',
         timestamp: new Date()
       }
     ]);
+    setInputValue('');
+  }, [messages, chatHistory, saveChatHistory]);
+
+  // Очистка чата (старая функция для совместимости)
+  const clearChat = () => {
+    startNewChat();
   };
+
+  // Загрузка чата из истории
+  const loadChat = useCallback((chat) => {
+    console.log('Loading chat:', chat);
+    
+    // Сохраняем текущий чат в историю если он не пустой
+    if (messages.length > 1) {
+      const currentChat = {
+        id: Date.now().toString(),
+        title: messages[1]?.content?.substring(0, 50) + '...' || 'Новый разговор',
+        messages: messages,
+        createdAt: new Date(),
+        lastActivity: new Date()
+      };
+      
+      const newHistory = [currentChat, ...chatHistory];
+      saveChatHistory(newHistory);
+    }
+
+    // Загружаем выбранный чат
+    setMessages(chat.messages);
+    setInputValue('');
+    
+    // Переключаемся в чат режим
+    setChatMode('chat');
+    
+    console.log('Chat loaded successfully');
+  }, [messages, chatHistory, saveChatHistory, setChatMode]);
 
   // Быстрые вопросы
   const quickQuestions = [
@@ -339,6 +473,7 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     setIsAssistantVisible,
     chatMode,
     setChatMode: toggleChatMode,
+    setDirectChatMode,
     messages,
     
     // Голосовые состояния
@@ -358,11 +493,14 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     stopSpeaking,
     speakText,
     clearChat,
+    startNewChat,
+    loadChat,
     addMessage,
     
     // Утилиты
     messagesEndRef,
     quickQuestions,
+    chatHistory,
     
     // Контекст проекта
     projectContext: generateScheduleContext()

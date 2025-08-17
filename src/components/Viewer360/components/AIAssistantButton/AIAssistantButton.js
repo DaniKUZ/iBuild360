@@ -9,10 +9,20 @@ const AIAssistantButton = ({
   isSpeaking = false,
   isProcessing = false,
   hasUnreadMessages = false,
-  className = ''
+  className = '',
+  onPositionChange,
+  externalPosition
 }) => {
-  const [position, setPosition] = useState({ bottom: 120, right: 30 });
+  const [position, setPosition] = useState(externalPosition || { bottom: 350, right: 30 });
+
+  // Обновляем позицию при изменении externalPosition
+  React.useEffect(() => {
+    if (externalPosition) {
+      setPosition(externalPosition);
+    }
+  }, [externalPosition]);
   const [isDragging, setIsDragging] = useState(false);
+  const [hasActuallyDragged, setHasActuallyDragged] = useState(false);
   const dragRef = useRef(null);
   const lastPosition = useRef({ x: 0, y: 0 });
 
@@ -20,6 +30,7 @@ const AIAssistantButton = ({
     if (e.button !== 0) return; // Only left click
     
     setIsDragging(true);
+    setHasActuallyDragged(false);
     lastPosition.current = { x: e.clientX, y: e.clientY };
     e.preventDefault();
     e.stopPropagation();
@@ -30,15 +41,27 @@ const AIAssistantButton = ({
 
     const deltaX = e.clientX - lastPosition.current.x;
     const deltaY = e.clientY - lastPosition.current.y;
+    
+    // Отмечаем, что было реальное перетаскивание (если сдвиг больше 5px)
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      setHasActuallyDragged(true);
+    }
 
     setPosition(prev => {
       const newRight = Math.max(20, Math.min(window.innerWidth - 100, prev.right - deltaX));
       const newBottom = Math.max(20, Math.min(window.innerHeight - 100, prev.bottom - deltaY));
       
-      return {
+      const newPosition = {
         right: newRight,
         bottom: newBottom
       };
+      
+      // Передаем позицию в родительский компонент (отложенно чтобы избежать setState во время рендеринга)
+      if (onPositionChange) {
+        setTimeout(() => onPositionChange(newPosition), 0);
+      }
+      
+      return newPosition;
     });
 
     lastPosition.current = { x: e.clientX, y: e.clientY };
@@ -46,6 +69,10 @@ const AIAssistantButton = ({
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    // Сбрасываем флаг через небольшой таймаут, чтобы handleClick успел его проверить
+    setTimeout(() => {
+      setHasActuallyDragged(false);
+    }, 100);
   };
 
   React.useEffect(() => {
@@ -61,7 +88,11 @@ const AIAssistantButton = ({
   }, [isDragging]);
 
   const handleClick = (e) => {
-    if (!isDragging) {
+    if (!isDragging && !hasActuallyDragged) {
+      // Передаем текущую позицию при клике (отложенно чтобы избежать setState во время рендеринга)
+      if (onPositionChange) {
+        setTimeout(() => onPositionChange(position), 0);
+      }
       onClick(e);
     }
   };
@@ -120,19 +151,7 @@ const AIAssistantButton = ({
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* Tooltip */}
-      <div className={`${styles.tooltip} ${isActive ? styles.hidden : ''}`}>
-        <div className={styles.tooltipContent}>
-          <div className={styles.tooltipTitle}>AI Ассистент прораба</div>
-          <div className={styles.tooltipText}>
-            Спросите о статусе объекта, критическом пути или отставаниях
-          </div>
-          <div className={styles.tooltipHint}>
-            Кликните для открытия чата
-          </div>
-        </div>
-        <div className={styles.tooltipArrow}></div>
-      </div>
+
       
       {/* Main Button */}
       <button
@@ -182,47 +201,15 @@ const AIAssistantButton = ({
         {buttonText}
       </div>
       
-      {/* Quick Actions (when active) */}
-      {isActive && (
-        <div className={styles.quickActions}>
-          <button 
-            className={styles.quickAction}
-            title="Статус проекта"
-            onClick={(e) => {
-              e.stopPropagation();
-              // This will be handled by parent component
-            }}
-          >
-            <i className="fas fa-chart-line"></i>
-          </button>
-          <button 
-            className={styles.quickAction}
-            title="Критический путь"
-            onClick={(e) => {
-              e.stopPropagation();
-              // This will be handled by parent component
-            }}
-          >
-            <i className="fas fa-route"></i>
-          </button>
-          <button 
-            className={styles.quickAction}
-            title="Проблемы"
-            onClick={(e) => {
-              e.stopPropagation();
-              // This will be handled by parent component
-            }}
-          >
-            <i className="fas fa-exclamation-triangle"></i>
-          </button>
-        </div>
-      )}
+
     </div>
   );
 };
 
 AIAssistantButton.propTypes = {
   onClick: PropTypes.func.isRequired,
+  onPositionChange: PropTypes.func,
+  externalPosition: PropTypes.object,
   isActive: PropTypes.bool,
   isListening: PropTypes.bool,
   isSpeaking: PropTypes.bool,

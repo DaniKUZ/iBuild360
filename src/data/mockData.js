@@ -11,7 +11,7 @@ export const mockProjects = [
   {
     id: 1,
     name: "Жилой комплекс «Солнечный»",
-    lastUpdate: "2024-01-20",
+    lastUpdate: "2025-08-17",
     user: "ООО «СтройИнвест»",
     status: "В работе",
     preview: buildingimg1,
@@ -65,8 +65,8 @@ export const mockProjects = [
       {
         id: 1,
         name: "Планировочные работы",
-        startDate: "2024-01-10",
-        endDate: "2024-01-15",
+        startDate: "2025-01-10",
+        endDate: "2025-01-15",
         progress: 100,
         status: "completed",
         description: "Разработка планировки и дизайна",
@@ -76,10 +76,10 @@ export const mockProjects = [
       {
         id: 2,
         name: "Демонтажные работы",
-        startDate: "2024-01-16",
-        endDate: "2024-01-25",
-        progress: 80,
-        status: "in_progress",
+        startDate: "2025-01-16",
+        endDate: "2025-01-25",
+        progress: 100,
+        status: "completed",
         description: "Снос перегородок и старой отделки",
         dependencies: [1],
         responsible: "Бригада №1"
@@ -87,10 +87,10 @@ export const mockProjects = [
       {
         id: 3,
         name: "Отделочные работы",
-        startDate: "2024-01-26",
-        endDate: "2024-02-10",
-        progress: 0,
-        status: "planned",
+        startDate: "2025-08-01",
+        endDate: "2025-08-30",
+        progress: 60,
+        status: "in_progress",
         description: "Финишная отделка помещений",
         dependencies: [2],
         responsible: "Отделочники"
@@ -102,7 +102,7 @@ export const mockProjects = [
         name: "План первого этажа",
         fileName: "floor_1_plan.ifc",
         size: 2048576,
-        uploadDate: "2024-01-15"
+        uploadDate: "2025-01-15"
       }
     ]
   },

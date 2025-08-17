@@ -249,7 +249,7 @@ const ViewerModeRenderer = ({
   // Рендер сетевого плана
   const renderNetworkSchedule = () => (
     <div className={styles.panoramaSection}>
-      <div className={styles.panoramaWrapper}>
+      <div className={styles.panoramaWrapper} style={{ width: 'calc(100% - 380px)', marginLeft: '380px' }}>
         <NetworkSchedule activeSubItem="current-schedule" />
       </div>
     </div>

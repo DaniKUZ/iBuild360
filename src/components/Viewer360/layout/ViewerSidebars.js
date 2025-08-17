@@ -4,6 +4,7 @@ import ViewerSidebar from '../components/ViewerSidebar';
 import AIComparisonSidebar from '../components/AIComparisonSidebar';
 import TimelapsesSection from '../components/TimelapsesSection';
 import DroneShotsSection from '../components/DroneShotsSection';
+import NetworkScheduleSidebar from '../../NetworkSchedule/NetworkScheduleSidebar';
 
 /**
  * Компонент для группировки всех сайдбаров Viewer360
@@ -32,6 +33,9 @@ const ViewerSidebars = ({
   isDroneShotsSectionVisible,
   onCloseDroneShotsSection,
   onDroneFilesUpload,
+  
+  // NetworkScheduleSidebar props
+  isNetworkScheduleSidebarVisible,
 }) => {
   return (
     <>
@@ -68,6 +72,11 @@ const ViewerSidebars = ({
           onUpload={onDroneFilesUpload}
         />
       )}
+      
+      {/* Сайдбар сетевого плана */}
+      {isNetworkScheduleSidebarVisible && (
+        <NetworkScheduleSidebar />
+      )}
     </>
   );
 };
@@ -96,6 +105,9 @@ ViewerSidebars.propTypes = {
   isDroneShotsSectionVisible: PropTypes.bool.isRequired,
   onCloseDroneShotsSection: PropTypes.func.isRequired,
   onDroneFilesUpload: PropTypes.func.isRequired,
+  
+  // NetworkScheduleSidebar props
+  isNetworkScheduleSidebarVisible: PropTypes.bool.isRequired,
 };
 
 export default ViewerSidebars;
