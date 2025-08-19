@@ -235,6 +235,95 @@ app.post('/api/lims/sessions/:sid/compute-final-results', (req, res) => {
   });
 });
 
+// Unified single-endpoint path (one "route" with multiple methods) for simplified integration
+// GET /api/lims/session -> returns current session (create default if missing)
+// POST /api/lims/session -> { sampleId, kind, value_g } -> records measurement and returns updated session
+app.get('/api/lims/session', (req, res) => {
+  // return last created session or init default with [6,8,12]
+  const existing = Array.from(limsDb.sessions.values())[0];
+  if (existing) {
+    recomputeProgressAndStep(existing);
+    return res.json(existing);
+  }
+  // init default
+  const sessionId = 'S-' + randomUUID();
+  const sampleOrder = [6, 8, 12];
+  const samples = sampleOrder.map((id) => ({ id, masses: { m1: null, m2: null, m3: null }, density: null, status: 'pending' }));
+  const session = {
+    sessionId,
+    step: { code: 'greeting' },
+    samples,
+    progress: { samplesDone: 0, samplesTotal: sampleOrder.length, steps: buildInitialSteps(sampleOrder) },
+    final: null,
+    status: 'active',
+    startedAt: new Date().toISOString(),
+    finalComputed: false,
+    operatorName: 'Operator'
+  };
+  limsDb.sessions.set(sessionId, session);
+  recomputeProgressAndStep(session);
+  return res.json(session);
+});
+
+app.post('/api/lims/session', (req, res) => {
+  let session = Array.from(limsDb.sessions.values())[0];
+  if (!session) {
+    // create default if not exists
+    const sessionId = 'S-' + randomUUID();
+    const sampleOrder = [6, 8, 12];
+    const samples = sampleOrder.map((id) => ({ id, masses: { m1: null, m2: null, m3: null }, density: null, status: 'pending' }));
+    session = {
+      sessionId,
+      step: { code: 'greeting' },
+      samples,
+      progress: { samplesDone: 0, samplesTotal: sampleOrder.length, steps: buildInitialSteps(sampleOrder) },
+      final: null,
+      status: 'active',
+      startedAt: new Date().toISOString(),
+      finalComputed: false,
+      operatorName: 'Operator'
+    };
+    limsDb.sessions.set(sessionId, session);
+  }
+  const { sampleId, kind, value_g } = req.body || {};
+  if (!sampleId || !['m1','m2','m3'].includes(kind)) {
+    return res.status(400).json({ message: 'sampleId и kind обязательны' });
+  }
+  const value = Number(value_g);
+  if (!Number.isFinite(value) || value <= 0) return res.status(422).json({ message: 'Неверный формат массы' });
+  const sample = findSample(session, sampleId);
+  if (!sample) return res.status(404).json({ message: 'Образец не найден' });
+  if (sample.masses[kind] != null) return res.status(409).json({ message: 'Масса уже установлена' });
+  sample.masses[kind] = value;
+  tryComputeSampleStatus(sample);
+  recomputeProgressAndStep(session);
+  return res.json(session);
+});
+
+// Orchestrator state (GET) — возвращает текущее состояние сессии одной ручкой
+app.get('/api/lims/orchestrator/state', (req, res) => {
+  let session = Array.from(limsDb.sessions.values())[0];
+  if (!session) {
+    const sessionId = 'S-' + randomUUID();
+    const sampleOrder = [6, 8, 12];
+    const samples = sampleOrder.map((id) => ({ id, masses: { m1: 2.3, m2: null, m3: null }, density: null, status: 'done' }));
+    session = {
+      sessionId,
+      step: { code: 'finish' },
+      samples,
+      progress: { samplesDone: 3, samplesTotal: 3, steps: buildInitialSteps(sampleOrder).map(s => ({ ...s, done: true })) },
+      final: null,
+      status: 'active',
+      startedAt: new Date().toISOString(),
+      finalComputed: false,
+      operatorName: 'Operator'
+    };
+    limsDb.sessions.set(sessionId, session);
+  }
+  recomputeProgressAndStep(session);
+  return res.json(session);
+});
+
 // Demo endpoint for testing (when OpenAI is not available)
 app.post('/api/demo/chat/completions', async (req, res) => {
   // Simulate AI analysis delay
@@ -271,15 +360,91 @@ app.post('/api/demo/chat/completions', async (req, res) => {
 app.post('/api/openai/chat/completions', async (req, res) => {
   try {
     const fetch = (await import('node-fetch')).default;
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-    if (!OPENAI_API_KEY) {
-      return res.status(500).json({ error: 'Missing OPENAI_API_KEY in environment' });
+
+    const HF_KEY = process.env.HUGGINGFACE_API_KEY;
+    const OPENAI_KEY = process.env.OPENAI_API_KEY;
+
+    // If Hugging Face key is present, prefer HF Serverless Inference API
+    if (HF_KEY) {
+      const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
+      const temperature = typeof req.body?.temperature === 'number' ? req.body.temperature : 0.7;
+      const maxTokens = typeof req.body?.max_tokens === 'number' ? req.body.max_tokens : 500;
+      const hfModel = process.env.HF_MODEL || 'mistralai/Mixtral-8x7B-Instruct-v0.1';
+
+      // Build a simple prompt from messages (system + user)
+      const systemPart = messages.find((m) => m.role === 'system')?.content || '';
+      // Use last user message as the main query
+      const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user')?.content || '';
+      const prompt = `${systemPart ? `System: ${systemPart}\n\n` : ''}User: ${lastUserMessage}\nAssistant:`;
+
+      const hfResponse = await fetch(`https://api-inference.huggingface.co/models/${encodeURIComponent(hfModel)}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${HF_KEY}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: Math.max(1, Math.min(2048, maxTokens)),
+            temperature: Math.max(0, Math.min(2, temperature)),
+            return_full_text: false
+          }
+        })
+      });
+
+      const text = await hfResponse.text();
+      if (!hfResponse.ok) {
+        console.error('Hugging Face API Error:', hfResponse.status, text);
+        // Try to provide a helpful message for loading models
+        let errMsg = `Hugging Face API error: ${hfResponse.status}`;
+        if (text && text.includes('loading') || text.includes('Estimated time')) {
+          errMsg = 'Модель на Hugging Face прогружается. Подождите 1-2 минуты и повторите попытку.';
+        } else if (hfResponse.status === 401 || hfResponse.status === 403) {
+          errMsg = 'Ошибка авторизации Hugging Face API. Проверьте ключ HUGGINGFACE_API_KEY.';
+        }
+        return res.status(hfResponse.status).json({ error: errMsg, details: text });
+      }
+
+      let json;
+      try {
+        json = text ? JSON.parse(text) : [];
+      } catch (e) {
+        json = [];
+      }
+
+      // HF serverless may return array of { generated_text }
+      let generated = '';
+      if (Array.isArray(json) && json.length > 0 && typeof json[0]?.generated_text === 'string') {
+        generated = json[0].generated_text;
+      } else if (typeof json?.generated_text === 'string') {
+        generated = json.generated_text;
+      } else if (Array.isArray(json) && json[0]?.generated_text == null && typeof json[0] === 'string') {
+        generated = String(json[0]);
+      } else if (typeof text === 'string') {
+        generated = text;
+      }
+
+      // Normalize to OpenAI-like response shape expected by frontend
+      return res.json({
+        choices: [
+          {
+            message: { content: String(generated || '').trim() }
+          }
+        ]
+      });
     }
-    
+
+    // Fallback to OpenAI if HF_KEY not present
+    if (!OPENAI_KEY) {
+      return res.status(500).json({ error: 'Missing AI key. Provide HUGGINGFACE_API_KEY or OPENAI_API_KEY in environment.' });
+    }
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(req.body)
@@ -288,9 +453,9 @@ app.post('/api/openai/chat/completions', async (req, res) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API Error:', response.status, errorText);
-      
+
       let userFriendlyMessage = `OpenAI API error: ${response.status}`;
-      
+
       if (errorText.includes('unsupported_country_region_territory')) {
         userFriendlyMessage = 'OpenAI API недоступен в вашем регионе. Для работы AI сравнения необходимо использовать VPN или альтернативный AI сервис.';
       } else if (response.status === 403) {
@@ -298,8 +463,8 @@ app.post('/api/openai/chat/completions', async (req, res) => {
       } else if (response.status === 429) {
         userFriendlyMessage = 'Превышен лимит запросов к OpenAI API. Попробуйте позже.';
       }
-      
-      return res.status(response.status).json({ 
+
+      return res.status(response.status).json({
         error: userFriendlyMessage,
         details: errorText
       });
@@ -309,8 +474,8 @@ app.post('/api/openai/chat/completions', async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error('Proxy Error:', error);
-    res.status(500).json({ 
-      error: 'Internal server error: ' + error.message 
+    res.status(500).json({
+      error: 'Internal server error: ' + error.message
     });
   }
 });

@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+*.md
+.env
+.DS_Store
+dist
+public/api
+server
+*.zip
+ibuild360-docker.zip
+ibuild360-complete.zip
+ibuild360-complete-with-readme.zip

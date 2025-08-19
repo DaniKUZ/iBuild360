@@ -1,0 +1,23 @@
+services:
+  server:
+    build:
+      context: ./server
+    container_name: ibuild360-server
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+    container_name: ibuild360-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+
+

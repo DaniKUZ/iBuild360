@@ -78,17 +78,76 @@ try {
         throw new Exception('No images provided');
     }
 
-    // Для n8n просто передаём данные как есть
-    $body = [
-        'site_id' => $siteId,
-        'images' => $images
+    // Формируем multipart/form-data как в Node proxy, чтобы n8n получил бинарные изображения
+    $postFields = [
+        'site_id' => $siteId
     ];
 
-    // Запрос к n8n webhook
+    $tempFiles = [];
+    foreach ($images as $index => $img) {
+        $role = isset($img['role']) ? (string)$img['role'] : 'current';
+        $takenAt = isset($img['taken_at']) ? (string)$img['taken_at'] : '';
+        $notes = isset($img['notes']) ? (string)$img['notes'] : '';
+        $imageUrl = isset($img['image_url']) ? (string)$img['image_url'] : (isset($img['url']) ? (string)$img['url'] : '');
+
+        if (empty($imageUrl)) {
+            throw new Exception('Image URL is missing for index ' . $index);
+        }
+
+        $binary = null;
+        // data URL base64?
+        if (preg_match('/^data:image\/(png|jpe?g);base64,/i', $imageUrl)) {
+            $base64 = preg_replace('/^data:image\/[a-zA-Z0-9.+-]+;base64,/', '', $imageUrl);
+            $binary = base64_decode($base64);
+            if ($binary === false) {
+                throw new Exception('Failed to decode base64 image for index ' . $index);
+            }
+        } elseif (filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            // Скачиваем удалённое изображение
+            $dl = curl_init();
+            curl_setopt_array($dl, [
+                CURLOPT_URL => $imageUrl,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_CONNECTTIMEOUT => 15,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_SSL_VERIFYPEER => true,
+                CURLOPT_USERAGENT => 'iBuild360-ImageFetcher/1.0'
+            ]);
+            $binary = curl_exec($dl);
+            $dlErr = curl_error($dl);
+            $dlCode = curl_getinfo($dl, CURLINFO_HTTP_CODE);
+            curl_close($dl);
+            if ($binary === false || $dlErr || $dlCode >= 400) {
+                throw new Exception('Failed to fetch image URL for index ' . $index . ' (HTTP ' . $dlCode . '): ' . $dlErr);
+            }
+        } else {
+            // Похоже на «сырой» base64 без префикса
+            $binary = base64_decode($imageUrl);
+            if ($binary === false) {
+                throw new Exception('Unsupported image_url format for index ' . $index);
+            }
+        }
+
+        // Создаём временный файл и упаковываем как CURLFile
+        $tmpPath = tempnam(sys_get_temp_dir(), 'img_');
+        if ($tmpPath === false || file_put_contents($tmpPath, $binary) === false) {
+            throw new Exception('Failed to create temp file for image index ' . $index);
+        }
+        $tempFiles[] = $tmpPath;
+        $file = curl_file_create($tmpPath, 'image/jpeg', 'image_' . $index . '.jpg');
+
+        $postFields['image_' . $index] = $file;
+        $postFields['image_' . $index . '_role'] = $role;
+        $postFields['image_' . $index . '_taken_at'] = $takenAt;
+        if ($notes !== '') {
+            $postFields['image_' . $index . '_notes'] = $notes;
+        }
+    }
+
+    // Запрос к n8n webhook (multipart/form-data)
     $ch = curl_init();
-    $headers = [
-        'Content-Type: application/json'
-    ];
+    $headers = [];
     if (!empty($N8N_AUTH_HEADER) && !empty($N8N_AUTH_KEY)) {
         $headers[] = $N8N_AUTH_HEADER . ': ' . $N8N_AUTH_KEY;
     }
@@ -97,7 +156,7 @@ try {
         CURLOPT_URL => $N8N_WEBHOOK_URL,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        CURLOPT_POSTFIELDS => $postFields,
         CURLOPT_HTTPHEADER => $headers,
         CURLOPT_TIMEOUT => 120,
         CURLOPT_CONNECTTIMEOUT => 30,
@@ -112,6 +171,24 @@ try {
 
     if ($error) {
         throw new Exception('cURL error: ' . $error);
+    }
+
+    // Нормализуем успешные ответы в валидный JSON
+    if ($httpCode >= 200 && $httpCode < 300) {
+        if ($response === false || trim($response) === '') {
+            $response = json_encode([
+                'status' => 'ok',
+                'analysis' => ''
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } else {
+            $decoded = json_decode($response, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $cleaned = preg_replace('/^\s*=\s*/', '', trim($response));
+                $response = json_encode([
+                    'analysis' => $cleaned
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            }
+        }
     }
 
     http_response_code($httpCode);

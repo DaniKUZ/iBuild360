@@ -52,9 +52,13 @@
   background: #2563eb;
   color: #fff;
   border: none;
-  padding: 10px 16px;
+  padding: 0 16px;
   border-radius: 8px;
   cursor: pointer;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .smartlab__create:hover {
@@ -231,6 +235,8 @@
   border-radius: 6px;
   height: 40px;
   padding: 0 12px;
+  display: flex;
+  align-items: center;
 }
 
 /* Блок фактических результатов */
@@ -283,6 +289,8 @@
   border-radius: 6px;
   height: 40px;
   padding: 0 12px;
+  display: flex;
+  align-items: center;
 }
 
 /* Адаптивность для блока измерений */
@@ -524,12 +532,14 @@
 }
 
 .smartlab__pager-btn {
-  height: 28px;
-  padding: 0 10px;
+  height: 40px;
+  padding: 0 16px;
   border: 1px solid #e5e7eb;
   background: #fff;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #374151;
+  display: flex;
+  align-items: center;
 }
 
 .smartlab__pager-btn.is-current {
@@ -547,6 +557,77 @@
     margin-top: 16px;
     grid-template-columns: 1fr;
   }
+}
+
+/* Блок подтверждения результатов */
+.smartlab__confirmation {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.smartlab__confirmation-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #374151;
+  font-size: 16px;
+}
+
+.smartlab__confirmation-subtitle {
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.smartlab__confirmation-item {
+  color: #374151;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.smartlab__confirmation-item strong {
+  font-weight: 600;
+}
+
+.smartlab__confirmation-note {
+  color: #6b7280;
+  font-size: 12px;
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.smartlab__confirmation-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Кнопки в блоке подтверждения - увеличенная высота */
+.smartlab__confirmation-btn {
+  height: 58px;
+  padding: 0 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.smartlab__confirmation-btn--primary {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+}
+
+.smartlab__confirmation-btn--primary:hover {
+  background: #1d4ed8;
+}
+
+.smartlab__confirmation-btn--secondary {
+  background: #fff;
+  color: #374151;
+  border: 1px solid #e5e7eb;
 }
 
 @media (max-width: 768px) {

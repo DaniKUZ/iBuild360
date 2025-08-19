@@ -2,7 +2,7 @@
 export const MOCK_NETWORK_SCHEDULE = {
   project: {
     id: 'TI-001',
-    name: 'ЖК Новая Москва',
+    name: 'Жилой комплекс «Солнечный»',
     contractor: 'ООО СтройИнвест',
     startDate: '2025-01-01',
     endDate: '2025-12-31',
