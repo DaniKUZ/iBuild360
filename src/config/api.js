@@ -17,7 +17,7 @@ export const API_CONFIG = {
 
   // Агент 360 (серверный PHP прокси)
   AGENT360_API_URL: isProduction
-    ? '/api/agent360/chat/completions'
+    ? '/api/agent360/chat/completions.php'
     : 'http://localhost:3001/api/agent360/chat/completions',
 
   // LIMS (лабораторные испытания) — базовый URL
@@ -25,6 +25,15 @@ export const API_CONFIG = {
   LIMS_API_URL: isProduction
     ? '/api/lims'
     : 'http://localhost:3001/api/lims',
+
+  // Режим упрощённого API: одна ручка и сырые замеры, расчёты на фронте
+  LIMS_USE_UNIFIED: true,
+
+  // Orchestrator state (единая ручка только на чтение)
+  LIMS_USE_ORCHESTRATOR: true,
+  ORCHESTRATOR_STATE_URL: isProduction
+    ? '/api/lims/orchestrator/state'
+    : 'http://localhost:3001/api/lims/orchestrator/state',
 
   // Идентификатор объекта по умолчанию
   SITE_ID: 'TI-001',

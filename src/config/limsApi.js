@@ -3,7 +3,8 @@ import { API_CONFIG } from './api';
 const BASE = API_CONFIG.LIMS_API_URL;
 
 async function httpGet(path) {
-  const res = await fetch(BASE + path, {
+  const url = path.startsWith('http') ? path : (BASE + path);
+  const res = await fetch(url, {
     method: 'GET',
     headers: commonHeaders()
   });
@@ -59,6 +60,19 @@ export const LimsApi = {
   },
   computeFinalResults(sessionId) {
     return httpPost(`/sessions/${encodeURIComponent(sessionId)}/compute-final-results`, {});
+  },
+
+  // Unified simplified API (when backend exposes a single endpoint)
+  getUnifiedSession() {
+    return httpGet('/session');
+  },
+  postUnifiedMeasurement({ sampleId, kind, value_g }) {
+    return httpPost('/session', { sampleId, kind, value_g });
+  },
+
+  // Orchestrator state (full JSON from backend)
+  getOrchestratorState() {
+    return httpGet(API_CONFIG.ORCHESTRATOR_STATE_URL);
   }
 };
 

@@ -1,0 +1,12 @@
+services:
+  server:
+    image: ibuild360-server:latest
+    ports: ["3001:3001"]
+    restart: unless-stopped
+  web:
+    image: ibuild360-web:latest
+    ports: ["8080:80"]
+    depends_on: [server]
+    restart: unless-stopped
+
+

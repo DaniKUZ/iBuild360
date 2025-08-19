@@ -27,16 +27,6 @@ const Sidebar = React.memo(({ activeItem, onItemClick, onSubItemClick, activeSub
       ],
     },
     { 
-      id: 'network-schedule', 
-      icon: 'fas fa-project-diagram', 
-      label: 'Сетевой план',
-      subItems: [
-        { id: 'current-schedule', icon: 'fas fa-calendar-check', label: 'Текущий план', count: null },
-        { id: 'critical-path', icon: 'fas fa-route', label: 'Критический путь', count: null },
-        { id: 'milestones', icon: 'fas fa-flag', label: 'Вехи проекта', count: null }
-      ]
-    },
-    { 
       id: 'shared', 
       icon: 'fas fa-share', 
       label: 'Поделились со мной',

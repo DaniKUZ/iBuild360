@@ -13,7 +13,7 @@ const AIAssistantButton = ({
   onPositionChange,
   externalPosition
 }) => {
-  const [position, setPosition] = useState(externalPosition || { bottom: 350, right: 30 });
+  const [position, setPosition] = useState(externalPosition || { bottom: 150, right: 30 });
 
   // Обновляем позицию при изменении externalPosition
   React.useEffect(() => {

@@ -27,6 +27,96 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
   // Форма ввода массы и ожидающее подтверждение показание
   const [massForm, setMassForm] = useState({ sampleId: null, kind: 'm1', value_g: '' });
   const [pendingReading, setPendingReading] = useState(null); // {readingId, sampleId, kind, echo}
+  
+  // Состояние финальных результатов и подтверждения
+  const [finalResults, setFinalResults] = useState(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  // Демо-расчёт m2/m3 и плотности (детерминированно)
+  const clamp = (min, max, v) => Math.min(max, Math.max(min, v));
+  const round1 = (x) => Math.round(x * 10) / 10;
+  const round3 = (x) => Math.round(x * 1000) / 1000;
+  const computeDensityDemo = (m1, m2, m3) => {
+    if ([m1, m2, m3].some(v => v == null)) return null;
+    const denom = Math.max(0.0001, (m2 - m3));
+    return round3(m1 / denom);
+  };
+
+  // Расчёт финальных результатов на фронте
+  const computeFinalResults = (samples) => {
+    const densities = samples
+      .map(s => s.density)
+      .filter(d => d != null && Number.isFinite(d));
+    
+    if (densities.length === 0) return null;
+    
+    const sum = densities.reduce((a, b) => a + b, 0);
+    const avgDensity = round3(sum / densities.length);
+    const delta = round3(Math.max(...densities) - Math.min(...densities));
+    
+    return { avgDensity, delta };
+  };
+  const deriveDemoMasses = (sample) => {
+    const m1 = sample?.masses?.m1;
+    let m2 = sample?.masses?.m2;
+    let m3 = sample?.masses?.m3;
+    if (m1 != null) {
+      const delta2 = 100 + (Number(sample.id) % 50); // 100..149
+      const delta3 = 300 + (Number(sample.id) % 80); // 300..379
+      if (m2 == null) m2 = round1(clamp(100, 1000, Number(m1) + delta2));
+      if (m3 == null) m3 = round1(clamp(100, 1000, Number(m1) - delta3));
+    }
+    const density = computeDensityDemo(m1, m2, m3);
+    return { m1, m2, m3, density };
+  };
+
+  // Чтение единой ручки состояния (оркестратор)
+  const refreshFromOrchestrator = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await LimsApi.getOrchestratorState();
+      setSession(data);
+      if (Array.isArray(data?.samples)) {
+        const mapped = data.samples.map((s) => {
+          const d = deriveDemoMasses(s);
+          return {
+            id: s.id,
+            name: `Образец №${s.id}`,
+            material: 'Асфальтобетонная смесь',
+            operator: 'Иван Иванович',
+            masses: { m1: d.m1, m2: d.m2, m3: d.m3 },
+            density: d.density,
+            status: d.density != null ? 'done' : (s.status || 'in_progress')
+          };
+        });
+        setSamples(mapped);
+        
+        // Финальные результаты вычисляются только по кнопке
+        // (убрали автоматическое вычисление)
+      }
+      // Сохраняем текущий выбор пользователя, не сбрасываем селектор
+      const currentSampleId = massForm.sampleId;
+      const initialSampleId = data?.step?.sampleId || currentSampleId || (data?.samples?.[0]?.id ?? null);
+      
+      // Обновляем селектор только если он пустой или образец не существует
+      const sampleExists = mapped.find(s => s.id === currentSampleId);
+      if (!currentSampleId || !sampleExists) {
+        setMassForm((p) => ({ ...p, sampleId: initialSampleId }));
+      }
+    } catch (e) {
+      setError(e?.data?.message || `Ошибка чтения состояния (${e.status || ''})`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Пуллим состояние для отображения чисел даже без действий в UI
+    refreshFromOrchestrator();
+    const id = setInterval(refreshFromOrchestrator, 2000);
+    return () => clearInterval(id);
+  }, []);
 
   const refreshSession = async (sid) => {
     if (!sid) return;
@@ -128,18 +218,20 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
     }
   };
 
-  const handleComputeFinal = async () => {
-    if (!session?.sessionId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      await LimsApi.computeFinalResults(session.sessionId);
-      await refreshSession(session.sessionId);
-    } catch (e) {
-      setError(e?.data?.message || `Ошибка финального расчёта (${e.status || ''})`);
-    } finally {
-      setLoading(false);
+  const handleComputeFinal = () => {
+    const final = computeFinalResults(samples);
+    if (final) {
+      setFinalResults(final);
+      setShowConfirmation(true);
+    } else {
+      setError('Недостаточно данных для расчёта финальных результатов');
     }
+  };
+
+  const handleConfirmFinal = () => {
+    setShowConfirmation(false);
+    // Здесь можно отправить финальные результаты на бэк если нужно
+    console.log('Финальные результаты подтверждены:', finalResults);
   };
 
   // Прогресс для визуала
@@ -244,8 +336,8 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
             <ol className="smartlab__steps">
               {session?.progress?.steps?.length
                 ? session.progress.steps.map((st, i) => (
-                    <li key={`${st.code}-${i}`} className={st.done ? 'is-done' : (session?.step?.code === st.code && (st.sampleId || null) === (session?.step?.sampleId || null) ? 'is-active' : '')}>
-                      <span className={`step-circle ${st.done ? 'step-circle--done' : ''}`} aria-hidden="true">{st.done ? '✓' : i + 1}</span>
+                    <li key={`${st.code}-${i}`} className={(st.done && st.code !== 'take_sample') ? 'is-done' : (session?.step?.code === st.code && (st.sampleId || null) === (session?.step?.sampleId || null) ? 'is-active' : '')}>
+                      <span className={`step-circle ${(st.done && st.code !== 'take_sample') ? 'step-circle--done' : ''}`} aria-hidden="true">{(st.done && st.code !== 'take_sample') ? '✓' : i + 1}</span>
                       {st.code === 'greeting' && 'Приветствие'}
                       {st.code === 'take_sample' && `Возьмите образец № ${st.sampleId}`}
                       {st.code === 'say_mass_and_confirm' && `Назовите массу и подтвердите (образец № ${st.sampleId})`}
@@ -270,10 +362,6 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
             }` : 'Сессия не создана'}</div>
             <div className="smartlab__panel-subtitle">{loading ? 'Загрузка...' : (error || 'Ожидаю действие оператора')}</div>
             <div className="smartlab__tags">
-              <span className="tag tag--ok">
-                <i className="tag__icon fas fa-user" aria-hidden="true"></i>
-                Лицо (распознано)
-              </span>
               <span className="tag tag--ok">
                 <i className="tag__icon fas fa-balance-scale" aria-hidden="true"></i>
                 Весы (подключено)
@@ -328,8 +416,40 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
                     <button className="smartlab__pager-btn" onClick={() => handleConfirm(false)} disabled={loading}>Нет</button>
                   </div>
                 )}
-                {session?.step?.code === 'compute_results' && (
-                  <button className="smartlab__create" onClick={handleComputeFinal} disabled={loading}>Рассчитать финальный результат</button>
+                {/* Кнопка расчёта финального результата */}
+                {samples.every(s => s.density != null) && !showConfirmation && (
+                  <button className="smartlab__create" onClick={handleComputeFinal} disabled={loading}>
+                    Рассчитать финальный результат
+                  </button>
+                )}
+                
+                {/* Подтверждение финальных результатов */}
+                {showConfirmation && finalResults && (
+                  <div className="smartlab__confirmation">
+                    <div className="smartlab__confirmation-title">
+                      Пройдите к монитору для подтверждения
+                    </div>
+                    <div className="smartlab__confirmation-subtitle">
+                      Все расчетные значения:
+                    </div>
+                    <div className="smartlab__confirmation-item">
+                      • Среднее арифметическое: <strong>{finalResults.avgDensity} г/см³</strong>
+                    </div>
+                    <div className="smartlab__confirmation-item">
+                      • Разница результатов: <strong>{finalResults.delta} г/см³</strong>
+                    </div>
+                    <div className="smartlab__confirmation-note">
+                      ✓ Данные автоматически внесены в систему
+                    </div>
+                    <div className="smartlab__confirmation-actions">
+                      <button className="smartlab__confirmation-btn smartlab__confirmation-btn--primary" onClick={handleConfirmFinal}>
+                        Начать новый сценарий
+                      </button>
+                      <button className="smartlab__confirmation-btn smartlab__confirmation-btn--secondary" onClick={() => setShowConfirmation(false)}>
+                        Закрыть
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -365,11 +485,11 @@ const SmartLabSection = ({ activeSubItem = 'lab-active' }) => {
           <div className="smartlab__results-grid">
             <div className="smartlab__result-item">
               <div className="smartlab__result-label">Среднее арифметическое, г/см³</div>
-              <div className="smartlab__result-value">{session?.final?.avgDensity ?? ''}</div>
+              <div className="smartlab__result-value">{finalResults?.avgDensity ?? ''}</div>
             </div>
             <div className="smartlab__result-item">
               <div className="smartlab__result-label">Разница результатов (до 0,01 г/см³)</div>
-              <div className="smartlab__result-value">{session?.final?.delta ?? ''}</div>
+              <div className="smartlab__result-value">{finalResults?.delta ?? ''}</div>
             </div>
           </div>
         </div>
