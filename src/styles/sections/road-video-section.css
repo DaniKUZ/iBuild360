@@ -85,6 +85,39 @@
   background: var(--background-secondary);
 }
 
+/* Enhanced Zoom and Prescriptions Buttons */
+.road-video-section .roi-zoom-button {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.road-video-section .roi-zoom-button:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.road-video-section .prescriptions-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.road-video-section .prescriptions-button:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Enhanced cursor for detailed inspection */
+.road-video-section .road-frame-image[style*="cursor: zoom-in"] {
+  cursor: crosshair;
+}
+
+.road-video-section .road-frame-image:hover {
+  filter: brightness(1.05);
+  transition: filter 0.2s ease;
+}
+
 /* SVG overlay с редактируемым ROI прямоугольником */
 .road-video-section .road-rect-overlay {
   position: absolute;
@@ -744,6 +777,12 @@
 .road-video-section .detail-icon {
   color: var(--text-secondary);
   font-size: 14px;
+  width: 16px;
+}
+
+/* Переопределяем цвет иконок в зависимости от статуса */
+.road-video-section .detail-item i {
+  color: inherit !important;
 }
 
 .road-video-section .detail-task {
@@ -940,4 +979,18 @@
     width: 100%;
     height: 120px;
   }
+}
+
+/* Кнопка "Все предписания" */
+.road-video-section .all-prescriptions-button {
+  background: linear-gradient(135deg, #4caf50, #45a049) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3) !important;
+}
+
+.road-video-section .all-prescriptions-button:hover {
+  background: linear-gradient(135deg, #45a049, #43a047) !important;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4) !important;
+  transform: translateY(-1px) !important;
 }

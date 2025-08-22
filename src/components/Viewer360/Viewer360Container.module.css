@@ -28,11 +28,11 @@
   width: 100%;
   position: relative;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   background: var(--background-primary);
-  height: 100vh;
+  min-height: 100vh;
 }
 
 /* Контейнеры оверлеев (например, для сетевого плана в левой панели) */
@@ -43,11 +43,25 @@
   pointer-events: none;
 }
 
+/* Контейнер для полноэкранных секций */
+.panoramaSection {
+  min-height: 100vh;
+  overflow: visible;
+}
+
+.panoramaWrapper {
+  min-height: 100vh;
+  overflow-y: auto;
+  background: #f8fafc;
+  position: relative;
+  z-index: 1;
+}
+
 /* =============================================================================
    ЛЕВЫЙ САЙДБАР
    ============================================================================= */
 .viewerSidebar {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: var(--viewer-sidebar-width);
@@ -189,7 +203,7 @@
    ============================================================================= */
 .panoramaSection {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   position: relative;
 }
@@ -200,9 +214,9 @@
 
 .panoramaWrapper {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .panoramaSection.comparisonMode .panoramaWrapper {

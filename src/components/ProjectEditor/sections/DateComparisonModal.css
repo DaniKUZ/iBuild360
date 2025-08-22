@@ -44,20 +44,32 @@
   color: #1f2937;
 }
 
-.close-button {
+/* Уникальные стили закрытия для модального окна сравнения дат */
+.date-modal-close-button {
   background: none;
   border: none;
-  font-size: 20px;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 8px;
+  color: #374151; /* тёмный серый, хорошо виден на светлом фоне */
+  width: 40px;
+  height: 40px;
   border-radius: 8px;
-  transition: all 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  padding: 4px;
+  transition: all 0.2s ease;
 }
 
-.close-button:hover {
-  background: #e5e7eb;
-  color: #374151;
+.date-modal-close-button:hover {
+  background: #e5e7eb; /* светло‑серая подложка под ховером */
+  color: #111827; /* ещё темнее при ховере */
+}
+
+.date-modal-close-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  border-radius: 8px;
 }
 
 /* Tabs */

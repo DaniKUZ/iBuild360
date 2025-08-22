@@ -5,6 +5,7 @@ import SchemesView from '../components/SchemesView';
 import Generic360Viewer from '../components/Generic360Viewer';
 import SplitScreenViewer from '../components/SplitScreenViewer';
 import NetworkSchedule from '../../NetworkSchedule/NetworkSchedule';
+import TechnicalSolutions from '../../TechnicalSolutions/TechnicalSolutions';
 
 /**
  * Компонент для рендера различных режимов просмотра Viewer360
@@ -255,6 +256,15 @@ const ViewerModeRenderer = ({
     </div>
   );
   
+  // Рендер технических решений
+  const renderTechnicalSolutions = () => (
+    <div className={styles.panoramaSection}>
+      <div className={styles.panoramaWrapper} style={{ width: '100%', marginLeft: '60px', paddingRight: '60px' }}>
+        <TechnicalSolutions activeSubItem="all-solutions" />
+      </div>
+    </div>
+  );
+  
   // Основной рендер на основе режима
   switch (viewMode) {
     case 'viewer':
@@ -268,6 +278,9 @@ const ViewerModeRenderer = ({
       
     case 'network-schedule':
       return renderNetworkSchedule();
+      
+    case 'technical-solutions':
+      return renderTechnicalSolutions();
       
     default:
       return renderGeneric360();

@@ -118,7 +118,7 @@ const DateComparisonModal = ({
         {/* Заголовок модального окна */}
         <div className="modal-header">
           <h2>Сравнение дат строительства</h2>
-          <button className="close-button" onClick={onClose}>
+          <button className="date-modal-close-button" onClick={onClose}>
             <i className="fas fa-times"></i>
           </button>
         </div>

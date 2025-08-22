@@ -1,11 +1,80 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { API_CONFIG } from '../../../config/api';
 import { MOCK_NETWORK_SCHEDULE, getProjectStatus, getScheduleInsights } from '../../../data/mockNetworkSchedule';
+import { getTechnicalSolutions, getStatistics } from '../../../data/mockTechnicalSolutions';
+import useFieldNotes from './useFieldNotes';
+
+// Конфигурация характеров ассистента
+const CHARACTERS = {
+  professional: {
+    name: 'Профессионал',
+    description: 'Точный, сфокусированный на фактах, без лишних эмоций',
+    tone: 'Ты - эксперт по строительству с 20-летним опытом. Говоришь четко, по делу, оперируешь фактами и цифрами. Избегаешь лишних эмоций, сохраняешь профессиональный тон.',
+    examples: [
+      'Статус фундаментных работ: выполнено на 75%, отставание 3 дня из-за задержки поставки арматуры.',
+      'Критический путь: земляные работы → фундамент → каркас → кровля. Текущая задержка на этапе фундамента.'
+    ]
+  },
+  motivator: {
+    name: 'Мотиватор',
+    description: 'Поддерживающий, воодушевляющий, акцент на решениях',
+    tone: 'Ты - позитивный руководитель, который верит в команду. Поддерживаешь, мотивируешь, ищешь решения, а не виноватых. Акцентируешь на положительных моментах, даже в сложных ситуациях.',
+    examples: [
+      'Да, есть небольшие сложности с фундаментом, но я уверен, что команда справится! Уже ищем альтернативных поставщиков арматуры.',
+      'Отлично поработали на земляных работах! Теперь главное - не сбавлять темп на фундаменте.'
+    ]
+  },
+  skeptic: {
+    name: 'Скептик',
+    description: 'Критически настроенный, осторожный, выделяет риски',
+    tone: 'Ты - опытный прораб, который всегда видит потенциальные проблемы. Скептически относишься к излишнему оптимизму, указываешь на риски и подводные камни. Говоришь прямо, без прикрас.',
+    examples: [
+      'С арматурой опять проблемы? Я же говорил, что этого поставщика нельзя было выбирать! Теперь весь график под угрозой.',
+      'Да, прогресс есть, но зимой бетонные работы вздорожают на 30%, если не успеем до холодов.'
+    ]
+  },
+  analyst: {
+    name: 'Аналитик',
+    description: 'Детальный, с акцентом на данные и тенденции',
+    tone: 'Ты - строительный аналитик, мыслишь цифрами и тенденциями. Предпочитаешь подробный разбор ситуации с анализом причин и возможных последствий. Строишь прогнозы на основе данных.',
+    examples: [
+      'Анализ показывает, что задержка на 3 дня на текущем этапе увеличит общее время проекта на 5-7 дней из-за последующих зависимых задач.',
+      'За последние 2 недели производительность на фундаментных работах упала на 15% compared to плановым показателям.'
+    ]
+  }
+};
+
+// Конфигурация стилей ответа (только объем текста)
+const RESPONSE_STYLES = {
+  brief: {
+    name: 'Кратко',
+    description: 'Только ключевая информация, без деталей',
+    instruction: 'Отвечай максимально кратко, но информативно. Фокусируйся только на самой сути вопроса. Не больше 3-4 предложений. Без вступлений и заключений. Только ключевые факты и выводы.',
+    maxTokens: 500
+  },
+  balanced: {
+    name: 'Сбалансировано',
+    description: 'Оптимальное соотношение деталей и лаконичности',
+    instruction: 'Давай развернутый, но сфокусированный ответ. Включи ключевые факты, анализ и практические рекомендации. 5-7 предложений с четкой структурой: проблема → анализ → рекомендация.',
+    maxTokens: 1000
+  },
+  detailed: {
+    name: 'Подробно',
+    description: 'Детальный разбор с анализом и рекомендациями',
+    instruction: 'Давай максимально подробный ответ с глубоким анализом. Включи: контекст, анализ причин, возможные последствия, альтернативные решения, конкретные рекомендации и прогнозы. 8-12 предложений с четкой структурой.',
+    maxTokens: 2000
+  }
+};
 
 /**
  * Хук для управления AI ассистентом с голосовым интерфейсом
+ * Можно передать внешний state полевых заметок, чтобы ассистент видел те же данные,
+ * что и основной вьювер. Если не передан, создаст собственное локальное состояние.
  */
-const useAIAssistant = () => {
+const useAIAssistant = (externalFieldNotesState = null) => {
+  // Получаем данные о полевых заметках (используем внешний state, если передан)
+  const fieldNotesState = externalFieldNotesState || useFieldNotes();
+  
   // Основные состояния
   const [isAssistantVisible, setIsAssistantVisible] = useState(false);
   const [chatMode, setChatMode] = useState('chat'); // 'chat' | 'voice' | 'history'
@@ -28,25 +97,37 @@ const useAIAssistant = () => {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   
+  // Состояния для настроек ассистента
+  const [selectedCharacter, setSelectedCharacter] = useState('professional');
+  const [selectedResponseStyle, setSelectedResponseStyle] = useState('balanced');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
   // Refs
   const recognitionRef = useRef(null);
   const synthesisRef = useRef(null);
   const messagesEndRef = useRef(null);
   const chatModeRef = useRef(chatMode);
+  const fieldNotesRef = useRef([]);
 
   // Обновляем ref при изменении chatMode
   useEffect(() => {
     chatModeRef.current = chatMode;
-    console.log('chatMode updated to:', chatMode);
+    
   }, [chatMode]);
+
+  // Держим актуальные полевые заметки в ref, чтобы избежать проблем со свежестью в колбэках
+  useEffect(() => {
+    fieldNotesRef.current = Array.isArray(fieldNotesState?.fieldNotes)
+      ? fieldNotesState.fieldNotes
+      : [];
+  }, [fieldNotesState?.fieldNotes]);
 
   // Проверка поддержки голосовых технологий
   useEffect(() => {
     const speechRecognitionSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const speechSynthesisSupported = 'speechSynthesis' in window;
     
-    console.log('Speech Recognition supported:', speechRecognitionSupported);
-    console.log('Speech Synthesis supported:', speechSynthesisSupported);
+    
     
     setSpeechSupported(speechRecognitionSupported && speechSynthesisSupported);
     
@@ -60,12 +141,12 @@ const useAIAssistant = () => {
       
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
-        console.log('Speech recognition result:', transcript);
+        
         handleVoiceInput(transcript);
       };
       
       recognitionRef.current.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
+        
         setIsListening(false);
         addMessage('system', 'Произошла ошибка распознавания речи. Попробуйте еще раз.');
       };
@@ -97,11 +178,21 @@ const useAIAssistant = () => {
   }, []);
 
   // Функция для генерации контекста сетевого плана
-  const generateScheduleContext = () => {
+  const generateScheduleContext = useCallback((overrideFieldNotes = null) => {
     const status = getProjectStatus();
     const insights = getScheduleInsights();
     const activePhases = MOCK_NETWORK_SCHEDULE.phases.filter(p => p.status === 'В процессе');
     const delayedPhases = MOCK_NETWORK_SCHEDULE.phases.filter(p => p.issues?.length > 0);
+    
+    // Получаем данные о технических решениях
+    const technicalSolutions = getTechnicalSolutions();
+    const technicalStatistics = getStatistics();
+    
+    // Получаем данные о полевых заметках
+    const fieldNotes = Array.isArray(overrideFieldNotes)
+      ? overrideFieldNotes
+      : (fieldNotesRef.current || []);
+    
     
     return {
       project: MOCK_NETWORK_SCHEDULE.project,
@@ -111,12 +202,15 @@ const useAIAssistant = () => {
       delayedPhases,
       milestones: MOCK_NETWORK_SCHEDULE.milestones,
       criticalPath: MOCK_NETWORK_SCHEDULE.criticalPath,
-      recentUpdates: MOCK_NETWORK_SCHEDULE.recentUpdates
+      recentUpdates: MOCK_NETWORK_SCHEDULE.recentUpdates,
+      technicalSolutions,
+      technicalStatistics,
+      fieldNotes
     };
-  };
+  }, [fieldNotesState?.fieldNotes]);
 
   // Функция для обработки AI запроса
-  const processAIRequest = useCallback(async (userMessage) => {
+  const processAIRequest = useCallback(async (userMessage, overrideFieldNotes = null) => {
     setIsProcessing(true);
     
     // Искусственная задержка для имитации работы нейросети (1.5-3 секунды)
@@ -124,17 +218,22 @@ const useAIAssistant = () => {
     await new Promise(resolve => setTimeout(resolve, delay));
     
     try {
-      const context = generateScheduleContext();
+      
+      const context = generateScheduleContext(overrideFieldNotes);
+      
+      
+      // Получаем настройки характера и стиля
+      const character = CHARACTERS[selectedCharacter];
+      const responseStyle = RESPONSE_STYLES[selectedResponseStyle];
       
       // Формируем промпт для AI ассистента
-      const systemPrompt = `Ты - опытный ассистент прораба на строительном объекте "${context.project.name}". 
+      const systemPrompt = `Ты - ассистент прораба на строительном объекте "${context.project.name}". 
 
-Твоя роль:
-- Эксперт по сетевому планированию строительства
-- Критически мыслящий специалист, не соглашающийся со всем подряд
-- Говоришь кратко и по делу, как настоящий прораб
-- Можешь поспорить, если видишь проблемы
-- Отстаиваешь свою точку зрения на основе данных
+Твой характер и стиль общения:
+${character.tone}
+
+Стиль ответа:
+${responseStyle.instruction}
 
 Текущее состояние проекта:
 - Общий прогресс: ${context.currentStatus.overallProgress}%
@@ -143,20 +242,46 @@ const useAIAssistant = () => {
 - Активные фазы: ${context.activePhases.map(p => p.name).join(', ')}
 - Проблемные фазы: ${context.delayedPhases.map(p => p.name + ' (' + p.issues[0]?.description + ')').join('; ')}
 
+Детальная информация по бюджету:
+- Запланировано: ${context.currentStatus.budget.planned?.toLocaleString('ru-RU') || 'н/д'} ₽
+- Потрачено: ${context.currentStatus.budget.spent?.toLocaleString('ru-RU') || 'н/д'} ₽
+- Остаток: ${context.currentStatus.budget.remaining?.toLocaleString('ru-RU') || 'н/д'} ₽
+- Освоение бюджета: ${context.currentStatus.budget.utilizationPercent}%
+
 Критический путь: ${context.criticalPath.join(' → ')}
 
 Последние обновления:
 ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n')}
 
+Технические решения:
+- Всего решений: ${context.technicalStatistics.total}
+- По статусам: Ожидают согласования - ${context.technicalStatistics.byStatus.pending || 0}, В процессе - ${context.technicalStatistics.byStatus.in_progress || 0}, Согласованные - ${context.technicalStatistics.byStatus.approved || 0}, Отклоненные - ${context.technicalStatistics.byStatus.rejected || 0}
+- Общее влияние на бюджет: +${context.technicalStatistics.totalCostImpact?.toLocaleString('ru-RU') || 0} ₽
+- Влияние на сроки: +${context.technicalStatistics.totalScheduleImpact || 0} дней
+
+Активные технические решения:
+${context.technicalSolutions.filter(ts => ts.status === 'pending' || ts.status === 'in_progress').slice(0, 5).map(ts => 
+  `- ${ts.title} (${ts.status === 'pending' ? 'ожидает согласования' : 'в процессе'}): ${ts.description.substring(0, 100)}...`
+).join('\n')}
+
+Полевые заметки:
+- Всего заметок на объекте: ${context.fieldNotes.length}
+${context.fieldNotes.length > 0 ? `- Последние заметки:\n${context.fieldNotes.slice(-3).map(note => {
+  const floorLabel = note.position?.floor ? `этаж ${note.position.floor}` : 'этаж н/д';
+  const statusLabel = note.status?.name ? `, статус: ${note.status.name}` : '';
+  const tagsLabel = (note.tags && note.tags.length) ? `, теги: ${note.tags.join(', ')}` : '';
+  return `  • ${note.title || 'Заметка'} (${floorLabel}${statusLabel}${tagsLabel}): ${note.description?.substring(0, 80) || 'Без описания'}...`;
+}).join('\n')}` : '- Заметок пока нет'}
+
 Отвечай на русском языке, используй строительную терминологию. Будь конкретным и полезным.`;
 
       const requestPayload = {
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage }
         ],
-        max_tokens: 500,
+        max_tokens: responseStyle.maxTokens,
         temperature: 0.7
       };
 
@@ -170,7 +295,7 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
       });
 
       if (!response.ok) {
-        console.warn(`AI API error: ${response.status}. Switching to mock responses.`);
+        
         // При ошибке API (например, отсутствует ключ) используем mock ответы
         return generateMockResponse(userMessage);
       }
@@ -191,19 +316,19 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
 
       return aiResponse;
     } catch (error) {
-      console.error('AI request error:', error);
+      
       
       // Fallback ответы на основе mock данных
-      return generateMockResponse(userMessage);
+      return generateMockResponse(userMessage, overrideFieldNotes);
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [selectedCharacter, selectedResponseStyle, generateScheduleContext]);
 
   // Функция для генерации mock ответов (fallback)
-  const generateMockResponse = (userMessage) => {
+  const generateMockResponse = (userMessage, overrideFieldNotes = null) => {
     const lowerMessage = userMessage.toLowerCase();
-    const context = generateScheduleContext();
+    const context = generateScheduleContext(overrideFieldNotes);
     
     if (lowerMessage.includes('статус') || lowerMessage.includes('дела') || lowerMessage.includes('как дела')) {
       return `Слушай, ситуация такая: проект идет с отставанием на ${context.currentStatus.schedule.delay} дня. Фундамент застрял из-за проблем с арматурой. Общий прогресс ${context.currentStatus.overallProgress}%, но это не радует - мы должны были быть дальше. Критический путь под угрозой.`;
@@ -218,11 +343,33 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     }
     
     if (lowerMessage.includes('деньги') || lowerMessage.includes('бюджет')) {
-      return `По деньгам пока не критично - освоили ${context.currentStatus.budget.utilizationPercent}% от планового бюджета. Но если отставание продолжится, штрафы за срыв сроков съедят всю прибыль. Плюс зимние работы дороже выйдут.`;
+      const budget = context.currentStatus.budget;
+      return `По деньгам такая картина: запланировано ${(budget.planned / 1000000).toFixed(0)} млн рублей, потратили ${budget.utilizationPercent}% (${(budget.spent / 1000000).toFixed(1)} млн). Остается ${(budget.remaining / 1000000).toFixed(1)} млн. Пока укладываемся в план, но надо следить чтобы не потратить лишнего - техрешения добавляют расходов.`;
+    }
+    
+    if (lowerMessage.includes('технические') || lowerMessage.includes('решения') || lowerMessage.includes('тех')) {
+      const pendingSolutions = context.technicalSolutions.filter(ts => ts.status === 'pending').length;
+      const approvedSolutions = context.technicalSolutions.filter(ts => ts.status === 'approved').length;
+      return `По техническим решениям ситуация такая: всего у нас ${context.technicalStatistics.total} решений. ${pendingSolutions} штук ждут согласования, ${approvedSolutions} уже утвердили. Общий удар по бюджету - плюс ${(context.technicalStatistics.totalCostImpact / 1000000).toFixed(1)} млн рублей. Плюс задержка на ${context.technicalStatistics.totalScheduleImpact} дней. Не радует, честно говоря.`;
     }
     
     if (lowerMessage.includes('рабочие') || lowerMessage.includes('люди')) {
       return `Рабочих хватает - 38 человек на объекте из 45 запланированных. Но что толку, если арматуры нет? Людей перебросил на другие участки, чтобы простоя не было. Хотя понимаю, что это временное решение.`;
+    }
+    
+    if (lowerMessage.includes('заметки') || lowerMessage.includes('полевые')) {
+      const notes = context.fieldNotes || [];
+      const notesCount = notes.length;
+      if (notesCount === 0) {
+        return `Полевых заметок пока нет на объекте. А зря - они помогают отслеживать все нюансы работ. Советую начать их вести, особенно для проблемных участков и важных моментов строительства.`;
+      }
+      const lastNotes = notes.slice(-2).map(note => {
+        const floorLabel = note.position?.floor ? `этаж ${note.position.floor}` : 'этаж н/д';
+        const statusLabel = note.status?.name ? `, статус: ${note.status.name}` : '';
+        const tagsLabel = (note.tags && note.tags.length) ? `, теги: ${note.tags.join(', ')}` : '';
+        return `"${note.title || 'Без названия'}" (${floorLabel}${statusLabel}${tagsLabel})`;
+      }).join(', ');
+      return `У нас на объекте ${notesCount} полевых заметок. Последние: ${lastNotes}.`;
     }
     
     if (lowerMessage.includes('погода')) {
@@ -235,7 +382,7 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
   // Обработка голосового ввода
   const handleVoiceInput = useCallback(async (transcript) => {
     const currentChatMode = chatModeRef.current;
-    console.log('handleVoiceInput called with chatMode from ref:', currentChatMode);
+    
     setIsListening(false);
     
     if (!transcript.trim()) return;
@@ -244,23 +391,22 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     addMessage('user', transcript, { isVoice: true });
     
     // Обрабатываем запрос
-    const aiResponse = await processAIRequest(transcript);
+    const currentNotesSnapshot = Array.isArray(fieldNotesRef.current)
+      ? [...fieldNotesRef.current]
+      : [];
+    const aiResponse = await processAIRequest(transcript, currentNotesSnapshot);
     
     // Добавляем ответ AI
     const assistantMessage = addMessage('assistant', aiResponse);
     
     // Озвучиваем ответ в голосовом режиме
-    console.log('Current chatMode from ref:', currentChatMode);
     if (currentChatMode === 'voice') {
-      console.log('Voice mode detected, scheduling speech...');
-      setTimeout(() => {
-        console.log('About to call speakText with response:', aiResponse);
-        speakText(aiResponse);
-      }, 500);
+      setIsSpeaking(true);
+      speakText(aiResponse);
     } else {
-      console.log('Not in voice mode, skipping speech');
+      
     }
-  }, [addMessage, processAIRequest, speakText]);
+  }, [addMessage, processAIRequest, speakText, fieldNotesState?.fieldNotes]);
 
   // Обработка текстового ввода
   const handleTextInput = async (text) => {
@@ -274,7 +420,10 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     setIsTyping(true);
     
     // Обрабатываем запрос
-    const aiResponse = await processAIRequest(text);
+    const currentNotesSnapshot = Array.isArray(fieldNotesRef.current)
+      ? [...fieldNotesRef.current]
+      : [];
+    const aiResponse = await processAIRequest(text, currentNotesSnapshot);
     
     setIsTyping(false);
     
@@ -283,20 +432,17 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     
     // Озвучиваем ответ, если включен голосовой режим
     if (chatMode === 'voice') {
-      setTimeout(() => {
-        speakText(aiResponse);
-      }, 500);
+      setIsSpeaking(true);
+      speakText(aiResponse);
     }
   };
 
   // Функция для озвучивания текста
   const speakText = useCallback((text) => {
-    console.log('speakText called with:', text);
-    console.log('speechSupported:', speechSupported);
-    console.log('speechSynthesis available:', 'speechSynthesis' in window);
+    
     
     if (!('speechSynthesis' in window)) {
-      console.warn('Speech Synthesis не поддерживается браузером');
+      
       return;
     }
     
@@ -310,19 +456,24 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     utterance.volume = 0.8;
     
     utterance.onstart = () => {
-      console.log('Speech synthesis started');
+      
       setIsSpeaking(true);
     };
     utterance.onend = () => {
-      console.log('Speech synthesis ended');
+      
       setIsSpeaking(false);
     };
     utterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event);
+      // Ошибка "interrupted" — нормальная ситуация при прерывании речи, не считаем её ошибкой
+      if (event?.error === 'interrupted' || event?.name === 'interrupted') {
+        
+      } else {
+        
+      }
       setIsSpeaking(false);
     };
     
-    console.log('Starting speech synthesis...');
+    
     window.speechSynthesis.speak(utterance);
     synthesisRef.current = utterance;
   }, [speechSupported]);
@@ -432,7 +583,7 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
 
   // Загрузка чата из истории
   const loadChat = useCallback((chat) => {
-    console.log('Loading chat:', chat);
+    
     
     // Сохраняем текущий чат в историю если он не пустой
     if (messages.length > 1) {
@@ -455,7 +606,7 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     // Переключаемся в чат режим
     setChatMode('chat');
     
-    console.log('Chat loaded successfully');
+    
   }, [messages, chatHistory, saveChatHistory, setChatMode]);
 
   // Быстрые вопросы
@@ -486,6 +637,16 @@ ${context.recentUpdates.slice(0, 3).map(u => `${u.date}: ${u.message}`).join('\n
     inputValue,
     setInputValue,
     isTyping,
+    
+    // Настройки ассистента
+    selectedCharacter,
+    setSelectedCharacter,
+    selectedResponseStyle,
+    setSelectedResponseStyle,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    characters: CHARACTERS,
+    responseStyles: RESPONSE_STYLES,
     
     // Функции
     handleTextInput,

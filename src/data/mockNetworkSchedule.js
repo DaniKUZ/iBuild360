@@ -8,7 +8,14 @@ export const MOCK_NETWORK_SCHEDULE = {
     endDate: '2025-12-31',
     totalDuration: 365,
     completedDays: 228,
-    status: 'В процессе'
+    status: 'В процессе',
+    budget: {
+      planned: 125000000, // 125 млн рублей запланировано
+      spent: 77500000, // 77.5 млн рублей потрачено
+      remaining: 47500000, // 47.5 млн остаток
+      utilizationPercent: 62, // 62% освоения
+      contingency: 12500000 // 12.5 млн резерв (10%)
+    }
   },
 
   phases: [
@@ -76,7 +83,7 @@ export const MOCK_NETWORK_SCHEDULE = {
       status: 'В процессе',
       criticalPath: true,
       tasks: [
-        'Монтаж колонн 1-5 этажей',
+        'Монтаж колонн 1-2 этажей',
         'Устройство перекрытий',
         'Монтаж лестничных маршей'
       ]
@@ -161,7 +168,7 @@ export const MOCK_NETWORK_SCHEDULE = {
     },
     {
       id: 'ms3',
-      name: 'Возведение каркаса до 5 этажа',
+      name: 'Возведение каркаса до 2 этажа',
       date: '2025-08-20',
       status: 'Почти завершено',
       achieved: false
@@ -241,7 +248,7 @@ export const MOCK_NETWORK_SCHEDULE = {
     {
       date: '2025-08-15',
       type: 'progress',
-      message: 'Завершен монтаж каркаса 5-го этажа, прогресс каркаса 92%'
+      message: 'Завершен монтаж каркаса 2-го этажа, прогресс каркаса 92%'
     },
     {
       date: '2025-08-10',

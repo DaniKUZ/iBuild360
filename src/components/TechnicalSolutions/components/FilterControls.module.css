@@ -1,0 +1,289 @@
+/* Filter Controls Styles */
+.filterControls {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.filtersRow {
+  display: grid;
+  grid-template-columns: 2fr 3fr 2fr;
+  gap: 24px;
+  align-items: end;
+}
+
+/* Search Group */
+.searchGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.searchInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchInputWrapper i {
+  position: absolute;
+  left: 12px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.searchInput {
+  width: 100% !important;
+  padding: 10px 40px 10px 36px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  transition: border-color 0.2s ease !important;
+  background: #f9fafb !important;
+  color: #1f2937 !important;
+  min-width: auto !important;
+}
+
+.searchInput:focus {
+  outline: none !important;
+  border-color: #3b82f6 !important;
+  background: white !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  color: #1f2937 !important;
+}
+
+.clearSearch {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.clearSearch:hover {
+  color: #6b7280;
+}
+
+/* Filters Group */
+.filtersGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.filterItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filterItem label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filterSelect {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Sort Group */
+.sortGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sortGroup label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.sortButtons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sortBtn {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sortBtn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.sortBtn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.sortBtn i {
+  font-size: 10px;
+}
+
+/* Active Filters */
+.activeFilters {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.activeFiltersList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.activeFiltersLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.filterTag {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filterTag button {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: 2px;
+  transition: color 0.2s ease;
+}
+
+.filterTag button:hover {
+  color: #1d4ed8;
+}
+
+.clearAllFilters {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearAllFilters:hover {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .filtersRow {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .filtersGroup {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .sortButtons {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .filterControls {
+    padding: 16px;
+  }
+  
+  .filtersGroup {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .sortButtons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .sortBtn {
+    justify-content: center;
+  }
+  
+  .activeFiltersList {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .filterTag {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .filtersRow {
+    gap: 16px;
+  }
+  
+  .searchInput {
+    padding: 8px 32px 8px 32px;
+    font-size: 13px;
+  }
+  
+  .filterSelect {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  
+  .sortBtn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}

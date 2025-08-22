@@ -6,6 +6,8 @@ import DateSelector from '../../Viewer360/components/DateSelector/DateSelector';
 import VideoControls from '../../Viewer360/components/VideoControls/VideoControls';
 import DateComparisonModal from './DateComparisonModal';
 import YandexMiniMap from '../components/YandexMiniMap';
+import PrescriptionsModal from '../components/PrescriptionsModal';
+import AllPrescriptionsModal from '../components/AllPrescriptionsModal';
 import {
   ResponsiveContainer,
   LineChart,
@@ -101,7 +103,7 @@ const getAnalysisSegmentsByDate = () => {
         status: 'in_progress',
         details: [
           'Установка закладных деталей — в работе',
-          'Монтаж светильников — выполнено',
+          'Монтаж светильников — в работе',
           'Устройства дополнительного слоя основания из песка — в работе',
         ],
       };
@@ -228,6 +230,9 @@ function RoadVideoSection() {
   const [overallPlanData, setOverallPlanData] = useState(() => getOverallPlanDataByDate());
   const [taskCharts, setTaskCharts] = useState(() => getTaskChartsByDate());
   const [showCompareModal, setShowCompareModal] = useState(false);
+  const [showPrescriptionsModal, setShowPrescriptionsModal] = useState(false);
+  const [showAllPrescriptionsModal, setShowAllPrescriptionsModal] = useState(false);
+  const [prescriptions, setPrescriptions] = useState([]);
   const chartsContainerRef = useRef(null);
   const frameContainerRef = useRef(null);
   const [startCharts, setStartCharts] = useState(false);
@@ -283,52 +288,153 @@ function RoadVideoSection() {
     setCurrentFrame(prev => Math.max(0, prev - 1));
   }, []);
 
-  // Zoom handlers
+  // Zoom handlers - УЛУЧШЕННАЯ ВЕРСИЯ для детального осмотра узлов
   const handleZoomIn = useCallback(() => {
-    setTargetZoom((z) => Math.min(6, parseFloat((z + 0.25).toFixed(2))));
-  }, []);
+    const container = frameContainerRef.current;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const newZoom = Math.min(8, zoom + 0.25);
+    const zoomRatio = newZoom / zoom;
+    
+    // Пересчитываем панорамирование с учётом origin в левом верхнем углу
+    const nextPanX = centerX - (centerX - pan.x) * zoomRatio;
+    const nextPanY = centerY - (centerY - pan.y) * zoomRatio;
+    const { x: newPanX, y: newPanY } = clampPan(nextPanX, nextPanY, newZoom);
+    
+    setZoom(newZoom);
+    setPan({ x: newPanX, y: newPanY });
+    setTargetZoom(newZoom);
+    setTargetPan({ x: newPanX, y: newPanY });
+  }, [zoom, pan, clampPan]);
+
   const handleZoomOut = useCallback(() => {
-    setTargetZoom((z) => Math.max(1, parseFloat((z - 0.25).toFixed(2))));
+    const container = frameContainerRef.current;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const newZoom = Math.max(1, zoom - 0.25);
+    const zoomRatio = newZoom / zoom;
+    
+    const nextPanX = centerX - (centerX - pan.x) * zoomRatio;
+    const nextPanY = centerY - (centerY - pan.y) * zoomRatio;
+    const { x: newPanX, y: newPanY } = clampPan(nextPanX, nextPanY, newZoom);
+    
+    setZoom(newZoom);
+    setPan({ x: newPanX, y: newPanY });
+    setTargetZoom(newZoom);
+    setTargetPan({ x: newPanX, y: newPanY });
+  }, [zoom, pan, clampPan]);
+  
+  // Новый: умный zoom к точке клика для осмотра узлов
+  const handleSmartZoomToPoint = useCallback((clientX, clientY, zoomLevel = 4.5) => {
+    const container = frameContainerRef.current;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const mouseX = clientX - rect.left;
+    const mouseY = clientY - rect.top;
+    
+    const targetZoomLevel = Math.min(8, zoomLevel);
+    const zoomRatio = targetZoomLevel / zoom;
+    
+    // Сохраняем точку под курсором неизменной (origin: top-left)
+    const nextPanX = mouseX - (mouseX - pan.x) * zoomRatio;
+    const nextPanY = mouseY - (mouseY - pan.y) * zoomRatio;
+    const clamped = clampPan(nextPanX, nextPanY, targetZoomLevel);
+    
+    setTargetPan(clamped);
+    setTargetZoom(targetZoomLevel);
+  }, [zoom, pan, clampPan]);
+
+  // Новый: быстрый zoom на ROI область для осмотра труб/колодцев/опор
+  const handleQuickZoomToROI = useCallback(() => {
+    const roiData = rectanglesByFrame[currentFrame];
+    if (!roiData?.points) return;
+    
+    // Центрируем на ROI области
+    const { tl, tr, br, bl } = roiData.points;
+    const centerX = (tl.x + tr.x + br.x + bl.x) / 4;
+    const centerY = (tl.y + tr.y + br.y + bl.y) / 4;
+    
+    // Преобразуем процентные координаты в пиксели
+    const container = frameContainerRef.current;
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    const pixelX = rect.left + (centerX / 100) * rect.width;
+    const pixelY = rect.top + (centerY / 100) * rect.height;
+    
+    handleSmartZoomToPoint(pixelX, pixelY, 5); // Мягкий zoom на ROI
+  }, [currentFrame, rectanglesByFrame, handleSmartZoomToPoint]);
+
+  const handleZoomReset = useCallback(() => { 
+    setZoom(1); 
+    setPan({ x: 0, y: 0 }); 
+    setTargetZoom(1); 
+    setTargetPan({ x: 0, y: 0 }); 
   }, []);
-  const handleZoomReset = useCallback(() => { setTargetZoom(1); setTargetPan({ x: 0, y: 0 }); }, []);
 
   const clampPan = useCallback((x, y, nextZoom) => {
     const container = frameContainerRef.current;
     if (!container) return { x, y };
     const rect = container.getBoundingClientRect();
     const z = nextZoom ?? zoom;
-    const extraX = (rect.width * z - rect.width) / 2;
-    const extraY = (rect.height * z - rect.height) / 2;
-    if (extraX <= 0 || extraY <= 0) return { x: 0, y: 0 };
-    return {
-      x: Math.max(-extraX, Math.min(extraX, x)),
-      y: Math.max(-extraY, Math.min(extraY, y)),
-    };
+    const scaledW = rect.width * z;
+    const scaledH = rect.height * z;
+    // Ограничиваем перемещение так, чтобы изображение не выходило за пределы контейнера
+    const minX = Math.min(0, rect.width - scaledW);
+    const maxX = 0;
+    const minY = Math.min(0, rect.height - scaledH);
+    const maxY = 0;
+    const clampedX = Math.max(minX, Math.min(maxX, x));
+    const clampedY = Math.max(minY, Math.min(maxY, y));
+    return { x: clampedX, y: clampedY };
   }, [zoom]);
 
   const handleWheel = useCallback((e) => {
     if (e.cancelable) e.preventDefault();
     e.stopPropagation();
+    
+    // Оптимизация: проверяем на слишком частые события
+    const now = performance.now();
+    if (wheelEndTimerRef.current && (now - wheelEndTimerRef.current) < 16) return; // 60fps ограничение
+    wheelEndTimerRef.current = now;
+    
     setIsZooming(true);
-    if (wheelEndTimerRef.current) {
-      clearTimeout(wheelEndTimerRef.current);
-    }
-    wheelEndTimerRef.current = setTimeout(() => setIsZooming(false), 120);
     const container = frameContainerRef.current;
     if (!container) return;
+    
     const rect = container.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = (e.clientX ?? (e.pageX - window.scrollX)) - cx;
-    const dy = (e.clientY ?? (e.pageY - window.scrollY)) - cy;
+    // Получаем позицию курсора относительно контейнера
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
     const direction = e.deltaY > 0 ? -1 : 1; // вверх увеличить, вниз уменьшить
-    const baseStep = e.ctrlKey ? 0.25 : 0.12;
-    const step = baseStep * direction; // более явный шаг
-    const newZoom = Math.max(1, Math.min(6, parseFloat((zoom + step).toFixed(2))));
-    const scaleDelta = newZoom / zoom - 1;
-    setTargetPan((prev) => clampPan(prev.x - dx * scaleDelta, prev.y - dy * scaleDelta, newZoom));
-    setTargetZoom(newZoom);
-  }, [zoom, clampPan]);
+    const zoomStep = e.ctrlKey ? 0.3 : 0.15;
+    const deltaZoom = zoomStep * direction;
+    const newZoom = Math.max(1, Math.min(8, zoom + deltaZoom));
+    
+    if (newZoom !== zoom) {
+      const zoomRatio = newZoom / zoom;
+      // Держим точку под курсором на месте
+      const nextPanX = mouseX - (mouseX - pan.x) * zoomRatio;
+      const nextPanY = mouseY - (mouseY - pan.y) * zoomRatio;
+      const clamped = clampPan(nextPanX, nextPanY, newZoom);
+      // Плавно обновляем через целевые значения
+      setTargetZoom(newZoom);
+      setTargetPan(clamped);
+    }
+    
+    // Дебаунс для сброса флага зума
+    setTimeout(() => setIsZooming(false), 100);
+  }, [zoom, pan, clampPan]);
 
   // Гарантируем non-passive wheel listener, чтобы блокировать скролл страницы
   useEffect(() => {
@@ -349,6 +455,12 @@ function RoadVideoSection() {
 
   const onMouseMove = useCallback((e) => {
     if (!isPanning) return;
+    
+    // Оптимизация: throttling для плавности при большом зуме
+    const now = performance.now();
+    if (onMouseMove.lastTime && (now - onMouseMove.lastTime) < 8) return; // 120fps ограничение
+    onMouseMove.lastTime = now;
+    
     const dx = e.clientX - lastPointerRef.current.x;
     const dy = e.clientY - lastPointerRef.current.y;
     const next = clampPan(panStartRef.current.x + dx, panStartRef.current.y + dy);
@@ -718,6 +830,60 @@ function RoadVideoSection() {
     setShowCompareModal(false);
   }, []);
 
+  // Обработчики предписаний
+  const handleOpenPrescriptionsModal = useCallback(async () => {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch (e) {
+      // no-op
+    } finally {
+      setShowPrescriptionsModal(true);
+    }
+  }, []);
+
+  const handleClosePrescriptionsModal = useCallback(() => {
+    setShowPrescriptionsModal(false);
+  }, []);
+
+  const handlePrescriptionAdd = useCallback((prescription) => {
+    setPrescriptions(prev => [...prev, prescription]);
+  }, []);
+
+  const handlePrescriptionUpdate = useCallback((prescriptionId, updates) => {
+    setPrescriptions(prev => 
+      prev.map(p => p.id === prescriptionId ? { ...p, ...updates } : p)
+    );
+  }, []);
+
+  // Обработчики для AllPrescriptionsModal
+  const handleOpenAllPrescriptionsModal = useCallback(async () => {
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch (e) {
+      // no-op
+    } finally {
+      setShowAllPrescriptionsModal(true);
+    }
+  }, []);
+
+  const handleCloseAllPrescriptionsModal = useCallback(() => {
+    setShowAllPrescriptionsModal(false);
+  }, []);
+
+  const handlePrescriptionView = useCallback((prescription) => {
+    // Переходим к кадру с предписанием
+    if (prescription.frameIndex !== undefined) {
+      setCurrentFrame(prescription.frameIndex);
+    }
+    // Закрываем модальное окно
+    setShowAllPrescriptionsModal(false);
+    // Можно добавить дополнительную логику, например, подсветку области ROI
+  }, []);
+
   return (
     <div className="road-video-section">
       {/* Заголовок секции */}
@@ -744,9 +910,9 @@ function RoadVideoSection() {
             >
               {(() => {
                 const sharedTransform = {
-                  transition: (isPanning || isZooming) ? 'none' : 'transform 0.2s ease-out',
+                  transition: isZooming ? 'none' : (zoom > 1 ? 'transform 0.08s ease-out' : 'transform 0.2s ease-out'),
                   transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-                  transformOrigin: 'center center'
+                  transformOrigin: '0 0'
                 };
                 return (
                   <>
@@ -756,7 +922,15 @@ function RoadVideoSection() {
                       alt={`Дорожный кадр ${frames[currentFrame]?.pkLabel}`}
                       className="road-frame-image"
                       draggable={false}
-                      style={sharedTransform}
+                      style={{...sharedTransform, cursor: isPanning ? 'grabbing' : (zoom > 1 ? 'grab' : 'zoom-in')}}
+                      onClick={(e) => {
+                        // Умный zoom к точке клика для детального осмотра узлов
+                        if (e.ctrlKey || e.metaKey) {
+                          handleQuickZoomToROI(); // Быстрый zoom на ROI при Ctrl+клик
+                        } else {
+                          handleSmartZoomToPoint(e.clientX, e.clientY); // Обычный smart zoom
+                        }
+                      }}
                       onError={(e) => {
                         e.target.style.display = 'none';
                         const placeholder = e.target.closest('.road-frame-container')?.querySelector('.road-video-placeholder');
@@ -848,12 +1022,21 @@ function RoadVideoSection() {
                   <button className="zoom-button" onClick={handleZoomReset} title="Сбросить масштаб">
                     <i className="fas fa-compress-arrows-alt"></i>
                   </button>
+                  <button className="zoom-button roi-zoom-button" onClick={handleQuickZoomToROI} title="Zoom на область работ (ROI)">
+                    <i className="fas fa-crosshairs"></i>
+                  </button>
                   <div className="controls-divider"></div>
                   <button className="zoom-button" onClick={toggleFullscreen} title={isFullscreen ? 'Выйти из полного экрана' : 'На весь экран'}>
                     <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
                   </button>
                   <button className="zoom-button compare-button" onClick={handleOpenCompareModal} title="AI Сравнение дат">
                     <i className="fas fa-magic-wand-sparkles"></i>
+                  </button>
+                  <button className="zoom-button prescriptions-button" onClick={handleOpenPrescriptionsModal} title="Предписания по участку">
+                    <i className="fas fa-clipboard-list"></i>
+                  </button>
+                  <button className="zoom-button all-prescriptions-button" onClick={handleOpenAllPrescriptionsModal} title={`Все предписания (${prescriptions.length})`}>
+                    <i className="fas fa-list-check"></i>
                   </button>
                 </div>
               )}
@@ -906,12 +1089,21 @@ function RoadVideoSection() {
               <button className="zoom-button" onClick={handleZoomReset} title="Сбросить масштаб">
                 <i className="fas fa-compress-arrows-alt"></i>
               </button>
+              <button className="zoom-button roi-zoom-button" onClick={handleQuickZoomToROI} title="Zoom на область работ (ROI)">
+                <i className="fas fa-crosshairs"></i>
+              </button>
               <div className="controls-divider"></div>
               <button className="zoom-button" onClick={toggleFullscreen} title={isFullscreen ? 'Выйти из полного экрана' : 'На весь экран'}>
                 <i className={`fas ${isFullscreen ? 'fa-compress' : 'fa-expand'}`}></i>
               </button>
               <button className="zoom-button compare-button" onClick={handleOpenCompareModal} title="AI Сравнение дат">
                 <i className="fas fa-magic-wand-sparkles"></i>
+              </button>
+              <button className="zoom-button prescriptions-button" onClick={handleOpenPrescriptionsModal} title="Предписания по участку">
+                <i className="fas fa-clipboard-list"></i>
+              </button>
+              <button className="zoom-button all-prescriptions-button" onClick={handleOpenAllPrescriptionsModal} title={`Все предписания (${prescriptions.length})`}>
+                <i className="fas fa-list-check"></i>
               </button>
               <button
                 className={`zoom-button map-toggle-button ${isMiniMapEnabled ? 'active' : ''}`}
@@ -1072,6 +1264,27 @@ function RoadVideoSection() {
         rightDate={new Date('2025-07-14')}
         generateFramesForDate={generateFramesForDate}
         getAnalysisSegmentsByDate={getAnalysisSegmentsByDate}
+      />
+
+      {/* Модальное окно предписаний */}
+      <PrescriptionsModal
+        isOpen={showPrescriptionsModal}
+        onClose={handleClosePrescriptionsModal}
+        frameData={frames[currentFrame]}
+        roiData={rectanglesByFrame[currentFrame]}
+        currentFrame={currentFrame}
+        onPrescriptionAdd={handlePrescriptionAdd}
+        onPrescriptionUpdate={handlePrescriptionUpdate}
+        prescriptions={prescriptions}
+      />
+
+      {/* Модальное окно всех предписаний */}
+      <AllPrescriptionsModal
+        isOpen={showAllPrescriptionsModal}
+        onClose={handleCloseAllPrescriptionsModal}
+        prescriptions={prescriptions}
+        onPrescriptionUpdate={handlePrescriptionUpdate}
+        onPrescriptionView={handlePrescriptionView}
       />
     </div>
   );

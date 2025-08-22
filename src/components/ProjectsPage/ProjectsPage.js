@@ -119,6 +119,12 @@ const ProjectsPage = ({ projects, onSaveNewProject, onSaveProject }) => {
       return;
     }
     
+    // Навигация к техническим решениям
+    if (itemId === 'technical-solutions') {
+      navigate('/technical-solutions');
+      return;
+    }
+    
     setActiveMenuItem(itemId);
     
     // Устанавливаем подпункт по умолчанию для каждого раздела

@@ -60,7 +60,7 @@ const Viewer360Container = ({ project, onBack }) => {
   const eventHandlers = useEventHandlers();
   const imageUtilities = useImageUtilities(viewerState, imageManagement, splitScreenState);
   const navigationHandlers = useNavigationHandlers(viewerState, imageManagement, splitScreenState, imageUtilities, mainViewerRef, leftPanelViewerRef, rightPanelViewerRef);
-  const aiAssistant = useAIAssistant();
+  const aiAssistant = useAIAssistant(fieldNotesState);
 
 
 
@@ -184,6 +184,7 @@ const Viewer360Container = ({ project, onBack }) => {
     { id: 'images', icon: 'fas fa-image', label: 'Изображение', isActive: true },
     { id: 'schemes', icon: 'fas fa-layer-group', label: 'Планы этажей' },
     { id: 'network-schedule', icon: 'fas fa-project-diagram', label: 'Сетевой план' },
+    { id: 'technical-solutions', icon: 'fas fa-cogs', label: 'Технические решения' },
     { id: 'field-notes', icon: 'fas fa-sticky-note', label: 'Полевые заметки' },
     { id: 'ai-comparison', icon: 'fas fa-brain', label: 'AI сравнение' },
     { id: 'timelapses', icon: 'fas fa-clock', label: 'Таймлапсы' },
@@ -296,10 +297,14 @@ const Viewer360Container = ({ project, onBack }) => {
     fieldNotesState.setIsFieldNotesSidebarVisible(false);
     uiState.setIsTimelapsesSectionVisible(false);
     uiState.setIsDroneShotsSectionVisible(false);
-          aiComparisonState.setIsAIComparisonSidebarVisible(false);
+    aiComparisonState.setIsAIComparisonSidebarVisible(false);
     
     if (item.action) {
       item.action();
+    } else if (item.id === 'technical-solutions') {
+      // Открываем технические решения на полный экран
+      viewerState.setCurrentSidebarSection('technical-solutions');
+      viewerState.setViewMode('technical-solutions');
     } else if (item.id === 'images') {
       // Пункт "Изображение" - показываем 360° изображение
               viewerState.setCurrentSidebarSection('images');
@@ -314,6 +319,7 @@ const Viewer360Container = ({ project, onBack }) => {
       viewerState.setViewMode('network-schedule');
       // Скрыть миникарту при открытии сетевого плана
       if (viewerState.isMinimapVisible) viewerState.setIsMinimapVisible(false);
+
     } else if (item.id === 'field-notes') {
       // Пункт "Полевые заметки" - показываем сайдбар полевых заметок
       viewerState.setCurrentSidebarSection('field-notes');
@@ -680,6 +686,8 @@ const Viewer360Container = ({ project, onBack }) => {
     // Здесь будет логика скачивания полного изображения 360°
   };
 
+
+
   // handleImageSettings теперь из imageSettings.handleImageSettings
   
   // Обёртка для handlePanoramaClick из fieldNotesState
@@ -1009,7 +1017,7 @@ const Viewer360Container = ({ project, onBack }) => {
             
             {/* Маркеры полевых заметок */}
             <FieldNoteMarkers
-              fieldNotes={fieldNotes}
+              fieldNotes={fieldNotesState.fieldNotes}
               onMarkerClick={handleMarkerClick}
               containerRef={mainViewerRef}
             />
@@ -1066,8 +1074,8 @@ onLastFrame={navigationHandlers.handleVideoLastFrame}
           <ViewerControlsSidebar
             onImageSettings={imageSettings.handleImageSettings}
             onSplitScreen={navigationHandlers.handleSplitScreen}
-onZoomIn={navigationHandlers.handleZoomIn}
-onZoomOut={navigationHandlers.handleZoomOut}
+            onZoomIn={navigationHandlers.handleZoomIn}
+            onZoomOut={navigationHandlers.handleZoomOut}
             currentZoom={viewerState.currentCamera.fov}
           />
         </div>
@@ -1136,8 +1144,8 @@ onLastFrame={navigationHandlers.handleVideoLastFrame}
             <ViewerControlsSidebar
               onImageSettings={imageSettings.handleImageSettings}
               onSplitScreen={navigationHandlers.handleSplitScreen}
-onZoomIn={navigationHandlers.handleZoomIn}
-onZoomOut={navigationHandlers.handleZoomOut}
+              onZoomIn={navigationHandlers.handleZoomIn}
+              onZoomOut={navigationHandlers.handleZoomOut}
               currentZoom={viewerState.currentCamera.fov}
             />
           </div>
@@ -1187,7 +1195,7 @@ onZoomOut={navigationHandlers.handleZoomOut}
           
           {/* Маркеры полевых заметок */}
           <FieldNoteMarkers
-            fieldNotes={fieldNotes}
+            fieldNotes={fieldNotesState.fieldNotes}
             onMarkerClick={handleMarkerClick}
             containerRef={mainViewerRef}
           />
@@ -1230,8 +1238,8 @@ onLastFrame={navigationHandlers.handleVideoLastFrame}
           <ViewerControlsSidebar
             onImageSettings={imageSettings.handleImageSettings}
             onSplitScreen={navigationHandlers.handleSplitScreen}
-onZoomIn={navigationHandlers.handleZoomIn}
-onZoomOut={navigationHandlers.handleZoomOut}
+            onZoomIn={navigationHandlers.handleZoomIn}
+            onZoomOut={navigationHandlers.handleZoomOut}
             currentZoom={viewerState.currentCamera.fov}
           />
         </div>
@@ -1280,7 +1288,7 @@ onZoomOut={navigationHandlers.handleZoomOut}
               
               {/* Маркеры полевых заметок для левой панели */}
               <FieldNoteMarkers
-                fieldNotes={fieldNotes}
+                fieldNotes={fieldNotesState.fieldNotes}
                 onMarkerClick={handleMarkerClick}
                 containerRef={leftPanelViewerRef}
               />
@@ -1341,8 +1349,8 @@ onLastFrame={navigationHandlers.handleVideoLastFrame}
               <ViewerControlsSidebar
                 onImageSettings={imageSettings.handleImageSettings}
                 onSplitScreen={navigationHandlers.handleSplitScreen}
-onZoomIn={navigationHandlers.handleZoomIn}
-onZoomOut={navigationHandlers.handleZoomOut}
+                onZoomIn={navigationHandlers.handleZoomIn}
+                onZoomOut={navigationHandlers.handleZoomOut}
                 currentZoom={viewerState.currentCamera.fov}
               />
             </div>
@@ -1366,7 +1374,7 @@ onZoomOut={navigationHandlers.handleZoomOut}
               
               {/* Маркеры полевых заметок для правой панели */}
               <FieldNoteMarkers
-                fieldNotes={fieldNotes}
+                fieldNotes={fieldNotesState.fieldNotes}
                 onMarkerClick={handleMarkerClick}
                 containerRef={rightPanelViewerRef}
               />
@@ -1424,14 +1432,14 @@ onLastFrame={navigationHandlers.handleVideoLastFrame}
               </div>
 
               {/* Правый вертикальный сайдбар для правой панели */}
-              <ViewerControlsSidebar
-                onImageSettings={imageSettings.handleImageSettings}
-                onSplitScreen={navigationHandlers.handleSplitScreen}
-onZoomIn={navigationHandlers.handleZoomIn}
-onZoomOut={navigationHandlers.handleZoomOut}
-                currentZoom={viewerState.currentCamera.fov}
-                isCompact={true}
-              />
+                          <ViewerControlsSidebar
+              onImageSettings={imageSettings.handleImageSettings}
+              onSplitScreen={navigationHandlers.handleSplitScreen}
+              onZoomIn={navigationHandlers.handleZoomIn}
+              onZoomOut={navigationHandlers.handleZoomOut}
+              currentZoom={viewerState.currentCamera.fov}
+              isCompact={true}
+            />
             </div>
           </div>
         </div>
@@ -1560,8 +1568,8 @@ onCloseRightPanel={navigationHandlers.handleCloseRightPanel}
           />
         )}
 
-        {/* Миникарта со схемами */}
-        {viewerState.isMinimapVisible && viewerState.viewMode !== 'schemes' && (
+        {/* Миникарта со схемами (скрываем в режимах технических решений и сетевого плана) */}
+        {viewerState.isMinimapVisible && viewerState.viewMode !== 'schemes' && viewerState.viewMode !== 'technical-solutions' && viewerState.viewMode !== 'network-schedule' && (
           <SchemesMinimap
             project={project}
             viewerState={viewerState}
@@ -1653,6 +1661,15 @@ onCloseRightPanel={navigationHandlers.handleCloseRightPanel}
           messagesEndRef={aiAssistant.messagesEndRef}
           chatHistory={aiAssistant.chatHistory}
           onLoadChat={aiAssistant.loadChat}
+          // Настройки ассистента
+          selectedCharacter={aiAssistant.selectedCharacter}
+          setSelectedCharacter={aiAssistant.setSelectedCharacter}
+          selectedResponseStyle={aiAssistant.selectedResponseStyle}
+          setSelectedResponseStyle={aiAssistant.setSelectedResponseStyle}
+          isSettingsOpen={aiAssistant.isSettingsOpen}
+          setIsSettingsOpen={aiAssistant.setIsSettingsOpen}
+          characters={aiAssistant.characters}
+          responseStyles={aiAssistant.responseStyles}
         />
 
       </div>

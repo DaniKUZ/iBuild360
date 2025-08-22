@@ -41,6 +41,11 @@ const useViewerState = () => {
   const [shootingTime, setShootingTime] = useState('14:30');
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   
+  // Состояния технических решений
+  const [showTechnicalSolutions, setShowTechnicalSolutions] = useState(false);
+  const [selectedTechnicalSolution, setSelectedTechnicalSolution] = useState(null);
+  const [technicalSolutionsFilter, setTechnicalSolutionsFilter] = useState('all');
+  
   // Состояния изображений OP убраны - используется imageManagement.currentOPImageIndex
 
   // Обработчики
@@ -111,6 +116,14 @@ const useViewerState = () => {
     setShootingTime,
     hasActiveFilters,
     setHasActiveFilters,
+    
+    // Технические решения
+    showTechnicalSolutions,
+    setShowTechnicalSolutions,
+    selectedTechnicalSolution,
+    setSelectedTechnicalSolution,
+    technicalSolutionsFilter,
+    setTechnicalSolutionsFilter,
     
     // Изображения OP убраны - используется imageManagement
     

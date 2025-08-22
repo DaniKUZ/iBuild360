@@ -57,6 +57,8 @@ const useFieldNotes = () => {
     setIsFieldNoteModalOpen(false);
   };
 
+  
+
   const handleFieldNoteClick = (note) => {
     setEditingFieldNote(note);
     setFieldNotePosition(note.position);

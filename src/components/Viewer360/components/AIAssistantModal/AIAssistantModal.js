@@ -30,7 +30,16 @@ const AIAssistantModal = ({
   chatHistory,
   onLoadChat,
   initialPosition,
-  onPositionChange
+  onPositionChange,
+  // Новые пропы для настроек
+  selectedCharacter,
+  setSelectedCharacter,
+  selectedResponseStyle,
+  setSelectedResponseStyle,
+  isSettingsOpen,
+  setIsSettingsOpen,
+  characters,
+  responseStyles
 }) => {
   const [position, setPosition] = useState(initialPosition || { bottom: 250, right: 30 });
 
@@ -215,8 +224,11 @@ const AIAssistantModal = ({
             {/* Mode Tabs */}
             <div className={styles.modeTabs}>
               <button
-                className={`${styles.modeTab} ${chatMode === 'chat' ? styles.active : ''}`}
-                onClick={() => setDirectChatMode('chat')}
+                className={`${styles.modeTab} ${!isSettingsOpen && chatMode === 'chat' ? styles.active : ''}`}
+                onClick={() => {
+                  setIsSettingsOpen(false);
+                  setDirectChatMode('chat');
+                }}
                 title="Текстовый чат"
               >
                 <i className="fas fa-comments"></i>
@@ -224,8 +236,11 @@ const AIAssistantModal = ({
               </button>
               
               <button
-                className={`${styles.modeTab} ${chatMode === 'voice' ? styles.active : ''}`}
-                onClick={() => setDirectChatMode('voice')}
+                className={`${styles.modeTab} ${!isSettingsOpen && chatMode === 'voice' ? styles.active : ''}`}
+                onClick={() => {
+                  setIsSettingsOpen(false);
+                  setDirectChatMode('voice');
+                }}
                 title="Голосовое общение"
                 disabled={!speechSupported}
               >
@@ -234,12 +249,24 @@ const AIAssistantModal = ({
               </button>
               
               <button
-                className={`${styles.modeTab} ${chatMode === 'history' ? styles.active : ''}`}
-                onClick={() => setDirectChatMode('history')}
+                className={`${styles.modeTab} ${!isSettingsOpen && chatMode === 'history' ? styles.active : ''}`}
+                onClick={() => {
+                  setIsSettingsOpen(false);
+                  setDirectChatMode('history');
+                }}
                 title="История разговоров"
               >
                 <i className="fas fa-history"></i>
                 <span>История</span>
+              </button>
+              
+              <button
+                className={`${styles.modeTab} ${isSettingsOpen ? styles.active : ''}`}
+                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                title="Настройки ассистента"
+              >
+                <i className="fas fa-cog"></i>
+                <span>Настройки</span>
               </button>
             </div>
           </div>
@@ -262,7 +289,54 @@ const AIAssistantModal = ({
             
             {/* Mode Content */}
             <div className={styles.content}>
-              {chatMode === 'chat' ? (
+              {isSettingsOpen ? (
+                <div className={styles.settingsMode}>
+                  <div className={styles.settingsContent}>
+                    <h3>Настройки ассистента</h3>
+                    
+                    <div className={styles.settingGroup}>
+                      <label>Стиль общения</label>
+                      <div className={styles.characterOptions}>
+                        {Object.entries(characters).map(([key, character]) => (
+                          <div 
+                            key={key}
+                            className={`${styles.characterOption} ${selectedCharacter === key ? styles.selected : ''}`}
+                            onClick={() => setSelectedCharacter(key)}
+                          >
+                            <div className={styles.characterName}>{character.name}</div>
+                            <div className={styles.characterDescription}>{character.description}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className={styles.settingGroup}>
+                      <label>Длина ответов</label>
+                      <div className={styles.responseStyleOptions}>
+                        {Object.entries(responseStyles).map(([key, style]) => (
+                          <div 
+                            key={key}
+                            className={`${styles.responseStyleOption} ${selectedResponseStyle === key ? styles.selected : ''}`}
+                            onClick={() => setSelectedResponseStyle(key)}
+                          >
+                            <div className={styles.styleName}>{style.name}</div>
+                            <div className={styles.styleDescription}>{style.description}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className={styles.settingsFooter}>
+                      <button 
+                        className={styles.saveButton}
+                        onClick={() => setIsSettingsOpen(false)}
+                      >
+                        Применить настройки
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : chatMode === 'chat' ? (
                 <ChatMode
                   messages={messages}
                   inputValue={inputValue}

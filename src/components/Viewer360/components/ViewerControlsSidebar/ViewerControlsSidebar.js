@@ -25,6 +25,7 @@ const ViewerControlsSidebar = ({
       onClick: onSplitScreen,
       isStub: false
     },
+
     {
       id: 'zoom-in',
       icon: 'fas fa-search-plus',

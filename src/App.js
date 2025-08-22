@@ -11,6 +11,7 @@ import WorkerStatsPage from './components/WorkerStatsPage';
 import SettingsPage from './components/SettingsPage';
 import LandscapingPage from './components/LandscapingPage';
 import NetworkSchedulePage from './components/NetworkSchedulePage/NetworkSchedulePage';
+
 import { mockProjects } from './data/mockData';
 import './styles/main.css';
 
@@ -42,10 +43,10 @@ function App() {
   // Обработчики для сайдбара
   const handleItemClick = useCallback((itemId) => {
     setActiveItem(itemId);
-    if (itemId !== 'network-schedule') {
-      setActiveSubItem(null);
-    } else {
+    if (itemId === 'network-schedule') {
       setActiveSubItem('current-schedule');
+    } else {
+      setActiveSubItem(null);
     }
   }, []);
 
@@ -139,6 +140,7 @@ function App() {
             } 
           />
           
+
           {/* Перенаправление неизвестных маршрутов на главную */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
